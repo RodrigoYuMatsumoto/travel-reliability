@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Added a self-locating Windows demo launcher and explicit clone/directory steps in both quick starts.
+- Clarified local server lifetime, interface/API ports and wrong-directory npm errors.
+
 ## 0.1.0 — 2026-10-30
 
 - Structured contracts, deterministic assessment/checklists and dated country rules.

@@ -17,3 +17,5 @@ minimal reproduction.
 
 The application's trust boundaries, known limits, dependency management and
 incident procedure are documented in [security model](docs/SECURITY_MODEL.md).
+Executed security regression coverage and evaluations not completed are listed
+in [security verification scope](docs/SECURITY_TESTS.md).

@@ -2,20 +2,26 @@
 
 **Contratos de viagem abertos, provas organizadas e recuperação rastreável. Brasil primeiro, arquitetura global.**
 
-[English](README.md) · [Planejamento e rateio](docs/PLANNING.md) · [Segurança](SECURITY.md) · [Evidências de entrega](docs/IMPLEMENTATION_STATUS.md)
+[English](README.md) · [Planejamento e rateio](docs/PLANNING.md) · [Segurança](SECURITY.md) · [Cobertura dos testes de segurança](docs/SECURITY_TESTS.md) · [Evidências de entrega](docs/IMPLEMENTATION_STATUS.md)
 
 Organize reservas, condições, conexões, comprovantes, ocorrências e pedidos de reembolso. O sistema distingue informação declarada, extraída e confirmada; valores ausentes continuam desconhecidos. Nenhuma compra, reclamação ou mensagem é enviada automaticamente.
 
 ## Executar
 
-Instale Node.js 24 e execute na raiz:
+Instale Node.js 24. Para baixar o projeto e entrar na pasta correta, execute os comandos na mesma janela:
 
 ```sh
+git clone https://github.com/RodrigoYuMatsumoto/travel-reliability.git
+cd travel-reliability
 npm ci
 npm run demo
 ```
 
 Abra **http://127.0.0.1:5173** e selecione **Explorar demonstração**. Os dados são fictícios, efêmeros e não acionam IA. Para o servidor compilado, use `npm run build` e `npm start`, em **http://127.0.0.1:4310**.
+
+**Windows / PowerShell 5.1:** depois de baixar o repositório, dê dois cliques em `start-demo.cmd` dentro dele, ou execute `& "CAMINHO-COMPLETO-DO-REPOSITORIO\start-demo.cmd"`. O iniciador entra na própria pasta, confere o Node.js 24 e instala as dependências ausentes da demonstração. Mantenha a janela aberta enquanto usar o aplicativo.
+
+Se o repositório já está no computador, entre na pasta que contém seu `package.json`; não precisa cloná-lo novamente. `Missing script` indica que o npm está lendo outro projeto. `ERR_CONNECTION_REFUSED` indica que nenhum servidor aceitou a conexão naquele endereço. Os endereços `127.0.0.1` pertencem ao computador que executa o terminal; não são sites hospedados pelo GitHub. Durante `npm run demo`, a interface usa a porta 5173 e a API usa 4310 (`/health`); no modo compilado, ambas usam 4310. Inicie o servidor antes de abrir o endereço.
 
 ## Funcionalidades
 

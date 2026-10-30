@@ -12,12 +12,20 @@ This is a self-hosted v0.1 application and a public data contract. It does not s
 
 Prerequisite: Node.js 24. No API key, database, Python or AI subscription is needed for the text-document demo.
 
+First clone the repository and enter its directory. Run the commands below in the same terminal:
+
 ```sh
+git clone https://github.com/RodrigoYuMatsumoto/travel-reliability.git
+cd travel-reliability
 npm ci
 npm run demo
 ```
 
 Open **http://127.0.0.1:5173** and choose **Explore demo**. The sample is fictional. Demo data is encrypted in memory and disappears on restart. Do not use the ephemeral demo as your only evidence archive.
+
+**Windows / PowerShell 5.1:** after cloning, double-click `start-demo.cmd` inside the repository, or run `& "FULL-PATH-TO-REPOSITORY\start-demo.cmd"`. The launcher enters its own directory, checks Node.js 24 and installs missing demo dependencies. Keep its window open while using the app.
+
+`Missing script` means npm is reading a different project's `package.json`; check your directory. `ERR_CONNECTION_REFUSED` means no server accepted the connection at that address. These are local addresses on the computer running the terminal, not hosted GitHub websites. During `npm run demo`, port 5173 serves the interface and port 4310 serves the API (`/health`); the built-server workflow below serves both on 4310. Starting the server is required before opening either address.
 
 For a single built server:
 
