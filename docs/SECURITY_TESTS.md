@@ -15,7 +15,9 @@ Passing the automated suite is not an exhaustive security assessment or a produc
 
 ## Current executed evidence
 
-Local recheck on 2026-10-30: 77 TypeScript tests and 13 Python tests passed, plus four desktop/mobile browser tests. Three durable-service tests and one native OCR test were skipped locally because their services were unavailable; the published CI suite exercised those paths with 80 TypeScript and 14 Python passes. Both dependency audits reported no known vulnerabilities at the local recheck. The Python test-client dependency emits a deprecation warning.
+Local application recheck on 2026-10-30: 77 TypeScript tests and 13 Python tests passed, plus four desktop/mobile browser tests. Three durable-service tests and one native OCR test were skipped locally because their services were unavailable; the published CI suite exercised those paths with 80 TypeScript and 14 Python passes. Two additional privacy-check regressions cover the CI merge-preview distinction. Both dependency audits reported no known vulnerabilities at the local recheck. The Python test-client dependency emits a deprecation warning.
+
+For GitHub pull requests, the history scanner excludes only the identity metadata of the current platform-generated test merge, after validating the CI event/ref/SHA, HEAD, two parents and generated subject. It reports that exclusion by hash. Every file blob, every parent commit and real merge-commit metadata remain checked. Synthetic regressions reject a mismatched context, private file contents and private identities in parent history; there is no general email allowlist.
 
 The live demo was also checked over actual HTTP and Chromium at both loopback addresses, including opening the synthetic trip. These checks distinguish a working application from simply having dependencies installed in an unrelated directory.
 

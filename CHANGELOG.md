@@ -4,6 +4,7 @@
 
 - Added a self-locating Windows demo launcher and explicit clone/directory steps in both quick starts.
 - Clarified local server lifetime, interface/API ports and wrong-directory npm errors.
+- Fixed the privacy-history false positive on validated temporary GitHub PR merge metadata; source blobs and actual authored history remain checked, with regression coverage.
 
 ## 0.1.0 — 2026-10-30
 

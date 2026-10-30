@@ -49,6 +49,7 @@ for (const file of new Set(files)) {
   }
   scan(data.toString('utf8'), file);
 }
+let excludedPreviewMetadata = null;
 if (process.argv.includes('--history')) {
   const commits = execFileSync('git', ['rev-list', '--all'], { encoding: 'utf8' })
     .trim()
@@ -56,12 +57,36 @@ if (process.argv.includes('--history')) {
     .filter(Boolean);
   const seen = new Set();
   for (const commit of commits) {
-    scan(
-      execFileSync('git', ['show', '-s', '--format=%an%n%ae%n%cn%n%ce%n%B', commit], {
+    // GitHub's temporary PR merge is not authored project history. Its actor
+    // identity is platform metadata. Validate the exact CI SHA, ref, parents and
+    // generated subject before excluding only that metadata; scan every blob
+    // and every parent commit normally. Real merge commits remain in scope.
+    let preview = false;
+    if (
+      process.env.GITHUB_ACTIONS === 'true' &&
+      process.env.GITHUB_EVENT_NAME === 'pull_request' &&
+      /^refs\/pull\/[1-9]\d*\/merge$/.test(process.env.GITHUB_REF ?? '') &&
+      commit === process.env.GITHUB_SHA &&
+      commit === execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()
+    ) {
+      const parents = execFileSync('git', ['show', '-s', '--format=%P', commit], {
         encoding: 'utf8',
-      }),
-      `commit:${commit.slice(0, 12)}`,
-    );
+      })
+        .trim()
+        .split(' ');
+      const subject = execFileSync('git', ['show', '-s', '--format=%s', commit], {
+        encoding: 'utf8',
+      }).trim();
+      preview = parents.length === 2 && subject === `Merge ${parents[1]} into ${parents[0]}`;
+    }
+    if (preview) excludedPreviewMetadata = commit.slice(0, 12);
+    else
+      scan(
+        execFileSync('git', ['show', '-s', '--format=%an%n%ae%n%cn%n%ce%n%B', commit], {
+          encoding: 'utf8',
+        }),
+        `commit:${commit.slice(0, 12)}`,
+      );
     const entries = execFileSync('git', ['ls-tree', '-r', '-z', commit], { encoding: 'utf8' })
       .split('\0')
       .filter(Boolean);
@@ -84,6 +109,7 @@ if (failures.length) {
       status: 'PASS',
       files: new Set(files).size,
       history: process.argv.includes('--history'),
+      excludedPreviewMetadata,
       scope: 'heuristic scan; manual review still required',
     }) + '\n',
   );
