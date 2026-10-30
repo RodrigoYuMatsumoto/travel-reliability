@@ -19,6 +19,7 @@ an independent penetration test, certification or guarantee.
 | Monetary/allocation errors          | Integer arithmetic, overflow rejection, exact cent reconciliation, conservative interval bounds, beneficiary-only shares and per-household deficits |
 | Native image advisories             | Pillow 13.0.0, fresh environment, version verification, Python tests and clean runtime dependency audit at the verification date                    |
 
-Infrastructure, native OCR and some multi-process races still need the external
-verification identified in IMPLEMENTATION_STATUS.md. Passing regressions does
-not establish absence of other vulnerabilities.
+Real infrastructure tests, native OCR and container builds subsequently passed
+on GitHub CI, as recorded in IMPLEMENTATION_STATUS.md. Deployed identity-provider
+validation, fleet-scale races and independent penetration testing remain outside
+that evidence. Passing regressions does not establish absence of other vulnerabilities.

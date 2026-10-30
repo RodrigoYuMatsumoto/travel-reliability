@@ -1,7 +1,8 @@
-# Delivery evidence — 0.1.0 candidate
+# Delivery evidence — 0.1.0
 
-Verified locally on **2026-10-30**. This is executed evidence, not a claim of a
-published release or production security certification.
+Verified locally and on GitHub on **2026-10-30**. This is executed evidence,
+not a production security certification. Service-backed CI run **40998099117**
+passed on code commit `9b9075409fed1d622d11ba40b778290b8deb4fc8`.
 
 ## Implemented
 
@@ -22,11 +23,11 @@ are included. No personal travel records or reference-repository code is bundled
 | Check                                | Result                                                                                                                                     |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | Strict TypeScript / production build | PASS                                                                                                                                       |
-| Vitest                               | 77 passed; 3 durable-store integration cases skipped without test services                                                                 |
-| Python                               | 13 passed, including actual parser subprocess; 1 native OCR case skipped without local Tesseract                                           |
+| Vitest                               | 80 passed in CI, including real PostgreSQL/Redis/S3; locally 77 passed and 3 skipped without services                                      |
+| Python                               | 14 passed in CI, including native OCR and actual parser subprocess; locally 13 passed and 1 skipped without Tesseract                      |
 | Desktop/mobile Playwright            | 4 passed: synthetic workflow, group-allocation UI, documents/dossier/language, viewport, automated WCAG checks and private-cache exclusion |
 | Formatting / Python lint             | PASS                                                                                                                                       |
-| YAML syntax                          | PASS; not a container or remote workflow execution                                                                                         |
+| Containers / remote workflow         | Both API and ingestion images built successfully on Ubuntu CI; complete verification workflow passed                                       |
 | npm audit                            | 0 known vulnerabilities at verification time                                                                                               |
 | pip-audit runtime lock               | 22 packages; 0 known vulnerabilities after Pillow 13.0.0 update; installed runtime version confirmed                                       |
 | Privacy scan                         | PASS over publishable files; heuristic scan plus manual review, not mathematical proof of anonymization                                    |
@@ -36,16 +37,15 @@ are included. No personal travel records or reference-repository code is bundled
 Two restricted read-only Claude Code reviews supplemented local analysis. Their
 concrete findings were corrected and regression-tested. See [review record](REVIEW_RECORD.md).
 
-## Outstanding external verification
+## Deployment verification
 
-- Real PostgreSQL, Redis and S3-compatible tests exist and are configured in CI;
-  those services were unavailable locally.
-- Native OCR and container builds are configured in CI, not executed locally.
+- Real PostgreSQL, Redis and S3-compatible tests, native OCR and both container
+  builds passed in CI. These services were unavailable locally.
 - OIDC tests process synthetic HTTPS-provider responses through the actual client
   library; a deployed IdP still requires operator validation.
-- GitHub repository creation and initial push succeeded after CLI authentication.
-  The repository remains private while reference-informed improvements and
-  service-backed CI are verified. No published release is claimed yet.
+- The GitHub repository is public, with secret scanning, push protection and a
+  private vulnerability-reporting channel enabled. Release packaging requires a
+  clean committed tree and a passing source/history privacy scan.
 
 ## Scope limits
 
