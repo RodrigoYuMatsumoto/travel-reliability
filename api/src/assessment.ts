@@ -7,6 +7,7 @@ import type {
   Finding,
 } from '../../schema/src/domain.js';
 import { instant } from './validation.js';
+import { validCnpj } from './cnpj.js';
 
 export function assess(
   trip: TripContract,
@@ -57,6 +58,13 @@ export function assess(
     if (!s.provider.contact) add('CONTACT_UNKNOWN', 'warning', s.id);
     if (s.provider.registration.status === 'inactive')
       add('REGISTRATION_INACTIVE', 'critical', s.id, {}, 25);
+    if (
+      s.country === 'BR' &&
+      /^(?:BR:)?CNPJ$/i.test(s.provider.registration.scheme ?? '') &&
+      s.provider.registration.value &&
+      !validCnpj(s.provider.registration.value)
+    )
+      add('REGISTRATION_FORMAT_INVALID', 'warning', s.id);
     if (
       s.country === 'BR' &&
       s.provider.cadastur.applicability === 'required' &&

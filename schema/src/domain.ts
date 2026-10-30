@@ -26,7 +26,17 @@ export interface EvidenceDocument {
   warnings: string[];
   parserVersion: string;
   derivedFrom: string | null;
+  facts?: LiteralFact[];
   preview?: Array<{ page?: number; line: number; text: string }>;
+}
+export interface LiteralFact {
+  kind: 'supplier' | 'date' | 'money';
+  value:
+    | string
+    | { iso: string; precision: 'date' | 'offset_datetime' | 'local_datetime_zone_unknown' }
+    | { currency: string; minorUnits: number };
+  state: 'extracted';
+  source: SourceSpan;
 }
 export interface Finding {
   code: string;
@@ -92,6 +102,18 @@ export interface Review {
   tripId: string;
   serviceId: string;
   evidenceDocumentId: string;
+  comparisons?: Array<{
+    attribute:
+      'cleanliness' | 'accessibility' | 'internet' | 'noise' | 'beds' | 'check_in' | 'other';
+    advertised: string | null;
+    observed: string | null;
+  }>;
+  comparisonSummary?: {
+    compared: number;
+    differentText: number;
+    incomplete: number;
+    verification: 'traveler_report_only';
+  };
   ratings: {
     cleanliness: number | null;
     accessibility: number | null;

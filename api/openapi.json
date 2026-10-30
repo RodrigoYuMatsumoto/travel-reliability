@@ -2359,6 +2359,18 @@
               ],
               "default": "json"
             }
+          },
+          {
+            "name": "privacy",
+            "in": "query",
+            "description": "Calendar only. Minimal excludes all free-text/private fields. Private requires an explicit choice.",
+            "schema": {
+              "enum": [
+                "minimal",
+                "private"
+              ],
+              "default": "minimal"
+            }
           }
         ]
       }
@@ -4076,6 +4088,46 @@
           "evidenceDocumentId": {
             "type": "string",
             "format": "uuid"
+          },
+          "comparisons": {
+            "type": "array",
+            "maxItems": 12,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "attribute",
+                "advertised",
+                "observed"
+              ],
+              "properties": {
+                "attribute": {
+                  "enum": [
+                    "cleanliness",
+                    "accessibility",
+                    "internet",
+                    "noise",
+                    "beds",
+                    "check_in",
+                    "other"
+                  ]
+                },
+                "advertised": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 300
+                },
+                "observed": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 300
+                }
+              }
+            }
           },
           "ratings": {
             "type": "object",

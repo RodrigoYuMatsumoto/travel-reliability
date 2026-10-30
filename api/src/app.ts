@@ -42,8 +42,9 @@ import { rightsFor, ruleCatalog } from './rules.js';
 import { dossier, pdf, calendar, encryptBundle } from './exports.js';
 import tripSchema from '../../schema/trip-contract.schema.json' with { type: 'json' };
 import { redactDocument } from './document-erasure.js';
-import { LLMExtractor, policySnippets } from './llm.js';
+import { LLMExtractor, policyPrivacyReview } from './llm.js';
 import { plan } from './planning.js';
+import { summarizeComparisons } from './review-comparison.js';
 import { planningSchemas } from '../../schema/src/planning.js';
 
 export interface Dependencies {
@@ -140,12 +141,13 @@ export async function buildApp(config = loadConfig(), dependencies: Dependencies
   app.setErrorHandler((error, _request, reply) => {
     const known = error instanceof AppError;
     const multipartError = (error as { code?: string }).code === 'FST_REQ_FILE_TOO_LARGE';
+    const clientStatus = (error as { statusCode?: number }).statusCode;
     const status = known
       ? error.status
       : multipartError
         ? 413
-        : (error as { statusCode?: number }).statusCode === 429
-          ? 429
+        : clientStatus !== undefined && [400, 413, 415, 429].includes(clientStatus)
+          ? clientStatus
           : 500;
     reply.code(status).send({
       error: {
@@ -155,7 +157,11 @@ export async function buildApp(config = loadConfig(), dependencies: Dependencies
             ? 'SIZE_LIMIT'
             : status === 429
               ? 'RATE_LIMITED'
-              : 'INTERNAL_ERROR',
+              : status === 400
+                ? 'INVALID_REQUEST'
+                : status === 415
+                  ? 'UNSUPPORTED_MEDIA_TYPE'
+                  : 'INTERNAL_ERROR',
         ...(known && error.details ? { details: error.details } : {}),
         requestId: _request.id,
       },
@@ -355,7 +361,7 @@ export async function buildApp(config = loadConfig(), dependencies: Dependencies
     requireCondition(doc && activeDocument(doc.data), 'DOCUMENT_NOT_FOUND', 404);
     return {
       enabled: config.llmEnabled,
-      snippets: policySnippets(doc.data),
+      ...policyPrivacyReview(doc.data),
       model: config.llmModel ?? null,
       destination:
         config.llmEnabled && config.llmBaseUrl ? new URL(config.llmBaseUrl).origin : null,
@@ -665,7 +671,7 @@ export async function buildApp(config = loadConfig(), dependencies: Dependencies
       .header('Content-Disposition', 'attachment; filename="travel-dossier.pdf"');
     return pdf(report);
   });
-  app.get<{ Params: { id: string }; Querystring: { format?: string } }>(
+  app.get<{ Params: { id: string }; Querystring: { format?: string; privacy?: string } }>(
     '/v1/trips/:id/export',
     async (request, reply) => {
       const report = await reportFor(workspace(request), request.params.id);
@@ -683,10 +689,13 @@ export async function buildApp(config = loadConfig(), dependencies: Dependencies
         return pdf(report);
       }
       if (format === 'ics') {
+        const privacy = request.query.privacy ?? 'minimal';
+        requireCondition(['minimal', 'private'].includes(privacy), 'INVALID_EXPORT_PRIVACY', 422);
         reply
           .type('text/calendar; charset=utf-8')
+          .header('X-Export-Privacy', privacy)
           .header('Content-Disposition', 'attachment; filename="trip.ics"');
-        return calendar(report.trip);
+        return calendar(report.trip, { includePrivate: privacy === 'private' });
       }
       throw new AppError('EXPORT_FORMAT_UNSUPPORTED', 422);
     },
@@ -726,10 +735,9 @@ export async function buildApp(config = loadConfig(), dependencies: Dependencies
   );
   app.get('/v1/reviews', async (request) => records.list<Review>(workspace(request), 'review'));
   app.post('/v1/reviews', async (request, reply) => {
-    const body = input<Omit<Review, 'id' | 'status' | 'evidenceLevel' | 'createdAt'>>(
-      'review',
-      request.body,
-    );
+    const body = input<
+      Omit<Review, 'id' | 'status' | 'evidenceLevel' | 'createdAt' | 'comparisonSummary'>
+    >('review', request.body);
     const trip = await tripFor(workspace(request), body.tripId);
     const service = trip.data.services.find((s) => s.id === body.serviceId);
     requireCondition(
@@ -743,6 +751,7 @@ export async function buildApp(config = loadConfig(), dependencies: Dependencies
       id: randomUUID(),
       status: 'private',
       evidenceLevel: 'document_attached',
+      comparisonSummary: summarizeComparisons(body.comparisons ?? []),
       createdAt: new Date().toISOString(),
     };
     reply.code(201);

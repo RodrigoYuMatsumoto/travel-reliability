@@ -1,9 +1,15 @@
 import { randomUUID } from 'node:crypto';
-import type { EvidenceDocument, ExtractedField, Job } from '../../schema/src/domain.js';
+import type {
+  EvidenceDocument,
+  ExtractedField,
+  Job,
+  LiteralFact,
+} from '../../schema/src/domain.js';
 import type { RecordStore, BlobStore } from './storage.js';
 import type { Config } from './config.js';
 import { Vault, sha256 } from './crypto.js';
 import { AppError, requireCondition } from './errors.js';
+import { literalFacts } from './literal-facts.js';
 
 export const MEDIA_TYPES = new Set([
   'application/pdf',
@@ -21,6 +27,7 @@ export interface Extraction {
   warnings: string[];
   status: 'needs_review';
   snippets?: Array<{ page?: number; line: number; text: string }>;
+  facts?: LiteralFact[];
 }
 export function extractText(data: Buffer): Extraction {
   let text: string;
@@ -65,6 +72,7 @@ export function extractText(data: Buffer): Extraction {
   return {
     parserVersion: '1.0.0',
     fields: fields.slice(0, 300),
+    facts: literalFacts(text),
     warnings,
     status: 'needs_review',
     snippets: text
@@ -119,7 +127,47 @@ function validateExtraction(input: unknown): Extraction {
       'INVALID_PARSER_SNIPPETS',
       502,
     );
-  return { ...value, status: 'needs_review', parserVersion: '1.0.0' };
+  const facts: LiteralFact[] = [];
+  if (value.facts !== undefined) {
+    requireCondition(
+      Array.isArray(value.facts) && value.facts.length <= 30,
+      'INVALID_PARSER_FACTS',
+      502,
+    );
+    for (const fact of value.facts) {
+      requireCondition(
+        fact &&
+          typeof fact === 'object' &&
+          fact.state === 'extracted' &&
+          typeof fact.source?.quote === 'string' &&
+          fact.source.quote.length <= 600 &&
+          Number.isInteger(fact.source.line) &&
+          fact.source.line! >= 1 &&
+          fact.source.line! <= 150000 &&
+          (fact.source.page === undefined ||
+            (Number.isInteger(fact.source.page) &&
+              fact.source.page >= 1 &&
+              fact.source.page <= 50)),
+        'INVALID_PARSER_FACT',
+        502,
+      );
+      const canonical = literalFacts(fact.source.quote).find(
+        (candidate) =>
+          candidate.kind === fact.kind &&
+          JSON.stringify(candidate.value) === JSON.stringify(fact.value),
+      );
+      requireCondition(canonical, 'INVALID_PARSER_FACT', 502);
+      facts.push({
+        ...canonical,
+        source: {
+          line: fact.source.line,
+          ...(fact.source.page === undefined ? {} : { page: fact.source.page }),
+          quote: fact.source.quote,
+        },
+      });
+    }
+  }
+  return { ...value, facts, status: 'needs_review', parserVersion: '1.0.0' };
 }
 export class Ingestion {
   private running = new Set<Promise<void>>();
@@ -299,6 +347,7 @@ export class Ingestion {
           {
             ...current.data,
             fields: extracted.fields,
+            facts: extracted.facts ?? [],
             warnings: extracted.warnings,
             preview: extracted.snippets ?? [],
             status: 'needs_review',

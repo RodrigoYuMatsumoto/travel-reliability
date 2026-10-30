@@ -107,3 +107,7 @@ history, then publish a tagged release. Pin deployment images by digest after
 review. Current templates pin major image lines for readability and therefore
 require an operator-controlled digest policy for reproducible production supply
 chains.
+
+## CI object storage
+
+The integration job uses a disposable SeaweedFS 4.51 S3 endpoint pinned by image digest and bound to runner loopback. Readiness is checked with an authenticated ListBuckets request; tests then create, store, read and delete actual ciphertext objects. This is a real object-store integration, not a substituted SDK mock. The former Docker Hub MinIO image was removed upstream and is not used.

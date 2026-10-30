@@ -1086,3 +1086,39 @@ footer {
 .mini-label {
   font-size: 10px;
 }
+
+.table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 18px 0;
+}
+.decision-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+.decision-table caption {
+  text-align: left;
+  font-weight: 650;
+  margin-bottom: 10px;
+}
+.decision-table th,
+.decision-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #dce5eb;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+  min-width: 100px;
+}
+.decision-table th {
+  background: #edf5f3;
+  color: #244653;
+}
+.decision-card {
+  padding: 18px 0;
+  border-bottom: 1px solid #dce5eb;
+}
+.decision-card p {
+  font-size: 13px;
+}

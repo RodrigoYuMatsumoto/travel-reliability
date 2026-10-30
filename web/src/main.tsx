@@ -17,6 +17,8 @@ import { OfflineViewer } from './offline';
 import { PlanningWorkbench } from './planning-workbench';
 import { EvidenceAssist } from './evidence-assist';
 import { DocumentRetention } from './document-retention';
+import { formatMinor } from './format-money';
+import { LiteralFacts } from './literal-facts';
 
 type Locale = 'pt-BR' | 'en';
 type Service = TripContract['services'][number];
@@ -30,6 +32,10 @@ const labels: Record<string, [string, string]> = {
   routes: ['Rotas', 'Routes'],
   reviews: ['Avaliações', 'Reviews'],
   settings: ['Privacidade e acesso', 'Privacy & access'],
+  REGISTRATION_FORMAT_INVALID: [
+    'Formato ou dígitos do CNPJ não conferem',
+    'CNPJ format or check digits do not match',
+  ],
   PRICE_UNKNOWN: ['Custo total não informado', 'Total price unknown'],
   POLICY_UNKNOWN: ['Política de cancelamento ausente', 'Cancellation policy missing'],
   CONTACT_UNKNOWN: ['Contato do fornecedor ausente', 'Supplier contact missing'],
@@ -150,9 +156,7 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 function money(minor: number, currency: string, locale: Locale) {
-  const format = new Intl.NumberFormat(locale, { style: 'currency', currency });
-  const places = format.resolvedOptions().maximumFractionDigits ?? 2;
-  return format.format(minor / 10 ** places);
+  return formatMinor(minor, currency, locale);
 }
 
 function App() {
@@ -174,7 +178,8 @@ function App() {
     [contractText, setContractText] = useState(''),
     [claim, setClaim] = useState(''),
     [passphrase, setPassphrase] = useState(''),
-    [dossierText, setDossierText] = useState('');
+    [dossierText, setDossierText] = useState(''),
+    [calendarPrivate, setCalendarPrivate] = useState(false);
   useEffect(() => {
     if (!selected || !documents.some((doc) => doc.status === 'quarantined')) return;
     const timer = setTimeout(() => {
@@ -850,6 +855,7 @@ function App() {
                               {w}
                             </p>
                           ))}
+                          <LiteralFacts facts={doc.facts ?? []} locale={locale} />
                           {doc.fields.map((f, i) => (
                             <div className="extracted-field" key={i}>
                               <span className="mini-label">
@@ -1056,16 +1062,34 @@ function App() {
                                       { request: claim },
                                     )
                                   : download(
-                                      `/v1/trips/${selected.id}/export?format=${format}`,
+                                      `/v1/trips/${selected.id}/export?format=${format}${format === 'ics' ? '&privacy=' + (calendarPrivate ? 'private' : 'minimal') : ''}`,
                                       `trip.${format}`,
                                     ),
                               )
                             }
                           >
-                            {format.toUpperCase()}
+                            {format === 'ics'
+                              ? t(
+                                  'iCal · ' + (calendarPrivate ? 'privado' : 'mínimo'),
+                                  'iCal · ' + (calendarPrivate ? 'private' : 'minimal'),
+                                )
+                              : format.toUpperCase()}
                           </button>
                         ))}
                       </div>
+                      <label className="field">
+                        <span>
+                          <input
+                            type="checkbox"
+                            checked={calendarPrivate}
+                            onChange={(e) => setCalendarPrivate(e.target.checked)}
+                          />{' '}
+                          {t(
+                            'Incluir códigos, endereços e notas privadas no iCal',
+                            'Include booking codes, addresses and private notes in iCal',
+                          )}
+                        </span>
+                      </label>
                       {dossierText && (
                         <pre className="json-preview" tabIndex={0}>
                           {dossierText}
@@ -1775,6 +1799,16 @@ function Reviews({
             void onSave({
               serviceId,
               evidenceDocumentId: f.get('document'),
+              comparisons:
+                f.get('advertised') || f.get('observed')
+                  ? [
+                      {
+                        attribute: f.get('attribute'),
+                        advertised: f.get('advertised') || null,
+                        observed: f.get('observed') || null,
+                      },
+                    ]
+                  : [],
               ratings: Object.fromEntries(
                 ['cleanliness', 'accessibility', 'accuracy', 'service', 'resolution'].map((key) => [
                   key,
@@ -1809,6 +1843,37 @@ function Reviews({
               </Field>
             ))}
           </div>
+          <details>
+            <summary>
+              {t(
+                'Comparar anunciado e entregue (relato)',
+                'Compare advertised and delivered (report)',
+              )}
+            </summary>
+            <Field label={t('Aspecto', 'Aspect')}>
+              <select name="attribute">
+                <option value="internet">Internet</option>
+                <option value="beds">{t('Camas', 'Beds')}</option>
+                <option value="accessibility">{t('Acessibilidade', 'Accessibility')}</option>
+                <option value="cleanliness">{t('Limpeza', 'Cleanliness')}</option>
+                <option value="noise">{t('Ruído', 'Noise')}</option>
+                <option value="check_in">Check-in</option>
+                <option value="other">{t('Outro', 'Other')}</option>
+              </select>
+            </Field>
+            <Field label={t('Anunciado, conforme seu relato', 'Advertised, as reported')}>
+              <input name="advertised" maxLength={300} />
+            </Field>
+            <Field label={t('Entregue, conforme seu relato', 'Delivered, as reported')}>
+              <input name="observed" maxLength={300} />
+            </Field>
+            <p className="note">
+              {t(
+                'O sistema compara os textos informados. Não verifica a entrega nem decide responsabilidade.',
+                'The system compares supplied statements. It does not verify delivery or determine liability.',
+              )}
+            </p>
+          </details>
           <Field label={t('Relato sem dados pessoais', 'Account without personal data')}>
             <textarea name="text" maxLength={2000} required />
           </Field>
@@ -1821,6 +1886,19 @@ function Reviews({
         <section className="panel" key={r.id}>
           <span className="tag">{r.data.status}</span>
           <p>{r.data.text}</p>
+          {r.data.comparisonSummary &&
+            r.data.comparisonSummary.compared + r.data.comparisonSummary.incomplete > 0 && (
+              <p className="note">
+                {t('Relato de comparação: ', 'Reported comparison: ')}
+                {r.data.comparisonSummary.differentText}{' '}
+                {t('texto(s) diferente(s)', 'different statement(s)')} ·{' '}
+                {r.data.comparisonSummary.incomplete}{' '}
+                {t(
+                  'incompleto(s). Não é verificação de entrega.',
+                  'incomplete. Not verification of delivery.',
+                )}
+              </p>
+            )}
           <p className="small muted">
             {t(
               'Publicar exige revisar e remover dados pessoais. O comprovante permanece privado.',

@@ -25,7 +25,7 @@ policy snippets and expressly consents per document. Only that displayed subset
 is eligible for transmission. No credentials, system settings or other workspace
 records are inserted in prompts. Users must redact any identifiers contained in
 the selected source text before consent; the application does not claim perfect
-PII detection or anonymization.
+PII detection or anonymization. Conservative screening excludes likely identifier, contact and URL snippets and known booking references before optional model selection. Injection, invisible-character and unresolved HTML-style warnings block that optional model path until review/sanitization.
 
 At most six 600-character snippets, two attempts, 1,024 output tokens per request,
 20-second requests and a 64 KiB response cap. A conservative UTF-8-byte-plus-output
@@ -72,3 +72,7 @@ notification duties, patch, test, rotate affected secrets and document recovery.
 Never publish affected travelers' evidence in issues or logs.
 
 Method reference: [OWASP LLM Prompt Injection Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html).
+
+## Calendar projection
+
+Calendar exports default to a minimal projection without free-text titles, supplier names, codes, addresses or policy notes. Explicit `privacy=private` adds those fields. Even a minimal calendar reveals times and service kinds: share it deliberately. JSON/PDF/dossier exports remain private data.

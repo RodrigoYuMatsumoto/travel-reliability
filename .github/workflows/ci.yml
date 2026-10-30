@@ -42,9 +42,9 @@ jobs:
           uv export --project ingest --locked --format requirements-txt --no-dev --output-file /tmp/travel-runtime.txt --quiet
           uvx pip-audit==2.10.1 --requirement /tmp/travel-runtime.txt --no-deps --disable-pip
       - name: Start disposable S3-compatible test service
-        run: docker run -d --name travel-test-s3 -p 9000:9000 -e MINIO_ROOT_USER=synthetic-access -e MINIO_ROOT_PASSWORD=synthetic-secret-only minio/minio:RELEASE.2025-09-07T16-13-09Z server /data
+        run: docker run -d --name travel-test-s3 -p 127.0.0.1:9000:8333 -e AWS_ACCESS_KEY_ID=synthetic-access -e AWS_SECRET_ACCESS_KEY=synthetic-secret-only chrislusf/seaweedfs:4.51@sha256:f7a49e3f3972ebed5be2ed4befa4a0c68eb7bdddba6e692d42729ceb545134b8 mini -dir=/data
       - name: Wait for test object storage
-        run: node -e "let ok=false; for(let i=0;i<30;i++){try{ok=(await fetch('http://127.0.0.1:9000/minio/health/live')).ok}catch{} if(ok)break; await new Promise(r=>setTimeout(r,1000))} if(!ok)process.exit(1)"
+        run: node scripts/wait-test-store.mjs
       - run: npm run check
         env:
           TEST_DATABASE_URL: postgresql://travel_test:synthetic-database-only@127.0.0.1:5432/travel_test

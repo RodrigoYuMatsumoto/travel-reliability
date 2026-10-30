@@ -26,3 +26,7 @@ the software does not claim comprehensive CDC/LGPD compliance certification.
 Country-pack review must follow: official text → commencement/amendments → exact
 provision → factual prerequisites → consequence → exceptions → procedure. Each
 change requires regression tests for thresholds and temporal transitions.
+
+## CNPJ format checks
+
+The numeric/alphanumeric checksum follows the [Receita Federal/Serpro technical manual](https://www.gov.br/receitafederal/pt-br/centrais-de-conteudo/publicacoes/documentos-tecnicos/cnpj/manual-dv-cnpj.pdf), checked during the reference comparison. This is a mathematical format check: it does not establish an active registration, ownership, Cadastur status or supplier reliability.

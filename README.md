@@ -65,6 +65,6 @@ npm run test:e2e
 - [Trip schema](schema/trip-contract.schema.json), [planning schemas](schema/planning.schema.json), [OpenAPI](api/openapi.json).
 - [Prompt commands](prompts/README.md): portable, standalone workflows with no personal defaults.
 - [Plugin contract](docs/PLUGINS.md): sources, permissions, provenance and country-rule lifecycle.
-- [Contribution guide](CONTRIBUTING.md), [roadmap](docs/ROADMAP.md), [license](LICENSE).
+- [Reference comparison](docs/COMPARISON.md), [governance](GOVERNANCE.md), [contribution guide](CONTRIBUTING.md), [roadmap](docs/ROADMAP.md), [license](LICENSE).
 
 Code, schemas, prompts and documentation: Apache-2.0. Explicit synthetic example data: CC0-1.0. Third-party and official source material retain their own terms. A hash proves byte consistency, not document authenticity; see the delivery record for tested coverage and remaining limits.

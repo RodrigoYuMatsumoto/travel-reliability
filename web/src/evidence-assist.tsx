@@ -4,6 +4,8 @@ interface Preview {
   model: string | null;
   destination: string | null;
   snippets: Array<{ text: string; page?: number; line: number }>;
+  screenedOut: number;
+  privacyWarnings: string[];
 }
 export function EvidenceAssist({
   id,
@@ -63,6 +65,13 @@ export function EvidenceAssist({
           {preview.snippets.map((s, i) => (
             <blockquote key={i}>{s.text}</blockquote>
           ))}
+          {preview.screenedOut > 0 && (
+            <p>
+              {pt
+                ? `${preview.screenedOut} trecho(s) excluído(s) por proteção de dados ou necessidade de revisão.`
+                : `${preview.screenedOut} snippet(s) excluded for privacy or review requirements.`}
+            </p>
+          )}
           {preview.enabled && (
             <>
               <label>

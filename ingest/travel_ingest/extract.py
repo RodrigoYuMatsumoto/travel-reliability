@@ -12,10 +12,12 @@ from email.parser import BytesParser
 from html import unescape
 from typing import Any
 
-from bs4 import BeautifulSoup
 from defusedxml import ElementTree
 from PIL import Image, ImageOps
 from pypdf import PdfReader
+
+from travel_ingest.html_safety import visible_html_text
+from travel_ingest.literal_facts import literal_facts
 
 MAX_BYTES = 20 * 1024 * 1024
 MAX_PAGES = 50
@@ -47,7 +49,7 @@ def _ocr(image: Image.Image) -> str:
         raise ExtractionError("OCR_UNAVAILABLE_OR_TIMEOUT") from exc
 
 
-def _text_pages(data: bytes, media_type: str) -> list[tuple[int, str, str]]:
+def _text_pages(data: bytes, media_type: str, warnings: list[str]) -> list[tuple[int, str, str]]:
     if media_type == "application/pdf":
         if not data.startswith(b"%PDF-"):
             raise ExtractionError("MEDIA_TYPE_MISMATCH")
@@ -133,10 +135,10 @@ def _text_pages(data: bytes, media_type: str) -> list[tuple[int, str, str]]:
     if len(text) > MAX_TEXT:
         raise ExtractionError("TEXT_LIMIT")
     if media_type == "text/html":
-        soup = BeautifulSoup(text, "html.parser")
-        for element in soup(["script", "style", "iframe", "object", "embed", "svg"]):
-            element.decompose()
-        text = soup.get_text("\n")
+        if INJECTION_MARKERS.search(text):
+            warnings.append("UNTRUSTED_INSTRUCTION_DETECTED")
+        text, html_warnings = visible_html_text(text)
+        warnings.extend(html_warnings)
     elif media_type not in ("text/plain", "application/json"):
         raise ExtractionError("UNSUPPORTED_MEDIA_TYPE")
     return [(1, unescape(text)[:MAX_TEXT], "text")]
@@ -145,11 +147,14 @@ def _text_pages(data: bytes, media_type: str) -> list[tuple[int, str, str]]:
 def extract(data: bytes, media_type: str) -> dict[str, Any]:
     if not data or len(data) > MAX_BYTES:
         raise ExtractionError("SIZE_LIMIT")
-    pages = _text_pages(data, media_type)
-    warnings = []
+    warnings: list[str] = []
+    pages = _text_pages(data, media_type, warnings)
     fields: list[dict[str, Any]] = []
     snippets = []
+    facts = []
     for number, text, method in pages:
+        if len(facts) < 30:
+            facts.extend(literal_facts(text, number)[:30 - len(facts)])
         if INJECTION_MARKERS.search(text):
             warnings.append("UNTRUSTED_INSTRUCTION_DETECTED")
         if re.search(r"[\u200b-\u200f\u2060\U000e0000-\U000e007f]", text):
@@ -183,6 +188,7 @@ def extract(data: bytes, media_type: str) -> dict[str, Any]:
     return {
         "parserVersion": "1.0.0",
         "fields": fields[:300],
+        "facts": facts,
         "warnings": sorted(set(warnings)),
         "pageCount": len(pages),
         "snippets": snippets,

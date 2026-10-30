@@ -8,18 +8,22 @@ test('synthetic trip, evidence review, dossier and language', async ({ page }) =
   await page.getByRole('button', { name: 'Planejamento e rateio' }).click();
   await page.getByRole('combobox', { name: 'Ferramenta', exact: true }).selectOption('group-split');
   await page.getByRole('button', { name: 'Analisar dados' }).click();
+  await expect(page.getByRole('cell', { name: 'N01', exact: true })).toBeVisible();
   await expect(page.locator('pre')).toContainText('"groupFinalCost": null');
   await page.getByRole('button', { name: 'Documentos e provas' }).click();
   await page.locator('input[type=file]').setInputFiles({
     name: 'synthetic-evidence.txt',
     mimeType: 'text/plain',
     buffer: Buffer.from(
-      'Cancellation: Synthetic fully refundable terms.\nBooking reference: SYNTHETIC-ONLY',
+      'Cancellation: Synthetic fully refundable terms.\nBooking reference: SYNTHETIC-ONLY\nSupplier: Synthetic Provider\nDate: 2030-03-01\nTotal: BRL 1.234,56',
     ),
   });
   await expect(
     page.getByText('Synthetic fully refundable terms.', { exact: false }).first(),
   ).toBeVisible();
+  await page.getByText('Fornecedor, datas e valores extraídos', { exact: true }).click();
+  await expect(page.getByText('Synthetic Provider', { exact: true })).toBeVisible();
+  await expect(page.getByText('2030-03-01 (date)', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Dossiê e exportações' }).click();
   await page.getByLabel('Pedido objetivo').fill('Synthetic request only.');
   await page.getByRole('button', { name: 'Gerar dossiê factual' }).click();

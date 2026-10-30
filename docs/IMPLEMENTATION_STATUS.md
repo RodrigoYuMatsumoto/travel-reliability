@@ -1,6 +1,6 @@
 # Delivery evidence — 0.1.0 candidate
 
-Verified locally on **2026-10-29**. This is executed evidence, not a claim of a
+Verified locally on **2026-10-30**. This is executed evidence, not a claim of a
 published release or production security certification.
 
 ## Implemented
@@ -22,8 +22,8 @@ are included. No personal travel records or reference-repository code is bundled
 | Check                                | Result                                                                                                                                     |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | Strict TypeScript / production build | PASS                                                                                                                                       |
-| Vitest                               | 67 passed; 3 durable-store integration cases skipped without test services                                                                 |
-| Python                               | 9 passed, including actual parser subprocess; 1 native OCR case skipped without local Tesseract                                            |
+| Vitest                               | 77 passed; 3 durable-store integration cases skipped without test services                                                                 |
+| Python                               | 13 passed, including actual parser subprocess; 1 native OCR case skipped without local Tesseract                                           |
 | Desktop/mobile Playwright            | 4 passed: synthetic workflow, group-allocation UI, documents/dossier/language, viewport, automated WCAG checks and private-cache exclusion |
 | Formatting / Python lint             | PASS                                                                                                                                       |
 | YAML syntax                          | PASS; not a container or remote workflow execution                                                                                         |
@@ -43,9 +43,9 @@ concrete findings were corrected and regression-tested. See [review record](REVI
 - Native OCR and container builds are configured in CI, not executed locally.
 - OIDC tests process synthetic HTTPS-provider responses through the actual client
   library; a deployed IdP still requires operator validation.
-- GitHub creation/publication did not succeed: CLI authentication was unavailable,
-  the connector had no repository-creation tool, and browser automation was
-  unavailable. No successful remote CI or published release is claimed.
+- GitHub repository creation and initial push succeeded after CLI authentication.
+  The repository remains private while reference-informed improvements and
+  service-backed CI are verified. No published release is claimed yet.
 
 ## Scope limits
 
@@ -60,3 +60,7 @@ operator work. A deprecation warning remains in the local test-client dependency
 Only synthetic examples and generic command specifications enter the source
 archive. Credentials, runtime data, private original folders, dependency
 directories and Git internals are excluded.
+
+## Reference-informed changes
+
+See [comparison](COMPARISON.md): conservative model snippet screening, minimal calendar defaults, hidden-HTML exclusion, numeric/alphanumeric CNPJ checks, exact money display, readable decision tables, safe HTTP client errors, literal supplier/date/amount proposals, factual advertised/observed comparisons and concise governance. Reference scripts and data were not imported or executed.

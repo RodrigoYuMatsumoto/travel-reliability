@@ -3,6 +3,7 @@ import type { RecordStore } from './storage.js';
 import type { EvidenceDocument, ExtractedField } from '../../schema/src/domain.js';
 import { Vault, sha256 } from './crypto.js';
 import { AppError, requireCondition } from './errors.js';
+import { sensitiveTextReasons } from './privacy.js';
 
 export interface LLMRun {
   documentId: string;
@@ -17,12 +18,41 @@ export interface LLMRun {
   suggestions: ExtractedField[];
   errorCode: string | null;
 }
-export function policySnippets(document: EvidenceDocument) {
-  return (document.preview ?? [])
-    .filter((line) =>
-      /cancel|refund|bagag|baggage|luggage|reembols|penalt|non.?refundable/i.test(line.text),
+export function policyPrivacyReview(document: EvidenceDocument) {
+  const candidates = (document.preview ?? []).filter((line) =>
+    /cancel|refund|bagag|baggage|luggage|reembols|penalt|non.?refundable/i.test(line.text),
+  );
+  if (
+    document.warnings.some((warning) =>
+      [
+        'UNTRUSTED_INSTRUCTION_DETECTED',
+        'HTML_STYLES_REQUIRE_REVIEW',
+        'INVISIBLE_CHARACTERS_REQUIRE_REVIEW',
+      ].includes(warning),
     )
-    .slice(0, 6);
+  )
+    return {
+      snippets: [],
+      screenedOut: candidates.length,
+      privacyWarnings: ['DOCUMENT_REQUIRES_REVIEW'],
+    };
+  const references = document.fields
+    .filter((field) => field.path === 'reservation.reference' && typeof field.value === 'string')
+    .map((field) => String(field.value));
+  const safe = candidates.filter(
+    (line) =>
+      sensitiveTextReasons(line.text).length === 0 &&
+      !references.some((reference) => line.text.includes(reference)),
+  );
+  return {
+    snippets: safe.slice(0, 6),
+    screenedOut: candidates.length - safe.length,
+    privacyWarnings:
+      safe.length < candidates.length ? ['POTENTIALLY_PERSONAL_SNIPPETS_EXCLUDED'] : [],
+  };
+}
+export function policySnippets(document: EvidenceDocument) {
+  return policyPrivacyReview(document).snippets;
 }
 export function validateSuggestions(
   value: unknown,

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { planningExamples, toolLabels } from './planning-examples';
 import type { ToolId } from '../../schema/src/planning';
+import { DecisionResults } from './decision-results';
 export function PlanningWorkbench({
   locale,
   execute,
@@ -32,7 +33,7 @@ export function PlanningWorkbench({
       </p>
       <label className="field">
         <span>{pt ? 'Ferramenta' : 'Tool'}</span>
-        <select value={tool} onChange={(e) => select(e.target.value as ToolId)}>
+        <select value={tool} disabled={busy} onChange={(e) => select(e.target.value as ToolId)}>
           {Object.entries(toolLabels).map(([id, labels]) => (
             <option value={id} key={id}>
               {labels[pt ? 0 : 1]}
@@ -57,6 +58,7 @@ export function PlanningWorkbench({
           onChange={(e) => setText(e.target.value)}
           spellCheck={false}
           maxLength={500000}
+          disabled={busy}
         />
       </label>
       <div className="button-row">
@@ -77,7 +79,7 @@ export function PlanningWorkbench({
         >
           {busy ? (pt ? 'Calculando…' : 'Calculating…') : pt ? 'Analisar dados' : 'Analyze inputs'}
         </button>
-        <button className="secondary" onClick={() => select(tool)}>
+        <button className="secondary" disabled={busy} onClick={() => select(tool)}>
           {pt ? 'Restaurar exemplo fictício' : 'Reset fictional example'}
         </button>
       </div>
@@ -85,9 +87,19 @@ export function PlanningWorkbench({
       {result && (
         <>
           <h3>{pt ? 'Resultado e pendências' : 'Results and pending facts'}</h3>
-          <pre className="json-preview" tabIndex={0}>
-            {result}
-          </pre>
+          <DecisionResults
+            tool={tool}
+            result={(JSON.parse(result) as { result: unknown }).result}
+            locale={locale}
+          />
+          <details>
+            <summary>
+              {pt ? 'Dados completos e fórmulas (JSON)' : 'Full data and formulas (JSON)'}
+            </summary>
+            <pre className="json-preview" tabIndex={0}>
+              {result}
+            </pre>
+          </details>
         </>
       )}
     </section>

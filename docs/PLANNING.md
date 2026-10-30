@@ -75,3 +75,7 @@ The API accepts up to nine destination/model scenarios. Unquoted or incompatible
 cells stay conditional/ineligible; it does not fill a 3×3 matrix with invented
 prices. Capacity, rooms, child equipment, accessibility, group work and supplier
 conditions require documentary/human confirmation.
+
+## Readable results
+
+The interface renders offer/allocation tables, fare scenarios and negotiation drafts. Exact minor-unit display avoids floating-point cent rounding; full JSON and formulas remain in an optional detail view.

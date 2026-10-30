@@ -87,6 +87,14 @@ for (const route of context.apiRoutes) {
       in: 'query',
       schema: { enum: ['pre_booking', 'pre_departure'] },
     });
+  if (path.endsWith('/export') && path.startsWith('/v1/trips/'))
+    parameters.push({
+      name: 'privacy',
+      in: 'query',
+      description:
+        'Calendar only. Minimal excludes all free-text/private fields. Private requires an explicit choice.',
+      schema: { enum: ['minimal', 'private'], default: 'minimal' },
+    });
   if (parameters.length) operation.parameters = parameters;
   let body: object | undefined;
   if (['post', 'put'].includes(method)) {

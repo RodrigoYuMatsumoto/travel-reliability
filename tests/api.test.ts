@@ -133,6 +133,13 @@ describe('HTTP security and trip workflow', () => {
       headers: headers(identity),
     });
     expect(ics.payload).toContain('BEGIN:VCALENDAR');
+    expect(ics.headers['x-export-privacy']).toBe('minimal');
+    expect(ics.payload).not.toContain('SYNTHETIC-FLIGHT-A');
+    const privateCalendar = await context.app.inject({
+      url: `/v1/trips/${trip.id}/export?format=ics&privacy=private`,
+      headers: headers(identity),
+    });
+    expect(privateCalendar.payload).toContain('SYNTHETIC-FLIGHT-A');
     expect(
       (
         await context.app.inject({
@@ -146,5 +153,38 @@ describe('HTTP security and trip workflow', () => {
     expect(
       (await context.app.inject({ url: '/v1/trips', headers: headers(identity) })).statusCode,
     ).toBe(401);
+  });
+});
+
+describe('safe HTTP input failures', () => {
+  it('reports malformed JSON and unsupported media types without echoing bodies', async () => {
+    const context = await setup();
+    const invalid = await context.app.inject({
+      method: 'POST',
+      url: '/v1/trips',
+      headers: { 'content-type': 'application/json' },
+      payload: '{SYNTHETIC-PRIVATE-BODY',
+    });
+    expect(invalid.statusCode).toBe(400);
+    expect(invalid.payload).not.toContain('SYNTHETIC-PRIVATE-BODY');
+    const unsupported = await context.app.inject({
+      method: 'POST',
+      url: '/v1/trips',
+      headers: { 'content-type': 'application/x-synthetic' },
+      payload: 'SYNTHETIC-PRIVATE-BODY',
+    });
+    expect(unsupported.statusCode).toBe(415);
+    expect(unsupported.payload).not.toContain('SYNTHETIC-PRIVATE-BODY');
+  });
+  it('returns 413 for the JSON body limit', async () => {
+    const context = await setup();
+    const response = await context.app.inject({
+      method: 'POST',
+      url: '/v1/trips',
+      headers: { 'content-type': 'application/json' },
+      payload: '"' + 'x'.repeat(2 * 1024 * 1024) + '"',
+    });
+    expect(response.statusCode).toBe(413);
+    expect(response.json().error.code).toBe('SIZE_LIMIT');
   });
 });

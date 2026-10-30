@@ -42,20 +42,40 @@ export const inputSchemas = {
     residentAtOrigin: { type: ['boolean', 'null'] },
     exceptionalConditions: choices('none', 'active', 'unknown'),
   }),
-  review: object({
-    tripId: { type: 'string', format: 'uuid' },
-    serviceId: text(80),
-    evidenceDocumentId: { type: 'string', format: 'uuid' },
-    ratings: object(
-      Object.fromEntries(
-        ['cleanliness', 'accessibility', 'accuracy', 'service', 'resolution'].map((key) => [
-          key,
-          { type: ['integer', 'null'], minimum: 1, maximum: 5 },
-        ]),
+  review: object(
+    {
+      tripId: { type: 'string', format: 'uuid' },
+      serviceId: text(80),
+      evidenceDocumentId: { type: 'string', format: 'uuid' },
+      comparisons: {
+        type: 'array',
+        maxItems: 12,
+        items: object({
+          attribute: choices(
+            'cleanliness',
+            'accessibility',
+            'internet',
+            'noise',
+            'beds',
+            'check_in',
+            'other',
+          ),
+          advertised: nullableText(300),
+          observed: nullableText(300),
+        }),
+      },
+      ratings: object(
+        Object.fromEntries(
+          ['cleanliness', 'accessibility', 'accuracy', 'service', 'resolution'].map((key) => [
+            key,
+            { type: ['integer', 'null'], minimum: 1, maximum: 5 },
+          ]),
+        ),
       ),
-    ),
-    text: text(2000),
-  }),
+      text: text(2000),
+    },
+    ['tripId', 'serviceId', 'evidenceDocumentId', 'ratings', 'text'],
+  ),
   moderation: object({
     status: choices('approved', 'rejected', 'private'),
     confirmNoPersonalData: { const: true },

@@ -8,7 +8,12 @@ import { addMinor } from './money.js';
 import { requireCondition } from './errors.js';
 
 const escapeIcal = (text: string) =>
-  text.replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;');
+  text
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '')
+    .replace(/\\/g, '\\\\')
+    .replace(/\r\n|\r|\n/g, '\\n')
+    .replace(/,/g, '\\,')
+    .replace(/;/g, '\\;');
 function fold(line: string): string {
   const lines: string[] = [];
   let part = '';
@@ -22,7 +27,7 @@ function fold(line: string): string {
   lines.push(part);
   return lines.join('\r\n');
 }
-export function calendar(trip: TripContract): string {
+export function calendar(trip: TripContract, options: { includePrivate?: boolean } = {}): string {
   const stamp = (ms: number) =>
     new Date(ms)
       .toISOString()
@@ -40,15 +45,17 @@ export function calendar(trip: TripContract): string {
     requireCondition(start !== null && end !== null, 'CALENDAR_NEEDS_TIMEZONE', 422);
     lines.push(
       'BEGIN:VEVENT',
-      `UID:${escapeIcal(trip.id + '-' + s.id)}@travel-reliability.invalid`,
+      `UID:${sha256(trip.id + '/' + s.id)}@travel-reliability.invalid`,
       'DTSTAMP:' + stamp(Date.now()),
       'DTSTART:' + stamp(start),
       'DTEND:' + stamp(end),
-      'SUMMARY:' + escapeIcal(s.title),
-      'LOCATION:' + escapeIcal(s.location ?? ''),
+      'SUMMARY:' + escapeIcal(options.includePrivate ? s.title : `Travel / ${s.kind}`),
+      'LOCATION:' + escapeIcal(options.includePrivate ? (s.location ?? '') : ''),
       'DESCRIPTION:' +
         escapeIcal(
-          `${s.provider.name}\n${s.reservation.reference ?? 'Reference unknown'}\n${s.cancellation.summary ?? 'Cancellation terms unknown'}`,
+          options.includePrivate
+            ? `${s.provider.name}\n${s.reservation.reference ?? 'Reference unknown'}\n${s.cancellation.summary ?? 'Cancellation terms unknown'}`
+            : 'Minimal calendar. Booking references, addresses and private notes omitted.',
         ),
       'END:VEVENT',
     );
