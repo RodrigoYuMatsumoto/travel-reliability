@@ -21,7 +21,7 @@
     "privacy:check": "node scripts/privacy-check.mjs",
     "schema:types": "tsx scripts/generate-types.ts",
     "verify:bundle": "tsx scripts/verify-bundle.ts",
-    "sbom": "npm sbom --sbom-format cyclonedx > sbom.cdx.json",
+    "sbom": "node scripts/generate-sbom.mjs",
     "plan": "tsx scripts/plan.ts",
     "contracts:generate": "tsx scripts/generate-contracts.ts",
     "privacy:history": "node scripts/privacy-check.mjs --history",

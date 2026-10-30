@@ -57,6 +57,9 @@ non-Latin glyph coverage is unverified; JSON/calendar preserve Unicode text.
 Fleet-wide quotas, automated key rotation and backup erasure require further
 operator work. A deprecation warning remains in the local test-client dependency.
 
+The npm CycloneDX export omits optional author/contact fields in a documented
+privacy projection while retaining package versions, hashes, licenses and references.
+
 Only synthetic examples and generic command specifications enter the source
 archive. Credentials, runtime data, private original folders, dependency
 directories and Git internals are excluded.
