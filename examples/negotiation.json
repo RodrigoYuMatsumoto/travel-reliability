@@ -1,0 +1,10 @@
+{
+  "recipient": "Synthetic Seller",
+  "goal": "uma condição comercial para o itinerário informado",
+  "language": "pt-BR",
+  "channel": "message",
+  "comparison": null,
+  "constraints": [
+    "Confirmar total com taxas e bagagem"
+  ]
+}

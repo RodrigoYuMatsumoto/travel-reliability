@@ -1,0 +1,17 @@
+node_modules
+dist
+.git
+.local
+.venv
+ingest/.venv
+package-lock.json
+api/openapi.json
+schema/trip-contract.schema.json
+schema/planning.schema.json
+schema/src/trip-contract.ts
+examples/*.json
+prompts/*.md
+sbom.cdx.json
+playwright-report
+test-results
+artifacts

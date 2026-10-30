@@ -1,0 +1,88 @@
+{
+  "comparison": {
+    "offers": [
+      {
+        "id": "offer-a",
+        "seller": "Synthetic Seller",
+        "operator": "Synthetic Operator",
+        "origin": "AAA",
+        "destination": "BBB",
+        "departure": "2030-02-01T09:00:00-03:00",
+        "arrival": "2030-02-01T11:00:00-03:00",
+        "returnDeparture": "2030-02-04T12:00:00-03:00",
+        "destinationArrivalDate": "2030-02-01",
+        "destinationDepartureDate": "2030-02-04",
+        "passengers": "2 adults; 1 child age 5 at travel",
+        "cabin": "economy",
+        "baggage": "1 checked bag for the group",
+        "requiredServices": "Seats together",
+        "paymentCategory": "cash equivalent",
+        "capacityConfirmed": null,
+        "validUntil": null,
+        "sources": [
+          {
+            "id": "source-a",
+            "url": "https://example.invalid/synthetic-offer",
+            "observedAt": "2030-01-01T12:00:00Z",
+            "status": "declared",
+            "note": "Synthetic demonstration only. No live quote."
+          }
+        ],
+        "costs": [
+          {
+            "id": "transport",
+            "label": "Transport for the entire group",
+            "unit": "reservation",
+            "quantity": 1,
+            "unitMinor": 120000,
+            "currency": "BRL",
+            "treatment": "necessary",
+            "selected": true,
+            "sourceIds": [
+              "source-a"
+            ]
+          },
+          {
+            "id": "baggage",
+            "label": "Required baggage",
+            "unit": "bag round trip",
+            "quantity": 1,
+            "unitMinor": null,
+            "currency": "BRL",
+            "treatment": "necessary",
+            "selected": true,
+            "sourceIds": [
+              "source-a"
+            ]
+          }
+        ],
+        "airport": "BBB",
+        "groundDistanceKm": null,
+        "groundMinutes": null,
+        "overnight": false,
+        "ticketStructure": "unknown",
+        "connectionProtectionSourceId": null,
+        "connections": []
+      }
+    ],
+    "baselineId": null,
+    "evaluatedAt": "2030-01-01T12:30:00Z",
+    "departureDate": "2030-02-01",
+    "returnDate": "2030-02-04",
+    "flexDays": 0,
+    "stayNights": 3,
+    "allowedAirports": [
+      "BBB"
+    ],
+    "maxGroundKm": null,
+    "maxGroundMinutes": null,
+    "budgetMinor": null,
+    "budgetCurrency": null,
+    "maxConnections": 2,
+    "maxDurationMinutes": null,
+    "separateTicketsAllowed": false,
+    "airportChangeAllowed": false,
+    "overnightAllowed": false
+  },
+  "promotions": []
+}

@@ -1,0 +1,75 @@
+services:
+  api:
+    build: .
+    ports: ['127.0.0.1:4310:4310']
+    environment:
+      APP_MODE: production
+      HOST: 0.0.0.0
+      PUBLIC_URL: ${PUBLIC_URL:?HTTPS public origin required}
+      ENCRYPTION_KEY_BASE64: ${ENCRYPTION_KEY_BASE64:?Encryption key required}
+      DATABASE_URL: postgresql://travel:${POSTGRES_PASSWORD:?Database password required}@postgres:5432/travel
+      REDIS_URL: redis://:${REDIS_PASSWORD:?Redis password required}@redis:6379
+      S3_BUCKET: ${S3_BUCKET:?Private existing bucket required}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+      OIDC_ISSUER: ${OIDC_ISSUER:?OIDC issuer required}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:?OIDC client ID required}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:?OIDC client secret required}
+      INGEST_URL: http://ingest:8081
+      EVIDENCE_RETENTION_DAYS: ${EVIDENCE_RETENTION_DAYS:-90}
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      ingest: { condition: service_started }
+    networks: [app, parsing]
+    read_only: true
+    tmpfs: ['/tmp:size=64m,noexec,nosuid']
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
+    pids_limit: 100
+    mem_limit: 768m
+    cpus: 2
+    restart: unless-stopped
+  ingest:
+    build: ./ingest
+    networks: [parsing]
+    read_only: true
+    tmpfs: ['/tmp:size=128m,noexec,nosuid']
+    cap_drop: [ALL]
+    security_opt: ['no-new-privileges:true']
+    pids_limit: 32
+    mem_limit: 1536m
+    cpus: 1
+    restart: unless-stopped
+  postgres:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_DB: travel
+      POSTGRES_USER: travel
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Database password required}
+    volumes: ['postgres:/var/lib/postgresql/data']
+    networks: [app]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U travel -d travel']
+      interval: 5s
+      retries: 12
+    restart: unless-stopped
+  redis:
+    image: redis:7-bookworm
+    environment: { REDIS_PASSWORD: '${REDIS_PASSWORD:?Redis password required}' }
+    command: [sh, -c, 'exec redis-server --requirepass "$$REDIS_PASSWORD" --appendonly yes']
+    volumes: ['redis:/data']
+    networks: [app]
+    healthcheck:
+      test: [CMD-SHELL, 'REDISCLI_AUTH="$$REDIS_PASSWORD" redis-cli ping | grep -q PONG']
+      interval: 5s
+      retries: 12
+    restart: unless-stopped
+networks:
+  app: {}
+  parsing: { internal: true }
+volumes:
+  postgres: {}
+  redis: {}

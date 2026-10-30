@@ -1,0 +1,95 @@
+{
+  "currency": "BRL",
+  "households": [
+    {
+      "id": "N01",
+      "participants": [
+        "P01",
+        "P02"
+      ],
+      "ceilingMinor": 100000,
+      "cashLimitMinor": 60000
+    },
+    {
+      "id": "N02",
+      "participants": [
+        "P03"
+      ],
+      "ceilingMinor": 50000,
+      "cashLimitMinor": 30000
+    }
+  ],
+  "evaluatedAt": "2030-01-01T12:30:00Z",
+  "scenarios": [
+    {
+      "id": "scenario-a",
+      "destination": "Synthetic Destination",
+      "model": "hybrid",
+      "scope": "3 nights, accommodation, return transport and meals",
+      "nights": 3,
+      "constraintsConfirmed": null,
+      "capacityConfirmed": null,
+      "validUntil": null,
+      "costs": [
+        {
+          "id": "accommodation",
+          "label": "Entire accommodation, all nights",
+          "lowMinor": 100001,
+          "highMinor": 100001,
+          "source": {
+            "id": "source-a",
+            "url": "https://example.invalid/synthetic-offer",
+            "observedAt": "2030-01-01T12:00:00Z",
+            "status": "declared",
+            "note": "Synthetic demonstration only. No live quote."
+          },
+          "acceptedRule": true,
+          "shares": [
+            {
+              "householdId": "N01",
+              "weight": 2
+            },
+            {
+              "householdId": "N02",
+              "weight": 1
+            }
+          ]
+        },
+        {
+          "id": "transport",
+          "label": "Transport still to quote",
+          "lowMinor": null,
+          "highMinor": null,
+          "source": null,
+          "acceptedRule": false,
+          "shares": [
+            {
+              "householdId": "N01",
+              "weight": 1
+            },
+            {
+              "householdId": "N02",
+              "weight": 1
+            }
+          ]
+        }
+      ],
+      "cashFlows": [
+        {
+          "id": "deposit-a",
+          "householdId": "N01",
+          "at": "2030-01-20T10:00:00-03:00",
+          "amountMinor": 20000,
+          "kind": "deposit"
+        },
+        {
+          "id": "deposit-return-a",
+          "householdId": "N01",
+          "at": "2030-02-05T10:00:00-03:00",
+          "amountMinor": 20000,
+          "kind": "deposit_return"
+        }
+      ]
+    }
+  ]
+}

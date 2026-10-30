@@ -1,0 +1,11 @@
+Travel Reliability
+Copyright 2026 Travel Reliability Contributors
+
+Original project implementation. External repository snapshots were reviewed for
+design concepts; their source code and datasets are not bundled or relicensed.
+
+Runtime dependencies retain their respective licenses. Generate a dependency
+inventory with `npm run sbom` and review package notices before redistribution.
+Official legal and regulatory texts remain attributable to their publishers.
+Synthetic fixtures under examples/ are dedicated under CC0-1.0; no real traveler
+records are included. This notice does not claim ownership of third-party work.

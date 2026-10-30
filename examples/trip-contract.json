@@ -1,0 +1,215 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "00000000-0000-4000-8000-000000000010",
+  "title": "Demonstração · conexão e hospedagem",
+  "country": "BR",
+  "currency": "BRL",
+  "locale": "pt-BR",
+  "startDate": "2026-10-29",
+  "endDate": "2026-10-31",
+  "travelers": [
+    {
+      "id": "traveler-a",
+      "label": "Traveler A",
+      "ageGroup": "adult",
+      "needs": []
+    },
+    {
+      "id": "traveler-b",
+      "label": "Traveler B",
+      "ageGroup": "infant",
+      "needs": [
+        "child_seat",
+        "quiet_breaks"
+      ]
+    }
+  ],
+  "services": [
+    {
+      "id": "flight-a",
+      "kind": "flight",
+      "title": "Voo de demonstração",
+      "country": "BR",
+      "provider": {
+        "name": "Synthetic Provider flight-a",
+        "category": "airline",
+        "registration": {
+          "scheme": null,
+          "value": null,
+          "status": "unknown",
+          "sourceUrl": null,
+          "checkedAt": null
+        },
+        "cadastur": {
+          "applicability": "unknown",
+          "status": "unknown",
+          "sourceUrl": null,
+          "checkedAt": null
+        },
+        "contact": "https://provider.example.invalid/support"
+      },
+      "reservation": {
+        "state": "booked",
+        "reference": "SYNTHETIC-FLIGHT-A",
+        "confirmation": "not_checked",
+        "confirmationDocumentId": null,
+        "paymentChannel": "platform"
+      },
+      "start": {
+        "local": "2026-10-29T09:00",
+        "timeZone": "America/Sao_Paulo"
+      },
+      "end": {
+        "local": "2026-10-29T11:00",
+        "timeZone": "America/Sao_Paulo"
+      },
+      "location": "Synthetic location — not a real reservation",
+      "price": {
+        "currency": "BRL",
+        "baseMinor": 30000,
+        "fees": [
+          {
+            "label": "Synthetic fee",
+            "amountMinor": 2500
+          }
+        ],
+        "totalMinor": 32500
+      },
+      "cancellation": {
+        "summary": null,
+        "deadline": null,
+        "documentId": null
+      },
+      "baggage": "Synthetic allowance: verify supplier terms",
+      "documentIds": [],
+      "requirements": []
+    },
+    {
+      "id": "bus-a",
+      "kind": "bus",
+      "title": "Conexão rodoviária de demonstração",
+      "country": "BR",
+      "provider": {
+        "name": "Synthetic Provider bus-a",
+        "category": "bus_operator",
+        "registration": {
+          "scheme": null,
+          "value": null,
+          "status": "unknown",
+          "sourceUrl": null,
+          "checkedAt": null
+        },
+        "cadastur": {
+          "applicability": "unknown",
+          "status": "unknown",
+          "sourceUrl": null,
+          "checkedAt": null
+        },
+        "contact": "https://provider.example.invalid/support"
+      },
+      "reservation": {
+        "state": "booked",
+        "reference": "SYNTHETIC-BUS-A",
+        "confirmation": "not_checked",
+        "confirmationDocumentId": null,
+        "paymentChannel": "platform"
+      },
+      "start": {
+        "local": "2026-10-29T11:45",
+        "timeZone": "America/Sao_Paulo"
+      },
+      "end": {
+        "local": "2026-10-29T13:30",
+        "timeZone": "America/Sao_Paulo"
+      },
+      "location": "Synthetic location — not a real reservation",
+      "price": {
+        "currency": "BRL",
+        "baseMinor": 30000,
+        "fees": [
+          {
+            "label": "Synthetic fee",
+            "amountMinor": 2500
+          }
+        ],
+        "totalMinor": 32500
+      },
+      "cancellation": {
+        "summary": null,
+        "deadline": null,
+        "documentId": null
+      },
+      "baggage": null,
+      "documentIds": [],
+      "requirements": []
+    },
+    {
+      "id": "hotel-a",
+      "kind": "hotel",
+      "title": "Hospedagem de demonstração",
+      "country": "BR",
+      "provider": {
+        "name": "Synthetic Provider hotel-a",
+        "category": "hotel",
+        "registration": {
+          "scheme": null,
+          "value": null,
+          "status": "unknown",
+          "sourceUrl": null,
+          "checkedAt": null
+        },
+        "cadastur": {
+          "applicability": "unknown",
+          "status": "unknown",
+          "sourceUrl": null,
+          "checkedAt": null
+        },
+        "contact": "https://provider.example.invalid/support"
+      },
+      "reservation": {
+        "state": "booked",
+        "reference": "SYNTHETIC-HOTEL-A",
+        "confirmation": "not_checked",
+        "confirmationDocumentId": null,
+        "paymentChannel": "platform"
+      },
+      "start": {
+        "local": "2026-10-29T15:00",
+        "timeZone": "America/Sao_Paulo"
+      },
+      "end": {
+        "local": "2026-10-30T11:00",
+        "timeZone": "America/Sao_Paulo"
+      },
+      "location": "Synthetic location — not a real reservation",
+      "price": {
+        "currency": "BRL",
+        "baseMinor": 60000,
+        "fees": [
+          {
+            "label": "Synthetic fee",
+            "amountMinor": 2500
+          }
+        ],
+        "totalMinor": 62500
+      },
+      "cancellation": {
+        "summary": null,
+        "deadline": null,
+        "documentId": null
+      },
+      "baggage": null,
+      "documentIds": [],
+      "requirements": []
+    }
+  ],
+  "dependencies": [
+    {
+      "from": "flight-a",
+      "to": "bus-a",
+      "minimumMinutes": 90,
+      "basis": "traveler_preference"
+    }
+  ],
+  "overnightExemptions": []
+}
