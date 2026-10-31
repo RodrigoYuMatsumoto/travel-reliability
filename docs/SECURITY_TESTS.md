@@ -15,6 +15,14 @@ Passing the automated suite is not an exhaustive security assessment or a produc
 
 ## Current executed evidence
 
+Version 0.3 expands to eight roles, 52 commands and seven read-only MCP tools. The real SDK tests load every declared role/command and preserve legacy names. Local verification passed 142 TypeScript tests, 17 Python tests, four browser tests and the 54 authenticated DAST assertions. Three durable-service cases and one native OCR case require the CI services. The source-derived coverage and semantic-review limits are recorded in [agent audit](AGENT_AUDIT.md).
+
+The v0.3 TypeScript mutation campaign added catalog, domain-aware intake, checkpoint preparation and expense settlement to the nine existing families: 13,000 executions per seed, two seeds, zero remaining findings or infrastructure errors, stable source fingerprints. The oracle separately checks exact shares, prior internal payments, residual settlement and absence of external effects. These counts do not imply unique inputs, coverage-guided fuzzing or evaluation of a host LLM. The Python runtime is unchanged and remains exercised by recurring CI.
+
+`priorSettlements` is mandatory: an explicit empty list means no known prior payments; omission is not zero. Transfer history and allocation acceptance are declarations, not banking confirmation or payment authority. Checkpoint counters/capabilities are caller-reported bookkeeping, not a tamper-proof global quota or host sandbox. Archive verification now checks complete catalog distribution, fixed paths, per-file hashes and relative links in both portable ZIPs.
+
+## Historical v0.2 evidence
+
 Version 0.2 adds a local MCP frontier and an agent-first instruction package. The six real stdio protocol tests cover modern/legacy clients, four tools, fixed resources/prompts, unrelated caller directories, unknown names and extra arguments, UTF-8/EOF/depth/size/burst limits and generic diagnostics. Phase-aware intake tests keep incidents, refunds, existing group expenses and new planning separate; accepting an unaccompanied minor's declared composition does not establish travel eligibility.
 
 The local security campaign used Semgrep CE 1.183.0 with the security-audit and OWASP top-ten rulesets, plus Bandit 1.9.4. Metrics/source upload were disabled. The final local sweep had no remaining scanner findings; one precisely documented B108 suppression concerns only a sandbox HOME hint, not an opened predictable file. Static review confirmed and corrected diagnostic amplification; explicit GCM tag length was defense in depth, not a demonstrated forgery.

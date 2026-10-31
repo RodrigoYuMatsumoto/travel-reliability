@@ -1,0 +1,373 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Portable agents and travel workflows catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "formatVersion",
+    "version",
+    "entrypoint",
+    "purpose",
+    "defaultLanguage",
+    "license",
+    "contracts",
+    "execution",
+    "workflow",
+    "optionalRuntime",
+    "agents",
+    "commands"
+  ],
+  "properties": {
+    "format": {
+      "const": "travel-reliability-agent-kit"
+    },
+    "formatVersion": {
+      "const": 2
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "entrypoint": {
+      "const": "agents/TRAVEL_AGENT.md"
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 600
+    },
+    "defaultLanguage": {
+      "const": "pt-BR"
+    },
+    "license": {
+      "const": "Apache-2.0"
+    },
+    "contracts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "brief",
+        "planning",
+        "trip",
+        "catalog",
+        "workflow",
+        "expenses"
+      ],
+      "properties": {
+        "brief": {
+          "type": "string",
+          "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
+        },
+        "planning": {
+          "type": "string",
+          "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
+        },
+        "trip": {
+          "type": "string",
+          "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
+        },
+        "catalog": {
+          "type": "string",
+          "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
+        },
+        "workflow": {
+          "type": "string",
+          "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
+        },
+        "expenses": {
+          "type": "string",
+          "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
+        }
+      }
+    },
+    "execution": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 600
+    },
+    "workflow": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 24,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
+        "maxLength": 64
+      }
+    },
+    "optionalRuntime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transport",
+        "entrypoint",
+        "requires",
+        "includedInManualKit",
+        "tools"
+      ],
+      "properties": {
+        "transport": {
+          "const": "stdio"
+        },
+        "entrypoint": {
+          "const": "scripts/agent-mcp.mjs"
+        },
+        "requires": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600
+        },
+        "includedInManualKit": {
+          "const": false
+        },
+        "tools": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^travel_[a-z_]+$"
+          }
+        }
+      }
+    },
+    "agents": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "path",
+          "title",
+          "summary",
+          "mode",
+          "legacyNames"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
+            "maxLength": 64
+          },
+          "path": {
+            "type": "string",
+            "pattern": "^agents/(?:TRAVEL_AGENT|roles/[a-z0-9-]+)\\.md$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
+          },
+          "mode": {
+            "enum": [
+              "operational",
+              "meta"
+            ]
+          },
+          "legacyNames": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 24,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        }
+      }
+    },
+    "commands": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "path",
+          "title",
+          "summary",
+          "agentId",
+          "domains",
+          "phases",
+          "calculatorId",
+          "executor",
+          "requiredInputs",
+          "outputs",
+          "suggestedCapabilities"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
+            "maxLength": 64
+          },
+          "path": {
+            "type": "string",
+            "pattern": "^prompts/\\d{2,3}_[a-z0-9_]+\\.md$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
+          },
+          "agentId": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
+            "maxLength": 64
+          },
+          "domains": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 24,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "flight",
+                "ground",
+                "lodging",
+                "itinerary",
+                "documents",
+                "insurance",
+                "health",
+                "accessibility",
+                "points",
+                "rights",
+                "evidence",
+                "risk",
+                "group",
+                "budget",
+                "calendar",
+                "monitoring",
+                "operations",
+                "ecosystem",
+                "all"
+              ]
+            }
+          },
+          "phases": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 24,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "discover",
+                "plan",
+                "pre_booking",
+                "booked",
+                "pre_departure",
+                "in_trip",
+                "incident",
+                "post_trip",
+                "resume",
+                "audit",
+                "delivery",
+                "setup",
+                "scheduled"
+              ]
+            }
+          },
+          "calculatorId": {
+            "enum": [
+              "flex-dates",
+              "airports",
+              "connections",
+              "promotions",
+              "total-cost",
+              "fare-scenarios",
+              "negotiation",
+              "hidden-city",
+              "group-split",
+              null
+            ]
+          },
+          "executor": {
+            "enum": [
+              "planning",
+              "settlement",
+              null
+            ]
+          },
+          "requiredInputs": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 16,
+            "uniqueItems": true,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "pt",
+                "en"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$"
+                },
+                "pt": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 600
+                },
+                "en": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 600
+                }
+              }
+            }
+          },
+          "outputs": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 24,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 600
+            }
+          },
+          "suggestedCapabilities": {
+            "type": "array",
+            "maxItems": 8,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "web_research",
+                "private_files",
+                "calendar_read",
+                "calendar_write",
+                "notifications",
+                "background_schedule",
+                "code_execution",
+                "provider_status"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

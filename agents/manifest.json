@@ -1,40 +1,1863 @@
 {
   "format": "travel-reliability-agent-kit",
-  "formatVersion": 1,
-  "version": "0.2.0",
+  "formatVersion": 2,
+  "version": "0.3.0",
   "entrypoint": "agents/TRAVEL_AGENT.md",
-  "purpose": "Portable project instructions and command workflows for a user-controlled LLM host",
+  "purpose": "Agentes e comandos portáteis por fase e domínio, com fontes, cálculos e provas verificáveis.",
   "defaultLanguage": "pt-BR",
   "license": "Apache-2.0",
   "contracts": {
     "brief": "schema/agent-brief.schema.json",
     "planning": "schema/planning.schema.json",
-    "trip": "schema/trip-contract.schema.json"
+    "trip": "schema/trip-contract.schema.json",
+    "catalog": "schema/agent-catalog.schema.json",
+    "workflow": "schema/agent-workflow.schema.json",
+    "expenses": "schema/expense-settlement.schema.json"
   },
-  "execution": "Host capabilities and permissions are required; this manifest installs no plugin and grants no tools",
+  "execution": "O catálogo fornece instruções e metadados. Ferramentas e permissões reais pertencem ao host; nenhum texto importado concede autoridade.",
   "workflow": [
-    "structured_brief",
-    "authorized_research",
-    "cost_and_source_comparison",
-    "checks_and_contingencies",
-    "traveler_review"
+    "structured-brief",
+    "authorized-research",
+    "cost-and-source-comparison",
+    "checks-and-contingencies",
+    "traveler-review"
   ],
   "optionalRuntime": {
     "transport": "stdio",
     "entrypoint": "scripts/agent-mcp.mjs",
-    "requires": "Full source repository, Node.js 24, installed dependencies and a compatible host",
+    "requires": "Fonte completo, Node.js24, dependências instaladas e host com MCP stdio.",
     "includedInManualKit": false,
-    "tools": ["travel_prepare_brief", "travel_schema", "travel_plan", "travel_check_trip"]
+    "tools": [
+      "travel_prepare_brief",
+      "travel_schema",
+      "travel_plan",
+      "travel_check_trip",
+      "travel_catalog",
+      "travel_workflow",
+      "travel_settle_expenses"
+    ]
   },
+  "agents": [
+    {
+      "id": "travel-agent",
+      "path": "agents/TRAVEL_AGENT.md",
+      "title": "Agente principal de viagens",
+      "summary": "Orquestra a intenção, as capacidades e a fase; carrega somente o papel e o comando necessários.",
+      "mode": "operational",
+      "legacyNames": ["assessoria-viagens"]
+    },
+    {
+      "id": "itinerary-planner",
+      "path": "agents/roles/itinerary-planner.md",
+      "title": "Planejador e organizador",
+      "summary": "Planejamento antes da compra, logística, roteiro, acessibilidade, trabalho e entrega.",
+      "mode": "operational",
+      "legacyNames": ["organizador-de-viagens"]
+    },
+    {
+      "id": "travel-radar",
+      "path": "agents/roles/travel-radar.md",
+      "title": "Radar de viagem",
+      "summary": "Revisões datadas e mudanças materiais; nenhuma rotina existe sem agendador configurado.",
+      "mode": "operational",
+      "legacyNames": ["viagens-radar-diario"]
+    },
+    {
+      "id": "travel-risk",
+      "path": "agents/roles/travel-risk.md",
+      "title": "Gestão de risco",
+      "summary": "Dependências, contingências, apoio, seguro e limites de saúde.",
+      "mode": "operational",
+      "legacyNames": ["viagens-gestao-risco"]
+    },
+    {
+      "id": "points-strategist",
+      "path": "agents/roles/points-strategist.md",
+      "title": "Estratégia de pontos e milhas",
+      "summary": "Comparação verificável de dinheiro/pontos e condições dos programas.",
+      "mode": "operational",
+      "legacyNames": ["viagens-arbitragem-milhas"]
+    },
+    {
+      "id": "consumer-rights",
+      "path": "agents/roles/consumer-rights.md",
+      "title": "Direitos e conformidade",
+      "summary": "Fontes oficiais situadas, documentação e dossiê factual para revisão.",
+      "mode": "operational",
+      "legacyNames": ["viagens-conformidade-direitos"]
+    },
+    {
+      "id": "evidence-organizer",
+      "path": "agents/roles/evidence-organizer.md",
+      "title": "Organização de evidências",
+      "summary": "Preservação, proveniência, ficha técnica, painel, divergências e executado.",
+      "mode": "operational",
+      "legacyNames": ["organizacao-documentos-de-viagem"]
+    },
+    {
+      "id": "ecosystem-architect",
+      "path": "agents/roles/ecosystem-architect.md",
+      "title": "Arquitetura e avaliação do ecossistema",
+      "summary": "Metapapel explícito de configuração e avaliação; não um daemon de viagem.",
+      "mode": "meta",
+      "legacyNames": ["montar-ecossistema-de-skills"]
+    }
+  ],
   "commands": [
-    { "id": "flex-dates", "path": "prompts/01_datas_flexiveis.md" },
-    { "id": "airports", "path": "prompts/02_aeroportos_e_companhias.md" },
-    { "id": "connections", "path": "prompts/03_rotas_e_conexoes.md" },
-    { "id": "promotions", "path": "prompts/04_descontos_e_promocoes.md" },
-    { "id": "total-cost", "path": "prompts/05_custo_total_da_passagem.md" },
-    { "id": "fare-scenarios", "path": "prompts/06_alteracao_cancelamento_e_reembolso.md" },
-    { "id": "negotiation", "path": "prompts/07_negociacao_comercial.md" },
-    { "id": "hidden-city", "path": "prompts/08_riscos_de_hidden_city.md" },
-    { "id": "group-split", "path": "prompts/09_viagens_em_grupo_e_rateio.md" }
+    {
+      "id": "flex-dates",
+      "path": "prompts/01_datas_flexiveis.md",
+      "title": "Comparar datas flexíveis preservando duração e grupo",
+      "summary": "Preservar contrato explícito, fontes datadas, desconhecidos e limites de ação externa; manter calculadora determinística existente.",
+      "agentId": "travel-agent",
+      "domains": ["flight"],
+      "phases": ["plan"],
+      "calculatorId": "flex-dates",
+      "executor": "planning",
+      "requiredInputs": [
+        {
+          "id": "travel_area",
+          "pt": "Origem/destino ou área autorizada de pesquisa",
+          "en": "Origin/destination or authorized search area"
+        },
+        {
+          "id": "date_window",
+          "pt": "Datas, duração e flexibilidade conhecidas",
+          "en": "Known dates, duration and flexibility"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e restrições funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional constraints"
+        },
+        {
+          "id": "quotes",
+          "pt": "Ofertas comparáveis e fontes datadas, ou lacuna explícita",
+          "en": "Comparable offers and dated sources, or explicit gaps"
+        }
+      ],
+      "outputs": [
+        "Comparar datas flexíveis preservando duração e grupo",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "airports",
+      "path": "prompts/02_aeroportos_e_companhias.md",
+      "title": "Comparar aeroportos, operadores e custo porta a porta",
+      "summary": "Preservar contrato explícito, fontes datadas, desconhecidos e limites de ação externa; manter calculadora determinística existente.",
+      "agentId": "travel-agent",
+      "domains": ["flight"],
+      "phases": ["plan"],
+      "calculatorId": "airports",
+      "executor": "planning",
+      "requiredInputs": [
+        {
+          "id": "travel_area",
+          "pt": "Origem/destino ou área autorizada de pesquisa",
+          "en": "Origin/destination or authorized search area"
+        },
+        {
+          "id": "date_window",
+          "pt": "Datas, duração e flexibilidade conhecidas",
+          "en": "Known dates, duration and flexibility"
+        },
+        {
+          "id": "quotes",
+          "pt": "Ofertas comparáveis e fontes datadas, ou lacuna explícita",
+          "en": "Comparable offers and dated sources, or explicit gaps"
+        }
+      ],
+      "outputs": [
+        "Comparar aeroportos, operadores e custo porta a porta",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "connections",
+      "path": "prompts/03_rotas_e_conexoes.md",
+      "title": "Comparar rotas e conexões com viabilidade documentada",
+      "summary": "Preservar contrato explícito, fontes datadas, desconhecidos e limites de ação externa; manter calculadora determinística existente.",
+      "agentId": "travel-risk",
+      "domains": ["flight", "ground"],
+      "phases": ["plan", "pre_departure"],
+      "calculatorId": "connections",
+      "executor": "planning",
+      "requiredInputs": [
+        {
+          "id": "route_context",
+          "pt": "Trajetos, modais, datas e restrições operacionais",
+          "en": "Legs, modes, dates and operational constraints"
+        },
+        {
+          "id": "supplier_terms",
+          "pt": "Condições contratuais e fonte/vigência",
+          "en": "Contract terms and applicable source/date"
+        }
+      ],
+      "outputs": [
+        "Comparar rotas e conexões com viabilidade documentada",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "promotions",
+      "path": "prompts/04_descontos_e_promocoes.md",
+      "title": "Conferir descontos, promoção e elegibilidade",
+      "summary": "Preservar contrato explícito, fontes datadas, desconhecidos e limites de ação externa; manter calculadora determinística existente.",
+      "agentId": "points-strategist",
+      "domains": ["flight", "points"],
+      "phases": ["pre_booking"],
+      "calculatorId": "promotions",
+      "executor": "planning",
+      "requiredInputs": [
+        {
+          "id": "quotes",
+          "pt": "Ofertas comparáveis e fontes datadas, ou lacuna explícita",
+          "en": "Comparable offers and dated sources, or explicit gaps"
+        },
+        {
+          "id": "supplier_terms",
+          "pt": "Condições contratuais e fonte/vigência",
+          "en": "Contract terms and applicable source/date"
+        }
+      ],
+      "outputs": [
+        "Conferir descontos, promoção e elegibilidade",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "total-cost",
+      "path": "prompts/05_custo_total_da_passagem.md",
+      "title": "Calcular custo total equivalente sem dupla contagem",
+      "summary": "Preservar contrato explícito, fontes datadas, desconhecidos e limites de ação externa; manter calculadora determinística existente.",
+      "agentId": "travel-agent",
+      "domains": ["flight", "budget"],
+      "phases": ["plan", "pre_booking"],
+      "calculatorId": "total-cost",
+      "executor": "planning",
+      "requiredInputs": [
+        {
+          "id": "quotes",
+          "pt": "Ofertas comparáveis e fontes datadas, ou lacuna explícita",
+          "en": "Comparable offers and dated sources, or explicit gaps"
+        },
+        {
+          "id": "budget_scope",
+          "pt": "Moedas, escopo de despesas e limites declarados",
+          "en": "Currencies, expense scope and declared limits"
+        }
+      ],
+      "outputs": [
+        "Calcular custo total equivalente sem dupla contagem",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "fare-scenarios",
+      "path": "prompts/06_alteracao_cancelamento_e_reembolso.md",
+      "title": "Comparar alteração, cancelamento e reembolso por cenário",
+      "summary": "Preservar contrato explícito, fontes datadas, desconhecidos e limites de ação externa; manter calculadora determinística existente.",
+      "agentId": "consumer-rights",
+      "domains": ["flight", "rights"],
+      "phases": ["pre_booking", "incident"],
+      "calculatorId": "fare-scenarios",
+      "executor": "planning",
+      "requiredInputs": [
+        {
+          "id": "quotes",
+          "pt": "Ofertas comparáveis e fontes datadas, ou lacuna explícita",
+          "en": "Comparable offers and dated sources, or explicit gaps"
+        },
+        {
+          "id": "supplier_terms",
+          "pt": "Condições contratuais e fonte/vigência",
+          "en": "Contract terms and applicable source/date"
+        }
+      ],
+      "outputs": [
+        "Comparar alteração, cancelamento e reembolso por cenário",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "negotiation",
+      "path": "prompts/07_negociacao_comercial.md",
+      "title": "Redigir negociação comercial factual sem enviar",
+      "summary": "Preservar contrato explícito, fontes datadas, desconhecidos e limites de ação externa; manter calculadora determinística existente.",
+      "agentId": "travel-agent",
+      "domains": ["budget"],
+      "phases": ["pre_booking"],
+      "calculatorId": "negotiation",
+      "executor": "planning",
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "Escopo e objetivo da viagem",
+          "en": "Trip scope and objective"
+        },
+        {
+          "id": "provider_reference",
+          "pt": "Fornecedor e fonte oficial/contratual a verificar",
+          "en": "Supplier and official/contract source to check"
+        },
+        {
+          "id": "supplier_terms",
+          "pt": "Condições contratuais e fonte/vigência",
+          "en": "Contract terms and applicable source/date"
+        }
+      ],
+      "outputs": [
+        "Redigir negociação comercial factual sem enviar",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "hidden-city",
+      "path": "prompts/08_riscos_de_hidden_city.md",
+      "title": "Avaliar preço e riscos de trecho descartado sem ocultação",
+      "summary": "Preservar contrato explícito, fontes datadas, desconhecidos e limites de ação externa; manter calculadora determinística existente.",
+      "agentId": "travel-risk",
+      "domains": ["flight", "risk"],
+      "phases": ["pre_booking"],
+      "calculatorId": "hidden-city",
+      "executor": "planning",
+      "requiredInputs": [
+        {
+          "id": "quotes",
+          "pt": "Ofertas comparáveis e fontes datadas, ou lacuna explícita",
+          "en": "Comparable offers and dated sources, or explicit gaps"
+        },
+        {
+          "id": "route_context",
+          "pt": "Trajetos, modais, datas e restrições operacionais",
+          "en": "Legs, modes, dates and operational constraints"
+        },
+        {
+          "id": "supplier_terms",
+          "pt": "Condições contratuais e fonte/vigência",
+          "en": "Contract terms and applicable source/date"
+        }
+      ],
+      "outputs": [
+        "Avaliar preço e riscos de trecho descartado sem ocultação",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "group-split",
+      "path": "prompts/09_viagens_em_grupo_e_rateio.md",
+      "title": "Planejar grupo e ratear custos por beneficiários e limites",
+      "summary": "Preservar contrato explícito, fontes datadas, desconhecidos e limites de ação externa; manter calculadora determinística existente.",
+      "agentId": "travel-agent",
+      "domains": ["group", "budget"],
+      "phases": ["plan"],
+      "calculatorId": "group-split",
+      "executor": "planning",
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "Escopo e objetivo da viagem",
+          "en": "Trip scope and objective"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e restrições funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional constraints"
+        },
+        {
+          "id": "group_rule",
+          "pt": "Beneficiários e regra de divisão aceita",
+          "en": "Beneficiaries and accepted allocation rule"
+        },
+        {
+          "id": "budget_scope",
+          "pt": "Moedas, escopo de despesas e limites declarados",
+          "en": "Currencies, expense scope and declared limits"
+        }
+      ],
+      "outputs": [
+        "Planejar grupo e ratear custos por beneficiários e limites",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "host-capabilities",
+      "path": "prompts/10_host_capabilities.md",
+      "title": "Detectar capacidades e autoridade sem presumir pelo nome do host",
+      "summary": "Distinguir runtime real, operador direto/terceiro/rotina, disponibilidade de ferramentas e permissões efetivas; quatro adapters não ampliam autoridade.",
+      "agentId": "travel-agent",
+      "domains": ["all"],
+      "phases": ["setup"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "capability_manifest",
+          "pt": "Ferramentas efetivamente disponíveis e permissões",
+          "en": "Actually available tools and permissions"
+        },
+        {
+          "id": "trip_scope",
+          "pt": "Escopo e objetivo da viagem",
+          "en": "Trip scope and objective"
+        }
+      ],
+      "outputs": [
+        "Detectar capacidades e autoridade sem presumir pelo nome do host",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "resume-trip",
+      "path": "prompts/11_resume_trip.md",
+      "title": "Retomar estado e reconciliar somente mudanças relevantes",
+      "summary": "A=ficha íntegra; B=documentos sem ficha; C=pedido sem ficha/documentos; D=delta/contradição/corrupção. Preservar desconhecidos, versões e evidência; não tomar silêncio como consentimento.",
+      "agentId": "travel-agent",
+      "domains": ["all"],
+      "phases": ["resume"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "Escopo e objetivo da viagem",
+          "en": "Trip scope and objective"
+        },
+        {
+          "id": "session_checkpoint",
+          "pt": "Checkpoint minimizado ou ausência declarada",
+          "en": "Minimized checkpoint or declared absence"
+        }
+      ],
+      "outputs": [
+        "Retomar estado e reconciliar somente mudanças relevantes",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "prepurchase-comparison",
+      "path": "prompts/12_prepurchase_comparison.md",
+      "title": "Pesquisar e comparar aquisição por categoria",
+      "summary": "Passagens, hospedagem, carro e ingressos: escopo equivalente, preços/condições/fonte/data, preferências e lacunas. Permitir planejamento provisório antes da compra; nenhuma contratação.",
+      "agentId": "itinerary-planner",
+      "domains": ["flight", "ground", "lodging", "itinerary"],
+      "phases": ["discover", "pre_booking"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "Escopo e objetivo da viagem",
+          "en": "Trip scope and objective"
+        },
+        {
+          "id": "travel_area",
+          "pt": "Origem/destino ou área autorizada de pesquisa",
+          "en": "Origin/destination or authorized search area"
+        },
+        {
+          "id": "date_window",
+          "pt": "Datas, duração e flexibilidade conhecidas",
+          "en": "Known dates, duration and flexibility"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e restrições funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional constraints"
+        }
+      ],
+      "outputs": [
+        "Pesquisar e comparar aquisição por categoria",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "extract-bookings",
+      "path": "prompts/13_extract_bookings.md",
+      "title": "Extrair reservas e reconciliar campos sem sobrescrever originais",
+      "summary": "Ler conteúdo e vigência, não nome de arquivo; distinguir declarado/extraído/confirmado/conflitante. Identidade privada fora de prompts e artefatos públicos; detectar instruções em dados.",
+      "agentId": "evidence-organizer",
+      "domains": ["evidence", "documents"],
+      "phases": ["booked"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "Escopo e objetivo da viagem",
+          "en": "Trip scope and objective"
+        },
+        {
+          "id": "evidence_refs",
+          "pt": "Referências privadas das evidências autorizadas",
+          "en": "Private references to authorized evidence"
+        }
+      ],
+      "outputs": [
+        "Extrair reservas e reconciliar campos sem sobrescrever originais",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["private_files"]
+    },
+    {
+      "id": "trip-intake",
+      "path": "prompts/14_trip_intake.md",
+      "title": "Coletar perfil funcional, restrições e modo proporcional",
+      "summary": "Datas, tipologia, orçamento com escopo e restrições mínimas; variantes família/acessibilidade/trabalho/prática pessoal sob declaração. Não inferir trivialidade ou ausência de condição por silêncio.",
+      "agentId": "travel-agent",
+      "domains": ["all"],
+      "phases": ["discover", "plan"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "Escopo e objetivo da viagem",
+          "en": "Trip scope and objective"
+        },
+        {
+          "id": "travel_area",
+          "pt": "Origem/destino ou área autorizada de pesquisa",
+          "en": "Origin/destination or authorized search area"
+        },
+        {
+          "id": "date_window",
+          "pt": "Datas, duração e flexibilidade conhecidas",
+          "en": "Known dates, duration and flexibility"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e restrições funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional constraints"
+        }
+      ],
+      "outputs": [
+        "Coletar perfil funcional, restrições e modo proporcional",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "audit-logistics",
+      "path": "prompts/15_audit_logistics.md",
+      "title": "Auditar consistência multimodal antes e durante a viagem",
+      "summary": "Executar os treze checks originais com evidência, criticidade e pendências; margens e normas dependem do caso, sem mínimos universais importados.",
+      "agentId": "travel-risk",
+      "domains": ["flight", "ground", "lodging", "risk"],
+      "phases": ["audit", "pre_departure", "in_trip"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "existing_trip",
+          "pt": "Ficha ou estado da viagem, quando existente",
+          "en": "Existing trip record or state, if available"
+        },
+        {
+          "id": "evidence_refs",
+          "pt": "Referências privadas das evidências autorizadas",
+          "en": "Private references to authorized evidence"
+        },
+        {
+          "id": "time_zone",
+          "pt": "Fusos IANA dos locais e horários correspondentes",
+          "en": "IANA zones for the locations and times"
+        }
+      ],
+      "outputs": [
+        "Cobertura contínua de hospedagem noite a noite",
+        "Chegada do transporte × funcionamento do balcão de retirada",
+        "Chegada efetiva com bagagem/traslado × check-in real",
+        "Retirada/devolução de veículo × chegada/partida",
+        "Margem de conexão por terminal, fronteira, bagagem e tipo de bilhete",
+        "Prazos e condições de cancelamento",
+        "Contradições entre documentos",
+        "Check-out × partida de retorno",
+        "Bagagem/equipamentos × capacidade do veículo",
+        "Franquia de bagagem por viajante e trecho",
+        "Seguro: vigência, inclusões/exclusões e pessoas cobertas",
+        "Logística de bebê/criança e equipamentos/assento",
+        "Requisitos internacionais por jurisdição e perfil mínimo",
+        "Contradições, criticidade, fontes e pendências sem garantia de viabilidade"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "trip-record",
+      "path": "prompts/16_trip_record.md",
+      "title": "Consolidar ficha técnica verificável e versionada",
+      "summary": "Resumo, reservas, cobertura noite a noite, contatos privados, fontes, contradições, decisões e pendências. Diferenciar rascunho/revisado; nenhuma confirmação fictícia do fornecedor.",
+      "agentId": "evidence-organizer",
+      "domains": ["evidence", "documents"],
+      "phases": ["booked"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "existing_trip",
+          "pt": "Ficha ou estado da viagem, quando existente",
+          "en": "Existing trip record or state, if available"
+        },
+        {
+          "id": "evidence_refs",
+          "pt": "Referências privadas das evidências autorizadas",
+          "en": "Private references to authorized evidence"
+        }
+      ],
+      "outputs": [
+        "Consolidar ficha técnica verificável e versionada",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["private_files"]
+    },
+    {
+      "id": "compare-lodging",
+      "path": "prompts/17_compare_lodging.md",
+      "title": "Comparar hospedagem, ocupação e condições reais",
+      "summary": "Preço total por noites/grupo, disponibilidade, capacidade/camas, check-in/out, taxas, acessibilidade e cancelamento; anúncio não equivale a confirmação.",
+      "agentId": "itinerary-planner",
+      "domains": ["lodging"],
+      "phases": ["plan", "pre_booking"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "travel_area",
+          "pt": "Origem/destino ou área autorizada de pesquisa",
+          "en": "Origin/destination or authorized search area"
+        },
+        {
+          "id": "date_window",
+          "pt": "Datas, duração e flexibilidade conhecidas",
+          "en": "Known dates, duration and flexibility"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e restrições funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional constraints"
+        },
+        {
+          "id": "quotes",
+          "pt": "Ofertas comparáveis e fontes datadas, ou lacuna explícita",
+          "en": "Comparable offers and dated sources, or explicit gaps"
+        }
+      ],
+      "outputs": [
+        "Comparar hospedagem, ocupação e condições reais",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "compare-rentals",
+      "path": "prompts/18_compare_rentals.md",
+      "title": "Comparar locação, logística, adicionais e exposição de caixa",
+      "summary": "Categoria, bagagem/equipamentos, balcão, retirada/devolução, coberturas/exclusões, adicionais, caução e autorização; sem emissão ou pagamento.",
+      "agentId": "itinerary-planner",
+      "domains": ["ground"],
+      "phases": ["plan", "pre_booking"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "route_context",
+          "pt": "Trajetos, modais, datas e restrições operacionais",
+          "en": "Legs, modes, dates and operational constraints"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e restrições funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional constraints"
+        },
+        {
+          "id": "quotes",
+          "pt": "Ofertas comparáveis e fontes datadas, ou lacuna explícita",
+          "en": "Comparable offers and dated sources, or explicit gaps"
+        },
+        {
+          "id": "supplier_terms",
+          "pt": "Condições contratuais e fonte/vigência",
+          "en": "Contract terms and applicable source/date"
+        }
+      ],
+      "outputs": [
+        "Comparar locação, logística, adicionais e exposição de caixa",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "compare-attractions",
+      "path": "prompts/19_compare_attractions.md",
+      "title": "Comparar passeios e ingressos antecipados",
+      "summary": "Fonte do organizador, data/horário/capacidade, cancelamento, equivalência, reserva necessária e acesso. Não confundir pesquisa informativa com aquisição.",
+      "agentId": "itinerary-planner",
+      "domains": ["itinerary"],
+      "phases": ["plan", "pre_booking"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "travel_area",
+          "pt": "Origem/destino ou área autorizada de pesquisa",
+          "en": "Origin/destination or authorized search area"
+        },
+        {
+          "id": "date_window",
+          "pt": "Datas, duração e flexibilidade conhecidas",
+          "en": "Known dates, duration and flexibility"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e restrições funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional constraints"
+        },
+        {
+          "id": "quotes",
+          "pt": "Ofertas comparáveis e fontes datadas, ou lacuna explícita",
+          "en": "Comparable offers and dated sources, or explicit gaps"
+        }
+      ],
+      "outputs": [
+        "Comparar passeios e ingressos antecipados",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "points-strategy",
+      "path": "prompts/20_points_strategy.md",
+      "title": "Comparar dinheiro, milhas/pontos e encargos verificáveis",
+      "summary": "Mesma oferta e moeda, taxas, validade/regras, custos marginais, elegibilidade e cenários; nenhum limiar monetário universal, transferência ou compra de pontos.",
+      "agentId": "points-strategist",
+      "domains": ["points", "budget"],
+      "phases": ["pre_booking"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "quotes",
+          "pt": "Ofertas comparáveis e fontes datadas, ou lacuna explícita",
+          "en": "Comparable offers and dated sources, or explicit gaps"
+        },
+        {
+          "id": "points_summary",
+          "pt": "Saldo/condições mínimos e anônimos, sem credenciais",
+          "en": "Minimal anonymized balances/terms, no credentials"
+        },
+        {
+          "id": "supplier_terms",
+          "pt": "Condições contratuais e fonte/vigência",
+          "en": "Contract terms and applicable source/date"
+        }
+      ],
+      "outputs": [
+        "Comparar dinheiro, milhas/pontos e encargos verificáveis",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "build-itinerary",
+      "path": "prompts/21_build_itinerary.md",
+      "title": "Construir roteiro diário compatível com reservas e preferências",
+      "summary": "Datas/fusos, atividades, deslocamentos, funcionamento, custos conhecidos, reservas, pausas e alternativa; manter fontes e hipóteses separadas.",
+      "agentId": "itinerary-planner",
+      "domains": ["itinerary"],
+      "phases": ["plan", "booked", "in_trip"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "existing_trip",
+          "pt": "Ficha ou estado da viagem, quando existente",
+          "en": "Existing trip record or state, if available"
+        },
+        {
+          "id": "travel_area",
+          "pt": "Origem/destino ou área autorizada de pesquisa",
+          "en": "Origin/destination or authorized search area"
+        },
+        {
+          "id": "date_window",
+          "pt": "Datas, duração e flexibilidade conhecidas",
+          "en": "Known dates, duration and flexibility"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e restrições funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional constraints"
+        }
+      ],
+      "outputs": [
+        "Construir roteiro diário compatível com reservas e preferências",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "departure-checklist",
+      "path": "prompts/22_departure_checklist.md",
+      "title": "Gerar checklist operacional e distribuição por bagagem",
+      "summary": "Documentos, saúde/higiene sem prescrição, roupas/clima, equipamentos, alimentação, eletrônicos e distribuição funcional de bagagem.",
+      "agentId": "itinerary-planner",
+      "domains": ["documents", "itinerary"],
+      "phases": ["pre_departure"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "existing_trip",
+          "pt": "Ficha ou estado da viagem, quando existente",
+          "en": "Existing trip record or state, if available"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e restrições funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional constraints"
+        },
+        {
+          "id": "route_context",
+          "pt": "Trajetos, modais, datas e restrições operacionais",
+          "en": "Legs, modes, dates and operational constraints"
+        }
+      ],
+      "outputs": [
+        "Gerar checklist operacional e distribuição por bagagem",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "accessibility-plan",
+      "path": "prompts/23_accessibility_plan.md",
+      "title": "Adequar logística a dependentes e acessibilidade",
+      "summary": "Necessidades funcionais declaradas, ritmo/pausas, alimentação, sono, equipamentos e cuidadores; não diagnosticar ou impor quota clínica de atividades.",
+      "agentId": "itinerary-planner",
+      "domains": ["accessibility", "itinerary"],
+      "phases": ["plan", "pre_departure"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "Escopo e objetivo da viagem",
+          "en": "Trip scope and objective"
+        },
+        {
+          "id": "functional_needs",
+          "pt": "Necessidades funcionais voluntárias, sem diagnóstico detalhado",
+          "en": "Voluntary functional needs, no detailed diagnosis"
+        },
+        {
+          "id": "route_context",
+          "pt": "Trajetos, modais, datas e restrições operacionais",
+          "en": "Legs, modes, dates and operational constraints"
+        }
+      ],
+      "outputs": [
+        "Adequar logística a dependentes e acessibilidade",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "hybrid-travel",
+      "path": "prompts/24_hybrid_travel.md",
+      "title": "Preservar blocos de trabalho e logística de viagem híbrida",
+      "summary": "Reuniões, conectividade, espaço silencioso, transferência e margens; separar acompanhantes/blocos pessoais conforme pedido.",
+      "agentId": "itinerary-planner",
+      "domains": ["itinerary", "operations"],
+      "phases": ["plan", "in_trip"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "existing_trip",
+          "pt": "Ficha ou estado da viagem, quando existente",
+          "en": "Existing trip record or state, if available"
+        },
+        {
+          "id": "work_blocks",
+          "pt": "Compromissos profissionais e margens declaradas",
+          "en": "Declared work blocks and travel buffers"
+        },
+        {
+          "id": "time_zone",
+          "pt": "Fusos IANA dos locais e horários correspondentes",
+          "en": "IANA zones for the locations and times"
+        }
+      ],
+      "outputs": [
+        "Preservar blocos de trabalho e logística de viagem híbrida",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "personal-commitments",
+      "path": "prompts/25_personal_commitments.md",
+      "title": "Preservar compromissos pessoais/espirituais expressamente declarados",
+      "summary": "Reservar horários e logística quando solicitados, sem pressupor crença ou universalizar calendário religioso; minimizar perfil sensível e separar cuidado de dependentes.",
+      "agentId": "itinerary-planner",
+      "domains": ["itinerary"],
+      "phases": ["plan", "in_trip"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "existing_trip",
+          "pt": "Ficha ou estado da viagem, quando existente",
+          "en": "Existing trip record or state, if available"
+        },
+        {
+          "id": "personal_blocks",
+          "pt": "Compromissos pessoais voluntariamente informados",
+          "en": "Voluntarily supplied personal commitments"
+        },
+        {
+          "id": "time_zone",
+          "pt": "Fusos IANA dos locais e horários correspondentes",
+          "en": "IANA zones for the locations and times"
+        }
+      ],
+      "outputs": [
+        "Preservar compromissos pessoais/espirituais expressamente declarados",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "emergency-plan",
+      "path": "prompts/26_emergency_plan.md",
+      "title": "Mapear infraestrutura de apoio e plano B",
+      "summary": "Hospitais, farmácias, apoio local e acesso com fonte atual; não prometer capacidade clínica, segurança ou atendimento. Não publicar localização privada.",
+      "agentId": "travel-risk",
+      "domains": ["health", "risk"],
+      "phases": ["plan", "in_trip", "incident"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "travel_area",
+          "pt": "Origem/destino ou área autorizada de pesquisa",
+          "en": "Origin/destination or authorized search area"
+        },
+        {
+          "id": "incident_context",
+          "pt": "Serviço, jurisdição, ocorrência e urgência",
+          "en": "Service, jurisdiction, event and urgency"
+        },
+        {
+          "id": "functional_needs",
+          "pt": "Necessidades funcionais voluntárias, sem diagnóstico detalhado",
+          "en": "Voluntary functional needs, no detailed diagnosis"
+        }
+      ],
+      "outputs": [
+        "Mapear infraestrutura de apoio e plano B",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "weather-contingency",
+      "path": "prompts/27_weather_contingency.md",
+      "title": "Replanejar por clima, fechamento e imprevistos",
+      "summary": "Previsões e alertas datados e aplicáveis ao local/período, sem falsa média entre fontes incompatíveis; preservar atividades executadas e ajustar apenas o restante.",
+      "agentId": "travel-radar",
+      "domains": ["risk", "monitoring"],
+      "phases": ["in_trip", "incident"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "existing_trip",
+          "pt": "Ficha ou estado da viagem, quando existente",
+          "en": "Existing trip record or state, if available"
+        },
+        {
+          "id": "source_snapshot",
+          "pt": "Fontes datadas e estado anterior disponível",
+          "en": "Dated sources and available prior state"
+        },
+        {
+          "id": "planned_actual",
+          "pt": "Planejado e executado em fontes distintas",
+          "en": "Planned and actual records in separate sources"
+        }
+      ],
+      "outputs": [
+        "Replanejar por clima, fechamento e imprevistos",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research", "provider_status"]
+    },
+    {
+      "id": "audit-itinerary",
+      "path": "prompts/28_audit_itinerary.md",
+      "title": "Auditar o roteiro e reavaliar contradições",
+      "summary": "Restrições, compromissos, trabalho, reservas, fontes comerciais, ritmo, distâncias, plano B, orçamento e infraestrutura; corrigir com ciclos limitados e declarar impedimentos.",
+      "agentId": "itinerary-planner",
+      "domains": ["itinerary", "risk"],
+      "phases": ["audit"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "existing_trip",
+          "pt": "Ficha ou estado da viagem, quando existente",
+          "en": "Existing trip record or state, if available"
+        },
+        {
+          "id": "evidence_refs",
+          "pt": "Referências privadas das evidências autorizadas",
+          "en": "Private references to authorized evidence"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e restrições funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional constraints"
+        }
+      ],
+      "outputs": [
+        "Auditar o roteiro e reavaliar contradições",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "calendar-plan",
+      "path": "prompts/29_calendar_plan.md",
+      "title": "Preparar agenda e reconciliação de eventos com autorização por efeito",
+      "summary": "Detectar conector real; preview exato de eventos/destino/fuso IANA correto/convidados/notificações; efeitos só com autorização específica e ferramenta; iCal como alternativa.",
+      "agentId": "travel-agent",
+      "domains": ["calendar"],
+      "phases": ["delivery"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "existing_trip",
+          "pt": "Ficha ou estado da viagem, quando existente",
+          "en": "Existing trip record or state, if available"
+        },
+        {
+          "id": "calendar_scope",
+          "pt": "Agenda-alvo e escopo exato do preview",
+          "en": "Target calendar and exact preview scope"
+        },
+        {
+          "id": "time_zone",
+          "pt": "Fusos IANA dos locais e horários correspondentes",
+          "en": "IANA zones for the locations and times"
+        }
+      ],
+      "outputs": [
+        "Preview com UID, início/fim, fuso IANA, agenda-alvo, convidados e notificações",
+        "Conflitos e diferenças entre eventos existentes e propostos",
+        "Plano de reconciliação após timeout antes de repetir efeito",
+        "iCal como alternativa quando falta ferramenta; nenhuma escrita realizada"
+      ],
+      "suggestedCapabilities": ["calendar_read", "calendar_write"]
+    },
+    {
+      "id": "deliver-trip",
+      "path": "prompts/30_deliver_trip.md",
+      "title": "Entregar pacote utilizável e exportações verificadas",
+      "summary": "Alertas no topo, resumo/roteiro/checklist/fontes/pendências; Markdown e, conforme capacidade, JSON/PDF/iCal/DOCX. Verificar artefatos antes de afirmar geração, com metadados privados minimizados.",
+      "agentId": "evidence-organizer",
+      "domains": ["evidence", "documents"],
+      "phases": ["delivery"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "existing_trip",
+          "pt": "Ficha ou estado da viagem, quando existente",
+          "en": "Existing trip record or state, if available"
+        },
+        {
+          "id": "output_targets",
+          "pt": "Formatos/destinos autorizados e capacidade de exportação",
+          "en": "Authorized formats/targets and export capability"
+        }
+      ],
+      "outputs": [
+        "Entregar pacote utilizável e exportações verificadas",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["private_files"]
+    },
+    {
+      "id": "organize-documents",
+      "path": "prompts/31_organize_documents.md",
+      "title": "Organizar arquivos com proveniência e preservação",
+      "summary": "Pasta por viagem, tipos e versões, originais preservados, colisões sem sobrescrita, log de divergências, idioma/encoding e exportação sanitizada. Não aplicar classificação a pasta privada sem autorização.",
+      "agentId": "evidence-organizer",
+      "domains": ["evidence", "documents"],
+      "phases": ["booked", "post_trip"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "Escopo e objetivo da viagem",
+          "en": "Trip scope and objective"
+        },
+        {
+          "id": "evidence_refs",
+          "pt": "Referências privadas das evidências autorizadas",
+          "en": "Private references to authorized evidence"
+        },
+        {
+          "id": "output_targets",
+          "pt": "Formatos/destinos autorizados e capacidade de exportação",
+          "en": "Authorized formats/targets and export capability"
+        }
+      ],
+      "outputs": [
+        "Organizar arquivos com proveniência e preservação",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["private_files"]
+    },
+    {
+      "id": "manage-risk",
+      "path": "prompts/32_manage_risk.md",
+      "title": "Avaliar riscos e cascatas de dependências de serviços",
+      "summary": "Risco factual vs hipótese, ligação entre reservas, evidências necessárias, ações e responsáveis; sem porcentagens arbitrárias ou garantia de indenização.",
+      "agentId": "travel-risk",
+      "domains": ["risk"],
+      "phases": ["pre_booking", "in_trip", "incident"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "existing_trip",
+          "pt": "Ficha ou estado da viagem, quando existente",
+          "en": "Existing trip record or state, if available"
+        },
+        {
+          "id": "incident_context",
+          "pt": "Serviço, jurisdição, ocorrência e urgência",
+          "en": "Service, jurisdiction, event and urgency"
+        },
+        {
+          "id": "evidence_refs",
+          "pt": "Referências privadas das evidências autorizadas",
+          "en": "Private references to authorized evidence"
+        }
+      ],
+      "outputs": [
+        "Avaliar riscos e cascatas de dependências de serviços",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "consumer-rights",
+      "path": "prompts/33_consumer_rights.md",
+      "title": "Verificar direitos e conformidade por serviço e jurisdição",
+      "summary": "Norma oficial vigente e fatos aplicáveis, doméstico/internacional/menores/seguro/Cadastur quando pertinente; organizar pedido/dossiê neutro sem parecer individual ou envio automático.",
+      "agentId": "consumer-rights",
+      "domains": ["rights"],
+      "phases": ["pre_booking", "incident", "post_trip"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "incident_context",
+          "pt": "Serviço, jurisdição, ocorrência e urgência",
+          "en": "Service, jurisdiction, event and urgency"
+        },
+        {
+          "id": "supplier_terms",
+          "pt": "Condições contratuais e fonte/vigência",
+          "en": "Contract terms and applicable source/date"
+        },
+        {
+          "id": "evidence_refs",
+          "pt": "Referências privadas das evidências autorizadas",
+          "en": "Private references to authorized evidence"
+        }
+      ],
+      "outputs": [
+        "Verificar direitos e conformidade por serviço e jurisdição",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "monitor-trip",
+      "path": "prompts/34_monitor_trip.md",
+      "title": "Executar revisão periódica delimitada e alertar somente mudança material",
+      "summary": "Malha, greve, clima, vencimentos e cancelamentos com fontes; relógio e calendário determinísticos, estado anterior/novo, prazo de término, retry limitado e silêncio sem novidade. Não criar agendamento por inferência.",
+      "agentId": "travel-radar",
+      "domains": ["monitoring"],
+      "phases": ["scheduled", "in_trip"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "existing_trip",
+          "pt": "Ficha ou estado da viagem, quando existente",
+          "en": "Existing trip record or state, if available"
+        },
+        {
+          "id": "source_snapshot",
+          "pt": "Fontes datadas e estado anterior disponível",
+          "en": "Dated sources and available prior state"
+        },
+        {
+          "id": "automation_scope",
+          "pt": "Escopo, frequência, término e orçamento da rotina",
+          "en": "Routine scope, cadence, end date and budget"
+        }
+      ],
+      "outputs": [
+        "Executar revisão periódica delimitada e alertar somente mudança material",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research", "provider_status"]
+    },
+    {
+      "id": "task-board",
+      "path": "prompts/35_task_board.md",
+      "title": "Produzir painel de pendências com evidência e contagem reconciliada",
+      "summary": "Um item por ação material, deduplicado entre fontes, prioridade/prazo/responsável/estado por viagem; fechamento exige evidência, não apenas aparência ou marcação automática.",
+      "agentId": "evidence-organizer",
+      "domains": ["operations", "evidence"],
+      "phases": ["resume", "delivery"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "existing_trip",
+          "pt": "Ficha ou estado da viagem, quando existente",
+          "en": "Existing trip record or state, if available"
+        },
+        {
+          "id": "evidence_refs",
+          "pt": "Referências privadas das evidências autorizadas",
+          "en": "Private references to authorized evidence"
+        }
+      ],
+      "outputs": [
+        "Itens deduplicados por viagem/ação e fontes de origem",
+        "Responsável, prazo com fuso, prioridade e estado sustentado por evidência",
+        "Totais por estado reconciliados; nenhuma baixa por mera aparência"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "planned-vs-actual",
+      "path": "prompts/36_planned_vs_actual.md",
+      "title": "Registrar executado e readequar apenas o futuro",
+      "summary": "Distinguir planejado/declarado/observado/confirmado, preservar histórico e conflitos; geolocalização/captura não prova sozinha toda atividade; não reescrever o passado sem pedido.",
+      "agentId": "evidence-organizer",
+      "domains": ["evidence", "budget", "itinerary"],
+      "phases": ["in_trip", "post_trip"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "planned_actual",
+          "pt": "Planejado e executado em fontes distintas",
+          "en": "Planned and actual records in separate sources"
+        },
+        {
+          "id": "evidence_refs",
+          "pt": "Referências privadas das evidências autorizadas",
+          "en": "Private references to authorized evidence"
+        }
+      ],
+      "outputs": [
+        "Registros planejados e observados separados com fontes e divergências",
+        "Histórico preservado e correções explicitamente registradas",
+        "Replanejamento restrito ao futuro, despesas por moeda e lacunas"
+      ],
+      "suggestedCapabilities": ["private_files"]
+    },
+    {
+      "id": "multi-trip",
+      "path": "prompts/37_multi_trip.md",
+      "title": "Separar viagens concorrentes e consolidar somente o necessário",
+      "summary": "Pseudônimos e estado por viagem, sem transferir identidades/fatos; leitura paralela delimitada se houver capacidade e duas ou mais viagens autorizadas; painel mantém origem de cada pendência.",
+      "agentId": "travel-agent",
+      "domains": ["operations"],
+      "phases": ["resume"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "trip_selection",
+          "pt": "IDs e escopos das viagens autorizadas",
+          "en": "Authorized trip IDs and scopes"
+        },
+        {
+          "id": "evidence_refs",
+          "pt": "Referências privadas das evidências autorizadas",
+          "en": "Private references to authorized evidence"
+        }
+      ],
+      "outputs": [
+        "Separar viagens concorrentes e consolidar somente o necessário",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["private_files"]
+    },
+    {
+      "id": "ecosystem-setup",
+      "path": "prompts/38_ecosystem_setup.md",
+      "title": "Compor papéis e comandos por contratos sem sobreposição de gatilhos",
+      "summary": "Catálogo único, gatilhos positivos e negativos, dono/entrada/saída/capacidades, integração explícita e teste adversarial. Metaoperação só por pedido; não autoeditar/prometer promover skills.",
+      "agentId": "ecosystem-architect",
+      "domains": ["ecosystem"],
+      "phases": ["setup"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "Escopo e objetivo da viagem",
+          "en": "Trip scope and objective"
+        },
+        {
+          "id": "capability_manifest",
+          "pt": "Ferramentas efetivamente disponíveis e permissões",
+          "en": "Actually available tools and permissions"
+        }
+      ],
+      "outputs": [
+        "Compor papéis e comandos por contratos sem sobreposição de gatilhos",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["code_execution"]
+    },
+    {
+      "id": "evaluate-agent",
+      "path": "prompts/39_evaluate_agent.md",
+      "title": "Avaliar qualidade, fricções e custo com evidência de uso",
+      "summary": "Conjunto sintético representativo, regressões, rubrica e baseline comparável; métricas reais com limites, sem herdar B.9 ou afirmar independência de modelo por provedor/nome.",
+      "agentId": "ecosystem-architect",
+      "domains": ["ecosystem"],
+      "phases": ["audit"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "evaluation_scope",
+          "pt": "Tarefa, baseline e casos sintéticos de avaliação",
+          "en": "Task, baseline and synthetic evaluation cases"
+        },
+        {
+          "id": "capability_manifest",
+          "pt": "Ferramentas efetivamente disponíveis e permissões",
+          "en": "Actually available tools and permissions"
+        }
+      ],
+      "outputs": [
+        "Avaliar qualidade, fricções e custo com evidência de uso",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["code_execution"]
+    },
+    {
+      "id": "scheduled-review",
+      "path": "prompts/40_scheduled_review.md",
+      "title": "Adaptação de runtime: Agente autônomo/cron/terceiro",
+      "summary": "Rotina apenas se configurada; limites, parada, evidência e humano responsável para efeitos.",
+      "agentId": "travel-radar",
+      "domains": ["monitoring", "operations"],
+      "phases": ["scheduled"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "automation_scope",
+          "pt": "Escopo, frequência, término e orçamento da rotina",
+          "en": "Routine scope, cadence, end date and budget"
+        },
+        {
+          "id": "capability_manifest",
+          "pt": "Ferramentas efetivamente disponíveis e permissões",
+          "en": "Actually available tools and permissions"
+        },
+        {
+          "id": "existing_trip",
+          "pt": "Ficha ou estado da viagem, quando existente",
+          "en": "Existing trip record or state, if available"
+        }
+      ],
+      "outputs": [
+        "Adaptação de runtime: Agente autônomo/cron/terceiro",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["background_schedule", "notifications"]
+    },
+    {
+      "id": "code-workbench",
+      "path": "prompts/41_code_workbench.md",
+      "title": "Adaptação de runtime: CLI com arquivos/shell",
+      "summary": "Usar somente capacidades reais e caminhos autorizados; preview para efeitos externos.",
+      "agentId": "travel-agent",
+      "domains": ["operations"],
+      "phases": ["setup"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "Escopo e objetivo da viagem",
+          "en": "Trip scope and objective"
+        },
+        {
+          "id": "capability_manifest",
+          "pt": "Ferramentas efetivamente disponíveis e permissões",
+          "en": "Actually available tools and permissions"
+        },
+        {
+          "id": "output_targets",
+          "pt": "Formatos/destinos autorizados e capacidade de exportação",
+          "en": "Authorized formats/targets and export capability"
+        }
+      ],
+      "outputs": [
+        "Adaptação de runtime: CLI com arquivos/shell",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["code_execution"]
+    },
+    {
+      "id": "cowork-workbench",
+      "path": "prompts/42_cowork_workbench.md",
+      "title": "Adaptação de runtime: Cowork/desktop",
+      "summary": "Detectar ferramentas e permissões efetivas; não pressupor Calendar ou automações.",
+      "agentId": "travel-agent",
+      "domains": ["operations"],
+      "phases": ["setup"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "Escopo e objetivo da viagem",
+          "en": "Trip scope and objective"
+        },
+        {
+          "id": "capability_manifest",
+          "pt": "Ferramentas efetivamente disponíveis e permissões",
+          "en": "Actually available tools and permissions"
+        },
+        {
+          "id": "evidence_refs",
+          "pt": "Referências privadas das evidências autorizadas",
+          "en": "Private references to authorized evidence"
+        }
+      ],
+      "outputs": [
+        "Adaptação de runtime: Cowork/desktop",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "chat-guidance",
+      "path": "prompts/43_chat_guidance.md",
+      "title": "Adaptação de runtime: Chat/manual",
+      "summary": "Instruções e comando selecionado; capacidade ausente explícita; sem fingir execução.",
+      "agentId": "travel-agent",
+      "domains": ["all"],
+      "phases": ["setup"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "Escopo e objetivo da viagem",
+          "en": "Trip scope and objective"
+        },
+        {
+          "id": "capability_manifest",
+          "pt": "Ferramentas efetivamente disponíveis e permissões",
+          "en": "Actually available tools and permissions"
+        }
+      ],
+      "outputs": [
+        "Adaptação de runtime: Chat/manual",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "ground-transport",
+      "path": "prompts/44_ground_transport.md",
+      "title": "Transporte terrestre e multimodal",
+      "summary": "Comparar ônibus, trem, traslados e trechos rodoviários por custo porta a porta, terminais, conexões, bagagem, acessibilidade e condições; sem inventar status ou segurança.",
+      "agentId": "itinerary-planner",
+      "domains": ["ground"],
+      "phases": ["plan", "pre_booking"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "route_context",
+          "pt": "Trajetos, modais, datas e restrições operacionais",
+          "en": "Legs, modes, dates and operational constraints"
+        },
+        {
+          "id": "date_window",
+          "pt": "Datas, duração e flexibilidade conhecidas",
+          "en": "Known dates, duration and flexibility"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e restrições funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional constraints"
+        },
+        {
+          "id": "quotes",
+          "pt": "Ofertas comparáveis e fontes datadas, ou lacuna explícita",
+          "en": "Comparable offers and dated sources, or explicit gaps"
+        }
+      ],
+      "outputs": [
+        "Transporte terrestre e multimodal",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "travel-documents",
+      "path": "prompts/45_travel_documents.md",
+      "title": "Documentação e requisitos de entrada",
+      "summary": "Identificar requisitos por nacionalidade/perfil mínimo, trânsito, país e data em fonte oficial; nenhum prazo universal de passaporte/visto ou garantia de entrada.",
+      "agentId": "consumer-rights",
+      "domains": ["documents"],
+      "phases": ["pre_departure"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "travel_area",
+          "pt": "Origem/destino ou área autorizada de pesquisa",
+          "en": "Origin/destination or authorized search area"
+        },
+        {
+          "id": "date_window",
+          "pt": "Datas, duração e flexibilidade conhecidas",
+          "en": "Known dates, duration and flexibility"
+        },
+        {
+          "id": "document_requirements",
+          "pt": "Perfil documental mínimo e países/trechos, sem números",
+          "en": "Minimal document profile and countries/legs, no identifiers"
+        }
+      ],
+      "outputs": [
+        "Documentação e requisitos de entrada",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "insurance-review",
+      "path": "prompts/46_insurance_review.md",
+      "title": "Seguro e assistência de viagem",
+      "summary": "Comparar vigência, pessoas/territórios cobertos, exclusões, franquias, acionamento e limites documentados; sem parecer de cobertura individual ou contratação.",
+      "agentId": "travel-risk",
+      "domains": ["insurance"],
+      "phases": ["pre_booking", "pre_departure"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "route_context",
+          "pt": "Trajetos, modais, datas e restrições operacionais",
+          "en": "Legs, modes, dates and operational constraints"
+        },
+        {
+          "id": "date_window",
+          "pt": "Datas, duração e flexibilidade conhecidas",
+          "en": "Known dates, duration and flexibility"
+        },
+        {
+          "id": "supplier_terms",
+          "pt": "Condições contratuais e fonte/vigência",
+          "en": "Contract terms and applicable source/date"
+        },
+        {
+          "id": "functional_needs",
+          "pt": "Necessidades funcionais voluntárias, sem diagnóstico detalhado",
+          "en": "Voluntary functional needs, no detailed diagnosis"
+        }
+      ],
+      "outputs": [
+        "Seguro e assistência de viagem",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "health-plan",
+      "path": "prompts/47_health_plan.md",
+      "title": "Preparação de saúde e apoio",
+      "summary": "Organizar requisitos oficiais e logística funcional de saúde com minimização; sem diagnóstico, doses, prescrição ou certificação de aptidão; urgência precede burocracia.",
+      "agentId": "travel-risk",
+      "domains": ["health"],
+      "phases": ["plan", "pre_departure"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "travel_area",
+          "pt": "Origem/destino ou área autorizada de pesquisa",
+          "en": "Origin/destination or authorized search area"
+        },
+        {
+          "id": "date_window",
+          "pt": "Datas, duração e flexibilidade conhecidas",
+          "en": "Known dates, duration and flexibility"
+        },
+        {
+          "id": "functional_needs",
+          "pt": "Necessidades funcionais voluntárias, sem diagnóstico detalhado",
+          "en": "Voluntary functional needs, no detailed diagnosis"
+        }
+      ],
+      "outputs": [
+        "Preparação de saúde e apoio",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "supplier-verification",
+      "path": "prompts/48_supplier_verification.md",
+      "title": "Verificação pré-compra de fornecedor",
+      "summary": "Conferir fontes competentes e aplicabilidade de registros, contrato, voucher, pagamento e responsabilidade; cadastro ou reputação não garante autenticidade ou entrega.",
+      "agentId": "consumer-rights",
+      "domains": ["rights", "risk"],
+      "phases": ["pre_booking"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "provider_reference",
+          "pt": "Fornecedor e fonte oficial/contratual a verificar",
+          "en": "Supplier and official/contract source to check"
+        },
+        {
+          "id": "supplier_terms",
+          "pt": "Condições contratuais e fonte/vigência",
+          "en": "Contract terms and applicable source/date"
+        },
+        {
+          "id": "quotes",
+          "pt": "Ofertas comparáveis e fontes datadas, ou lacuna explícita",
+          "en": "Comparable offers and dated sources, or explicit gaps"
+        }
+      ],
+      "outputs": [
+        "Verificação pré-compra de fornecedor",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "listing-review",
+      "path": "prompts/49_listing_review.md",
+      "title": "Anúncio, entrega e avaliação estruturada",
+      "summary": "Separar prometido e observado com fonte, data e dimensões de experiência; comprovante não prova tudo; avaliação permanece privada até autorização e moderação.",
+      "agentId": "evidence-organizer",
+      "domains": ["lodging", "evidence"],
+      "phases": ["pre_booking", "post_trip"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "listing_observations",
+          "pt": "Anúncio e observações separados com origem",
+          "en": "Listing and observations separated by provenance"
+        },
+        {
+          "id": "evidence_refs",
+          "pt": "Referências privadas das evidências autorizadas",
+          "en": "Private references to authorized evidence"
+        }
+      ],
+      "outputs": [
+        "Anúncio, entrega e avaliação estruturada",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "claim-dossier",
+      "path": "prompts/50_claim_dossier.md",
+      "title": "Dossiê factual de reclamação",
+      "summary": "Produzir cronologia neutra, cadeia de fornecedores, valores documentados, anexos e pedido do viajante; exportar para revisão, sem enviar ou prometer indenização.",
+      "agentId": "consumer-rights",
+      "domains": ["rights", "evidence"],
+      "phases": ["incident", "post_trip"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "incident_context",
+          "pt": "Serviço, jurisdição, ocorrência e urgência",
+          "en": "Service, jurisdiction, event and urgency"
+        },
+        {
+          "id": "evidence_refs",
+          "pt": "Referências privadas das evidências autorizadas",
+          "en": "Private references to authorized evidence"
+        },
+        {
+          "id": "expense_records",
+          "pt": "Despesas ocorridas e pagadores conhecidos",
+          "en": "Incurred expenses and known payers"
+        }
+      ],
+      "outputs": [
+        "Dossiê factual de reclamação",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["private_files"]
+    },
+    {
+      "id": "expense-settlement",
+      "path": "prompts/51_expense_settlement.md",
+      "title": "Acerto de despesas já ocorridas",
+      "summary": "Conciliar pagadores, beneficiários, regra aceita e acertos internos anteriores em moeda única; calcular saldos residuais sem duplicar despesas nem executar transferências.",
+      "agentId": "travel-agent",
+      "domains": ["group", "budget"],
+      "phases": ["post_trip"],
+      "calculatorId": null,
+      "executor": "settlement",
+      "requiredInputs": [
+        {
+          "id": "expense_records",
+          "pt": "Despesas ocorridas e pagadores conhecidos",
+          "en": "Incurred expenses and known payers"
+        },
+        {
+          "id": "group_rule",
+          "pt": "Beneficiários e regra de divisão aceita",
+          "en": "Beneficiaries and accepted allocation rule"
+        },
+        {
+          "id": "budget_scope",
+          "pt": "Moedas, escopo de despesas e limites declarados",
+          "en": "Currencies, expense scope and declared limits"
+        },
+        {
+          "id": "prior_settlements",
+          "pt": "Acertos internos anteriores documentados ou confirmação explícita de nenhum",
+          "en": "Documented prior internal settlements or explicit confirmation of none"
+        }
+      ],
+      "outputs": [
+        "Acerto de despesas já ocorridas",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "route-data",
+      "path": "prompts/52_route_data.md",
+      "title": "Rotas e destinos versionados",
+      "summary": "Estruturar tempo, custos, sazonalidade, pedágios/apoio, acessibilidade e alternativas com licença/proveniência e última verificação; sem garantia de segurança ou disponibilidade.",
+      "agentId": "itinerary-planner",
+      "domains": ["ground", "itinerary"],
+      "phases": ["discover", "plan"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "route_context",
+          "pt": "Trajetos, modais, datas e restrições operacionais",
+          "en": "Legs, modes, dates and operational constraints"
+        },
+        {
+          "id": "source_snapshot",
+          "pt": "Fontes datadas e estado anterior disponível",
+          "en": "Dated sources and available prior state"
+        },
+        {
+          "id": "source_license",
+          "pt": "Licença, proveniência e datas dos dados",
+          "en": "Data license, provenance and verification dates"
+        }
+      ],
+      "outputs": [
+        "Rotas e destinos versionados",
+        "Fatos, fontes datadas, divergências e lacunas relevantes",
+        "Próximas ações com responsável, limite e condição de parada"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    }
   ]
 }

@@ -1,5 +1,9 @@
 # Architecture
 
+Version 0.3 separates the portable catalog from executable calculators. `agents/manifest.json` declares eight roles and 52 commands with explicit domain, phase, owner, minimum inputs and optional executor. `agent/catalog.ts` validates it; MCP and release packaging consume the same registry. `agents/coverage.json` traces the recovered source functions without private source contents. The nine planning calculators retain their IDs and API/UI contracts; known-expense settlement is a separate read-only executor.
+
+MCP adds compact catalog discovery and stateless workflow preparation. Checkpoints retain only pseudonymous IDs, declared field/source references, deadlines and counters; they are neither verified facts nor reusable permissions. Host research, external effects, scheduling and accumulated resource enforcement remain the host's responsibility. Instructions are selected on demand rather than concatenating all roles and prompts.
+
 ## Agent first
 
 The primary user experience is an agent attached to the traveler's own LLM host. The portable agent and nine selected commands require no application installation. A self-contained skill ZIP supports hosts that discover `SKILL.md`; other hosts use the same instructions manually. Host tools supply authorized browsing, current supplier information and private evidence storage. None of those capabilities are invented by a prompt.

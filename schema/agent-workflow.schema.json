@@ -1,0 +1,260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Read-only selected travel workflow preparation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "tripKey",
+    "workflowId",
+    "language"
+  ],
+  "properties": {
+    "tripKey": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,40}$"
+    },
+    "workflowId": {
+      "enum": [
+        "flex-dates",
+        "airports",
+        "connections",
+        "promotions",
+        "total-cost",
+        "fare-scenarios",
+        "negotiation",
+        "hidden-city",
+        "group-split",
+        "host-capabilities",
+        "resume-trip",
+        "prepurchase-comparison",
+        "extract-bookings",
+        "trip-intake",
+        "audit-logistics",
+        "trip-record",
+        "compare-lodging",
+        "compare-rentals",
+        "compare-attractions",
+        "points-strategy",
+        "build-itinerary",
+        "departure-checklist",
+        "accessibility-plan",
+        "hybrid-travel",
+        "personal-commitments",
+        "emergency-plan",
+        "weather-contingency",
+        "audit-itinerary",
+        "calendar-plan",
+        "deliver-trip",
+        "organize-documents",
+        "manage-risk",
+        "consumer-rights",
+        "monitor-trip",
+        "task-board",
+        "planned-vs-actual",
+        "multi-trip",
+        "ecosystem-setup",
+        "evaluate-agent",
+        "scheduled-review",
+        "code-workbench",
+        "cowork-workbench",
+        "chat-guidance",
+        "ground-transport",
+        "travel-documents",
+        "insurance-review",
+        "health-plan",
+        "supplier-verification",
+        "listing-review",
+        "claim-dossier",
+        "expense-settlement",
+        "route-data"
+      ]
+    },
+    "language": {
+      "enum": [
+        "pt-BR",
+        "en"
+      ]
+    },
+    "suppliedFields": {
+      "type": "array",
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]{0,63}$"
+      }
+    },
+    "sourceRefs": {
+      "type": "array",
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^SRC[0-9]{2,6}$"
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "web_research",
+          "private_files",
+          "calendar_read",
+          "calendar_write",
+          "notifications",
+          "background_schedule",
+          "code_execution",
+          "provider_status"
+        ]
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxToolCalls": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 30
+        },
+        "maxRetries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "maxDelegations": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "deadlineAt": {
+          "type": "string",
+          "format": "date-time",
+          "maxLength": 40,
+          "pattern": "(?:Z|[+-][0-9]{2}:[0-9]{2})$"
+        }
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "tripKey",
+        "workflowId",
+        "suppliedFields",
+        "sourceRefs",
+        "remainingToolCalls",
+        "sameFailureCount",
+        "expiresAt"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "tripKey": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{1,40}$"
+        },
+        "workflowId": {
+          "enum": [
+            "flex-dates",
+            "airports",
+            "connections",
+            "promotions",
+            "total-cost",
+            "fare-scenarios",
+            "negotiation",
+            "hidden-city",
+            "group-split",
+            "host-capabilities",
+            "resume-trip",
+            "prepurchase-comparison",
+            "extract-bookings",
+            "trip-intake",
+            "audit-logistics",
+            "trip-record",
+            "compare-lodging",
+            "compare-rentals",
+            "compare-attractions",
+            "points-strategy",
+            "build-itinerary",
+            "departure-checklist",
+            "accessibility-plan",
+            "hybrid-travel",
+            "personal-commitments",
+            "emergency-plan",
+            "weather-contingency",
+            "audit-itinerary",
+            "calendar-plan",
+            "deliver-trip",
+            "organize-documents",
+            "manage-risk",
+            "consumer-rights",
+            "monitor-trip",
+            "task-board",
+            "planned-vs-actual",
+            "multi-trip",
+            "ecosystem-setup",
+            "evaluate-agent",
+            "scheduled-review",
+            "code-workbench",
+            "cowork-workbench",
+            "chat-guidance",
+            "ground-transport",
+            "travel-documents",
+            "insurance-review",
+            "health-plan",
+            "supplier-verification",
+            "listing-review",
+            "claim-dossier",
+            "expense-settlement",
+            "route-data"
+          ]
+        },
+        "suppliedFields": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          }
+        },
+        "sourceRefs": {
+          "type": "array",
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^SRC[0-9]{2,6}$"
+          }
+        },
+        "remainingToolCalls": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 30
+        },
+        "sameFailureCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time",
+          "maxLength": 40,
+          "pattern": "(?:Z|[+-][0-9]{2}:[0-9]{2})$"
+        },
+        "deadlineAt": {
+          "type": "string",
+          "format": "date-time",
+          "maxLength": 40,
+          "pattern": "(?:Z|[+-][0-9]{2}:[0-9]{2})$"
+        }
+      }
+    }
+  }
+}

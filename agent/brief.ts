@@ -2,6 +2,34 @@ import { Ajv2020 } from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 import { Temporal } from '@js-temporal/polyfill';
 import { AppError } from '../api/src/errors.js';
+import { commandIds, domainIds, getCommand } from './catalog.js';
+import { prepareWorkflow } from './workflow.js';
+
+const requestIds = [
+  'plan',
+  'compare',
+  'group',
+  'change',
+  'cancel',
+  'disruption',
+  'corporate',
+  'organize',
+  'itinerary',
+  'documents',
+  'insurance',
+  'health',
+  'accessibility',
+  'points',
+  'rights',
+  'evidence',
+  'risk',
+  'calendar',
+  'monitor',
+  'resume',
+  'deliver',
+  'audit',
+  'ecosystem',
+] as const;
 
 const nullableText = { type: ['string', 'null'], minLength: 1, maxLength: 120 };
 const nullableCount = { type: ['integer', 'null'], minimum: 0, maximum: 100 };
@@ -11,8 +39,10 @@ export const briefSchema = {
   required: ['tripKey', 'request', 'language'],
   properties: {
     tripKey: { type: 'string', pattern: '^[A-Za-z0-9_-]{1,40}$' },
-    request: { enum: ['plan', 'compare', 'group', 'change', 'cancel', 'disruption', 'corporate'] },
+    request: { enum: requestIds },
     language: { enum: ['pt-BR', 'en'] },
+    domain: { enum: [...domainIds, null] },
+    workflowId: { enum: [...commandIds, null] },
     groupMode: { enum: ['planning', 'expenses_only', null] },
     incident: {
       type: ['object', 'null'],
@@ -95,8 +125,10 @@ export const briefSchema = {
 } as const;
 interface Brief {
   tripKey: string;
-  request: 'plan' | 'compare' | 'group' | 'change' | 'cancel' | 'disruption' | 'corporate';
+  request: (typeof requestIds)[number];
   language: 'pt-BR' | 'en';
+  domain: (typeof domainIds)[number] | null;
+  workflowId: string | null;
   groupMode: 'planning' | 'expenses_only' | null;
   incident: {
     serviceKind: 'flight' | 'bus' | 'lodging' | 'tour' | 'rental' | 'other' | null;
@@ -140,6 +172,8 @@ export function prepareBrief(input: unknown) {
     tripKey: supplied.tripKey!,
     request: supplied.request!,
     language: supplied.language!,
+    domain: supplied.domain ?? null,
+    workflowId: supplied.workflowId ?? null,
     origin: supplied.origin ?? null,
     destination: supplied.destination ?? null,
     departureDate: supplied.departureDate ?? null,
@@ -174,6 +208,13 @@ export function prepareBrief(input: unknown) {
   const questions: Array<{ fields: string[]; question: string }> = [];
   const add = (fields: string[], br: string, en: string) =>
     questions.push({ fields, question: pt ? br : en });
+  const routedWorkflows = (genericWorkflow: string, commands: string[]) => {
+    if (genericWorkflow === 'incident_response')
+      return ['manage-risk', 'consumer-rights', 'claim-dossier'];
+    if (genericWorkflow === 'service_change_or_refund') return ['consumer-rights', ...commands];
+    if (genericWorkflow === 'expense_allocation') return ['expense-settlement'];
+    return commands;
+  };
   const result = (
     state: string,
     genericWorkflow: string,
@@ -188,6 +229,20 @@ export function prepareBrief(input: unknown) {
     brief,
     questions: questions.slice(0, 5),
     recommendedCommands,
+    recommendedWorkflows: routedWorkflows(genericWorkflow, recommendedCommands),
+    recommendedAgents: [
+      ...new Set(
+        routedWorkflows(genericWorkflow, recommendedCommands).map((id) => getCommand(id).agentId),
+      ),
+    ],
+    recommendedTools:
+      genericWorkflow === 'expense_allocation'
+        ? ['travel_schema', 'travel_settle_expenses']
+        : [
+            'travel_catalog',
+            'travel_workflow',
+            ...(recommendedCommands.length ? ['travel_plan'] : []),
+          ],
     unknowns: [
       ...new Set([
         ...questions.flatMap((question) => question.fields),
@@ -290,7 +345,7 @@ export function prepareBrief(input: unknown) {
     return result(
       questions.length ? 'needs_allocation_context' : 'ready_for_expense_evidence',
       'expense_allocation',
-      ['group-split'],
+      [],
       [
         'collect_expenses_beneficiaries_and_accepted_split_rule',
         'keep_currencies_expenses_cash_and_credit_separate',
@@ -299,6 +354,118 @@ export function prepareBrief(input: unknown) {
       ],
       ['duplicate_charges', 'deposits_and_card_holds', 'unknown_beneficiaries_or_weights'],
     );
+  }
+  const requestWorkflows: Partial<Record<Brief['request'], string>> = {
+    organize: 'organize-documents',
+    itinerary: 'build-itinerary',
+    documents: 'travel-documents',
+    insurance: 'insurance-review',
+    health: 'health-plan',
+    accessibility: 'accessibility-plan',
+    points: 'points-strategy',
+    rights: 'consumer-rights',
+    evidence: 'organize-documents',
+    risk: 'manage-risk',
+    calendar: 'calendar-plan',
+    monitor: 'monitor-trip',
+    resume: 'resume-trip',
+    deliver: 'deliver-trip',
+    audit: 'audit-logistics',
+    ecosystem: 'ecosystem-setup',
+    corporate: 'hybrid-travel',
+  };
+  const domainWorkflows: Record<Brief['domain'] & string, string> = {
+    flight: 'prepurchase-comparison',
+    ground: 'ground-transport',
+    lodging: 'compare-lodging',
+    itinerary: 'build-itinerary',
+    documents: 'travel-documents',
+    insurance: 'insurance-review',
+    health: 'health-plan',
+    accessibility: 'accessibility-plan',
+    points: 'points-strategy',
+    rights: 'consumer-rights',
+    evidence: 'organize-documents',
+    risk: 'manage-risk',
+    group: 'group-split',
+    budget: 'total-cost',
+    calendar: 'calendar-plan',
+    monitoring: 'monitor-trip',
+    operations: 'task-board',
+    ecosystem: 'ecosystem-setup',
+    all: 'trip-intake',
+  };
+  const selectedWorkflow =
+    brief.workflowId ??
+    requestWorkflows[brief.request] ??
+    (brief.request !== 'group' && brief.domain !== 'flight'
+      ? brief.domain
+        ? domainWorkflows[brief.domain]
+        : 'trip-intake'
+      : null);
+  if (selectedWorkflow) {
+    const selected = getCommand(selectedWorkflow);
+    const known = new Set<string>(['trip_scope']);
+    if (brief.destination && (!selected.domains.includes('flight') || brief.origin))
+      known.add('travel_area');
+    if (
+      brief.departureDate &&
+      (brief.returnTrip === false || (brief.returnTrip === true && brief.returnDate))
+    )
+      known.add('date_window');
+    if (
+      [brief.party.adults, brief.party.children, brief.party.infants].every(
+        (value) => value !== null,
+      )
+    )
+      known.add('party_profile');
+    if (brief.budget !== null) known.add('budget_scope');
+    if (brief.mustHaves !== null) known.add('functional_needs');
+    const workflow = prepareWorkflow({
+      tripKey: brief.tripKey,
+      workflowId: selected.id,
+      language: brief.language,
+      suppliedFields: selected.requiredInputs
+        .filter((field) => known.has(field.id))
+        .map((field) => field.id),
+    });
+    const needsDomain =
+      !brief.domain && !brief.workflowId && ['plan', 'compare'].includes(brief.request);
+    if (needsDomain)
+      add(
+        ['domain'],
+        'O foco é voo, transporte terrestre, hospedagem, roteiro ou outro serviço?',
+        'Is the focus a flight, ground transport, lodging, an itinerary or another service?',
+      );
+    for (const question of workflow.questions)
+      add([question.field], question.question, question.question);
+    return {
+      ...result(
+        questions.length ? 'needs_critical_information' : workflow.state,
+        'catalog_workflow',
+        [],
+        workflow.nextActions,
+        [
+          'documented_dependencies_and_plan_b',
+          'source_freshness_and_scope',
+          'no_assumed_airline_or_supplier_capability',
+          ...(brief.party.adults === 0 &&
+          (brief.party.children ?? 0) + (brief.party.infants ?? 0) > 0
+            ? ['unaccompanied_minor_eligibility_requires_carrier_and_jurisdiction_verification']
+            : []),
+        ],
+      ),
+      recommendedWorkflows: [selected.id],
+      recommendedAgents: [selected.agentId],
+      recommendedTools: [
+        'travel_catalog',
+        'travel_workflow',
+        ...(selected.executor === 'settlement' ? ['travel_settle_expenses'] : []),
+      ],
+      workflowId: selected.id,
+      instructions: workflow.instructions,
+      declaredCapabilitiesVerified: false,
+    };
   }
   const routeMissing = ['origin', 'destination'].filter(
     (field) => !brief[field as 'origin' | 'destination'],
@@ -346,7 +513,10 @@ export function prepareBrief(input: unknown) {
     );
   const commands =
     brief.request === 'group'
-      ? ['group-split', 'total-cost', 'connections', 'flex-dates']
+      ? [
+          'group-split',
+          ...(brief.domain === 'flight' ? ['total-cost', 'connections', 'flex-dates'] : []),
+        ]
       : brief.request === 'corporate'
         ? ['connections', 'total-cost', 'negotiation', 'group-split']
         : ['flex-dates', 'airports', 'connections', 'promotions', 'total-cost'];
@@ -356,6 +526,9 @@ export function prepareBrief(input: unknown) {
     brief,
     questions: questions.slice(0, 5),
     recommendedCommands: commands,
+    recommendedWorkflows: commands,
+    recommendedAgents: [...new Set(commands.map((id) => getCommand(id).agentId))],
+    recommendedTools: ['travel_schema', 'travel_plan'],
     genericWorkflow: 'trip_planning',
     unknowns: [
       ...new Set([

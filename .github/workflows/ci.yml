@@ -59,6 +59,11 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - run: docker build -t travel-reliability:test . && docker build -t travel-ingest:test ingest
+      - name: Package every agent and workflow and verify both portable archives
+        run: |
+          npm run agent:package
+          agent_version=$(node -p 'JSON.parse(require("fs").readFileSync("package.json","utf8")).version')
+          uv run --no-project --python 3.12 python scripts/verify-agent-package.py "artifacts/travel-reliability-agent-kit-v${agent_version}.zip" "artifacts/travel-reliability-skill-v${agent_version}.zip" --expected-commit "$(git rev-parse HEAD)" --expected-version "$agent_version"
       - run: npm run sbom
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()

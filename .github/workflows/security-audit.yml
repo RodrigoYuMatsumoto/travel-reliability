@@ -59,7 +59,7 @@ jobs:
         with: { version: 0.11.32, python-version: '3.12' }
       - run: npm ci
       - run: uv sync --project ingest --locked
-      - run: node --import tsx security/fuzz/typescript.ts --seed 20261030 --cases 9000 --seconds 120 --output .local/security-audit/fuzz/typescript-ci.json
+      - run: node --import tsx security/fuzz/typescript.ts --seed 20261030 --cases 13000 --seconds 120 --output .local/security-audit/fuzz/typescript-ci.json
       - run: uv run --project ingest python security/fuzz/ingest.py --seed 20261030 --cases 384 --seconds 120 --output .local/security-audit/fuzz/ingest-ci.json
       # Harnesses contain only generated-case metadata, counters, source hashes and
       # failure codes. Raw payloads/reduced recipes live elsewhere and are excluded.

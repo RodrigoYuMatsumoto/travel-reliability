@@ -2,21 +2,21 @@
 
 **Make your own AI a travel agent with traceable sources, explicit costs and verifiable evidence. Brazil first, usable worldwide.**
 
-[Português](README.pt-BR.md) · [Use your AI](#use-your-ai-no-installation) · [Nine commands](prompts/README.md) · [Optional local app](#optional-local-app) · [Security](SECURITY.md) · [Architecture](docs/ARCHITECTURE.md) · [Delivery evidence](docs/IMPLEMENTATION_STATUS.md)
+[Português](README.pt-BR.md) · [Use your AI](#use-your-ai-no-installation) · [Command catalog](prompts/README.md) · [Agent audit](docs/AGENT_AUDIT.md) · [Optional local app](#optional-local-app) · [Security](SECURITY.md) · [Architecture](docs/ARCHITECTURE.md) · [Delivery evidence](docs/IMPLEMENTATION_STATUS.md)
 
-Travel Reliability starts with a **portable agent instruction kit** you give to your own LLM. Nine commands guide research, comparisons, group allocation and disruption/evidence workflows. Optional validated local tools handle calculations and contracts; a self-hosted app supports private evidence organization.
+Travel Reliability starts with a **portable agent instruction kit** you give to your own LLM. The 0.3 catalog routes eight roles and 52 commands across transport, lodging, itineraries, insurance, health logistics, evidence and group costs. These are instruction workflows, not eight running services; the catalog follows audited needs rather than a quota. Optional validated local tools handle calculations and contracts; a self-hosted app supports private evidence organization.
 
 The agent distinguishes quoted facts, verified conditions and unknowns. It does not acquire browsing or provider access merely by reading a prompt, and the documentary tools never invent inventory or submit a transaction. Purchases, cancellations and messages require specific traveler authorization and a real authorized execution capability.
 
 ## Use your AI: no installation
 
 1. Open [the agent instructions](agents/TRAVEL_AGENT.md), click **Raw**, and copy the content into your AI host's project instructions or a new conversation.
-2. Load only the [command](prompts/README.md) needed for the task. Do not attach all nine workflows on every turn.
+2. Select one relevant role and [command](prompts/README.md). Do not attach the full catalog to each turn; the hub routes the next step.
 3. Describe the trip with pseudonyms and the minimum necessary constraints. Tell the host which capabilities it actually has, such as authorized browsing or local tools.
 
 ```text
-Use the Travel Reliability agent and command 09 for group allocation.
-Work with fictional households N01 and N02, five nights and currency BRL.
+Use Travel Reliability and the group-split workflow to plan a fictional trip.
+Work with households N01 and N02, five nights and currency BRL.
 First identify the constraints needed to compare complete group costs.
 Do not invent prices, availability or accepted allocation rules.
 ```
@@ -62,6 +62,8 @@ Open **http://127.0.0.1:4310**. Production requires OIDC, PostgreSQL, Redis, pri
 | Dossiers                  | Factual chronology, refund ledger, JSON, PDF, calendar and passphrase-encrypted offline bundles                                                                   |
 | Reviews and routes        | Evidence-linked private reviews, explicit moderation, versioned route data and source licenses                                                                    |
 | Planning                  | Nine deterministic tools for dates, airports, connections, discounts, total costs, fare scenarios, negotiation drafts, hidden-city risks and household allocation |
+| Workflow catalog          | Domain/phase discovery and workflow preparation with explicit gaps, source references and data checkpoints; no external execution                                 |
+| Incurred expenses         | Separate deterministic reconciliation of payers, beneficiaries, previous settlements and integer balances; suggestions never transfer money                       |
 | Access                    | OIDC/PKCE, private workspaces, owner/editor/viewer permissions, CSRF and secure production cookies                                                                |
 
 The interface supports Portuguese and English. Other currencies, countries and IANA time zones are supported by the data model; legal coverage is limited to the checked Brazilian pack. Other country packs must be contributed and reviewed.
@@ -86,7 +88,9 @@ npm run test:e2e
 ## Public interfaces
 
 - [Trip schema](schema/trip-contract.schema.json), [planning schemas](schema/planning.schema.json), [OpenAPI](api/openapi.json).
-- [Prompt commands](prompts/README.md): portable, standalone workflows with no personal defaults.
+- [Agent and command catalog](docs/AGENT_CATALOG.md): eight roles, 52 commands, nine original calculators and a separate expense-settlement calculator. Forty-three entries have no legacy calculator; workflow preparation does not execute research or booking.
+- [Source coverage](agents/coverage.json) and [agent audit](docs/AGENT_AUDIT.md): sanitized provenance, preserved behavior, corrections and validation limits.
+- [Prompt commands](prompts/README.md): load one task, not every file. The original calculator IDs and legacy MCP agent resource remain available.
 - [Plugin contract](docs/PLUGINS.md): sources, permissions, provenance and country-rule lifecycle.
 - [Reference comparison](docs/COMPARISON.md), [governance](GOVERNANCE.md), [contribution guide](CONTRIBUTING.md), [roadmap](docs/ROADMAP.md), [license](LICENSE).
 

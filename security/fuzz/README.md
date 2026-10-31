@@ -1,24 +1,34 @@
-# Reproducible bounded mutation campaigns
+# Campanhas reproduzíveis de mutação com limites
 
-Only generated synthetic bytes and the repository's declared synthetic fixtures are used. No input corpus from a traveler, network provider, user home or private folder is read. Reports and reduced recipes stay under the ignored `.local/security-audit/fuzz` directory.
+São usados somente bytes gerados e fixtures declaradamente sintéticas do repositório. Não são lidos documentos de viajantes, provedores, diretórios pessoais ou pastas privadas. Relatórios e receitas de reprodução ficam nos diretórios ignorados `.local/security-audit/fuzz` ou `.local/security-audit/v0.3/fuzz`.
 
-Run from the repository root with its installed, locked dependencies:
+Execute na raiz do repositório, com as dependências instaladas a partir do lockfile:
 
 ```sh
 uv run --project ingest python security/fuzz/ingest.py --seed 20261030 --cases 384 --seconds 120 --output .local/security-audit/fuzz/ingest.json
-node --import tsx security/fuzz/typescript.ts --seed 20261030 --cases 9000 --seconds 120 --output .local/security-audit/fuzz/typescript.json
+node --import tsx security/fuzz/typescript.ts --seed 20261030 --cases 13000 --seconds 120 --output .local/security-audit/v0.3/fuzz/typescript-20261030.json
+node --import tsx security/fuzz/typescript.ts --seed 20261031 --cases 13000 --seconds 120 --output .local/security-audit/v0.3/fuzz/typescript-20261031.json
 ```
 
-The scripts return 0 only when the requested campaign completes without findings or changes to target source fingerprints. Exit 1 indicates a finding; exit 2 indicates incomplete execution or changed target sources. Counts distinguish accepted input from intentional validation/parser rejection. A format rejection is not called a vulnerability.
+Os scripts retornam 0 somente quando completam todos os casos solicitados sem findings nem alteração dos fingerprints das fontes. Código 1 indica finding; código 2 indica execução incompleta, falha de infraestrutura ou alteração de fonte. O limite de tempo nunca reduz silenciosamente a quantidade solicitada: a cobertura restante produz `INCOMPLETE`. As contagens distinguem entradas aceitas de rejeições intencionais de validação/parsing. Rejeição de formato não é classificada como vulnerabilidade.
 
-## Python document frontier
+## Fronteira documental Python
 
-Seeded structural/byte mutations cover UTF-8/text, hidden HTML, DOCX ZIP/XML, native PDF parsing/rendering, MIME nesting/parts, attachment subtrees and aggregate text bounds. Properties check unconfirmed extraction state and output/source limits. Whole batches of 16 cases run in disposable subprocesses with a twelve-second wall deadline. A bootstrap timeout before any case starts may be retried once and is reported separately; unresolved bootstrap failures are incomplete coverage, not parser findings. POSIX workers additionally request one GiB address space and seven CPU seconds. Windows reports that no OS memory limit was applied; input generation is bounded but is not a hard native-memory sandbox. DNS/socket connection/send operations are blocked in the target interpreter. Tesseract OCR is stubbed; native OCR accuracy is tested separately in the ordinary CI suite.
+As mutações estruturais e de bytes, determinadas pela seed, cobrem UTF-8/texto, HTML oculto, DOCX ZIP/XML, parsing/renderização nativa de PDF, partes/aninhamento MIME, anexos e limites agregados de texto. As propriedades conferem estado de extração não confirmado e limites de saída/fontes. Lotes de 16 casos executam em subprocessos descartáveis com prazo de doze segundos. Um timeout de inicialização anterior ao primeiro caso pode ser repetido uma vez e é informado separadamente; falha persistente de inicialização representa cobertura incompleta. Em POSIX, os workers também solicitam um GiB de espaço de endereçamento e sete segundos de CPU. No Windows, o relatório informa a ausência de limite de memória aplicado pelo sistema operacional. A geração limitada de entradas não constitui sandbox de memória nativa. Operações de DNS e conexão/envio por socket são bloqueadas no interpretador alvo. Tesseract OCR é substituído por stub; a precisão do OCR nativo tem testes próprios na suíte comum.
 
-PDF mutations here are small structured samples, not an exhaustive hostile PDF corpus. Parser-level errors are classified by exception type without printing documents or tracebacks. Unexpected exceptions, assertion violations, recursion/memory errors, process exits and timeouts are findings for triage. Minimal generated recipes are retained on a finding. Reduced regressions for discovered MIME defects are in `ingest/tests/test_fuzz_regressions.py`.
+As amostras de PDF são pequenas e estruturadas. Erros de parser são classificados pelo tipo de exceção sem imprimir documentos ou tracebacks. Exceções inesperadas, violação de invariantes, erros de recursão/memória, encerramento de processo e timeout são findings para triagem. São preservadas receitas de reprodução para findings. Regressões reduzidas de falhas MIME já identificadas ficam em `ingest/tests/test_fuzz_regressions.py`.
 
-## TypeScript boundaries
+## Fronteiras TypeScript
 
-Seeded JSON mutations and arithmetic/source invariants cover money, household allocation, literal extraction, UTF-8 document parsing, trip schemas, nine planning tools, model-output validation, local times and deeply nested/prototype-key inputs. Each batch has a ten-second wall deadline and its own Node process with 256 MiB V8 old space. That is a JavaScript heap bound, not a whole-process/native-memory limit. Targets are pure validation/calculation functions; no model/provider calls are made and global fetch is blocked. Tool versions, seeds, completed cases, acceptance/rejection/finding counts, target coverage and source fingerprints are recorded.
+Há treze alvos intercalados. Os nove anteriores cobrem valores monetários, rateio, extração literal, parsing UTF-8, contrato de viagem, nove calculadoras de planejamento, validação de saída de modelo, horários locais e profundidade/chaves de protótipo. Os quatro adicionais cobrem as interfaces do agente:
 
-These are deterministic mutation/property campaigns, not coverage-guided AFL/libFuzzer campaigns, a complete parser audit, a load test or a proof that prompt injection is impossible.
+- `agent-catalog`: consulta de metadados, filtros, paginação, recursos conhecidos e integridade de manifestos; inclui campos ausentes, referências inconsistentes e duplicações.
+- `agent-brief`: roteamento por domínio/workflow, seleção de escopo do grupo, triagem de incidente e distinção entre orçamento zero, desconhecido e nulo. Nenhuma capacidade, reserva ou devolução é declarada verificada/executada.
+- `agent-workflow`: checkpoints correspondentes/divergentes, descarte de campos/fontes expirados, preservação conservadora de contadores, débito de preparação, prioridades de parada e limites de prazo/repetição. Usa o argumento confiável `now` fixado em `2030-01-01T12:00:00Z`; o JSON do chamador não fornece o relógio. Capacidade declarada permanece não verificada e chamadas externas, de modelo e gravações permanecem em zero.
+- `agent-expenses`: um oráculo independente em `BigInt` calcula quotas por ranking dos restos, conservação e saldos `paid - share + priorSent - priorReceived`. Verifica permutação de núcleos/despesas/beneficiários/acertos anteriores, reconciliação das sugestões residuais e ausência de transferência executada. Despesas `[]` representam zero explicitamente registrado; `priorSettlements: []` declara ausência de acertos anteriores. Ausência, `null`, regra não aceita, valores fracionários/negativos, estouros e referências inválidas devem ser rejeitados.
+
+As quatro famílias incluem receitas válidas e hostis; as rejeições esperadas exigem `AppError` com código específico. Rejeitar uma receita válida, aceitar uma inválida ou lançar outra exceção é finding. Os dados hostis são objetos passivos, sem executar JavaScript recebido. Valores grandes e casos de arredondamento são testados sem repetir a carga máxima de 500 itens, coberta pelos testes unitários.
+
+Cada lote tem prazo de dez segundos e processo Node próprio com 256 MiB de V8 old space. Esse limite abrange heap JavaScript, sem impor limite ao processo inteiro ou à memória nativa. As funções alvo são de validação/cálculo; `fetch` global e requisições HTTP/HTTPS são bloqueados no worker. São registrados versão do Node, seed, casos concluídos, aceitos/rejeitados/findings por alvo e hashes SHA-256 das fontes, do manifesto e dos contratos. Com 13.000 casos completos, cada alvo recebe 1.000 casos; isso não representa 1.000 entradas únicas.
+
+As campanhas são determinísticas, baseadas em mutações/propriedades. Não são guiadas por cobertura como AFL/libFuzzer, não esgotam o espaço de entradas e não constituem auditoria integral de parsers, teste de carga ou prova de impossibilidade de prompt injection.

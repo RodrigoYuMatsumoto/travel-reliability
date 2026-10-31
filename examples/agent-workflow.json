@@ -1,0 +1,14 @@
+{
+  "tripKey": "demo-1",
+  "workflowId": "compare-lodging",
+  "language": "pt-BR",
+  "suppliedFields": [
+    "travel_area"
+  ],
+  "capabilities": [],
+  "budget": {
+    "maxToolCalls": 8,
+    "maxRetries": 1,
+    "maxDelegations": 0
+  }
+}

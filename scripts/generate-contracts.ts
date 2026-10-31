@@ -8,6 +8,9 @@ import { demoTrip } from '../api/src/demo.js';
 import trip from '../schema/trip-contract.schema.json' with { type: 'json' };
 import { briefSchema } from '../agent/brief.js';
 import { APP_VERSION } from '../api/src/version.js';
+import { catalogSchema } from '../agent/catalog.js';
+import { workflowSchema } from '../agent/workflow.js';
+import { expenseSchema } from '../agent/expenses.js';
 const json = async (path: string, value: unknown) =>
   writeFile(path, JSON.stringify(value, null, 2) + '\n');
 await json('schema/agent-brief.schema.json', {
@@ -16,6 +19,47 @@ await json('schema/agent-brief.schema.json', {
   ...briefSchema,
 });
 await mkdir('examples', { recursive: true });
+await json('schema/agent-catalog.schema.json', {
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  title: 'Portable agents and travel workflows catalog',
+  ...catalogSchema,
+});
+await json('schema/agent-workflow.schema.json', {
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  title: 'Read-only selected travel workflow preparation',
+  ...workflowSchema,
+});
+await json('schema/expense-settlement.schema.json', {
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  title: 'Known incurred expenses and accepted allocation weights',
+  ...expenseSchema,
+});
+await json('examples/agent-workflow.json', {
+  tripKey: 'demo-1',
+  workflowId: 'compare-lodging',
+  language: 'pt-BR',
+  suppliedFields: ['travel_area'],
+  capabilities: [],
+  budget: { maxToolCalls: 8, maxRetries: 1, maxDelegations: 0 },
+});
+await json('examples/expense-settlement.json', {
+  tripKey: 'demo-1',
+  currency: 'BRL',
+  acceptedRule: true,
+  priorSettlements: [],
+  households: ['N01', 'N02'],
+  expenses: [
+    {
+      id: 'E01',
+      amountMinor: 12000,
+      paidBy: 'N01',
+      beneficiaries: [
+        { householdId: 'N01', weight: 1 },
+        { householdId: 'N02', weight: 1 },
+      ],
+    },
+  ],
+});
 for (const tool of toolIds) await json(`examples/${tool}.json`, planningExamples[tool]);
 const synthetic = demoTrip();
 synthetic.id = '00000000-0000-4000-8000-000000000010';
@@ -183,6 +227,6 @@ console.log(
   JSON.stringify({
     paths: Object.keys(paths).length,
     planningTools: toolIds.length,
-    syntheticExamples: toolIds.length + 1,
+    syntheticExamples: toolIds.length + 3,
   }),
 );

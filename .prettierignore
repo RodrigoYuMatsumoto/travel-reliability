@@ -9,6 +9,9 @@ api/openapi.json
 schema/trip-contract.schema.json
 schema/planning.schema.json
 schema/agent-brief.schema.json
+schema/agent-catalog.schema.json
+schema/agent-workflow.schema.json
+schema/expense-settlement.schema.json
 schema/src/trip-contract.ts
 examples/*.json
 prompts/*.md

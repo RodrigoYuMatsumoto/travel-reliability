@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { toolIds } from '../schema/src/planning.js';
 import { demoTrip } from '../api/src/demo.js';
+import { catalog, commandIds } from '../agent/catalog.js';
 
 const entry = fileURLToPath(new URL('../scripts/agent-mcp.mjs', import.meta.url));
 const example = JSON.parse(
@@ -46,17 +47,20 @@ async function rejected(promise: Promise<unknown>) {
 }
 
 describe('official MCP stdio transport', () => {
-  it('initializes outside cwd, advertises only four bounded tools and all nine schemas, and calculates synthetic data', async () => {
+  it('initializes outside cwd, preserves calculators and advertises seven bounded read-only tools', async () => {
     const { client, errors } = await connected();
     try {
       expect(client.getServerVersion()?.name).toBe('travel-reliability');
       expect(client.getProtocolEra()).toBe('legacy');
       const tools = (await client.listTools()).tools;
       expect(tools.map((tool) => tool.name).sort()).toEqual([
+        'travel_catalog',
         'travel_check_trip',
         'travel_plan',
         'travel_prepare_brief',
         'travel_schema',
+        'travel_settle_expenses',
+        'travel_workflow',
       ]);
       expect(
         tools.every(
@@ -70,7 +74,15 @@ describe('official MCP stdio transport', () => {
       expect((planTool.inputSchema.properties!.tool as { enum: string[] }).enum).toEqual([
         ...toolIds,
       ]);
-      for (const name of ['brief', 'trip', ...toolIds]) {
+      for (const name of [
+        'brief',
+        'trip',
+        'catalog',
+        'catalog-query',
+        'workflow',
+        'expenses',
+        ...toolIds,
+      ]) {
         const schema = decoded(
           await client.callTool({ name: 'travel_schema', arguments: { name } }),
         );
@@ -120,16 +132,124 @@ describe('official MCP stdio transport', () => {
       expect(client.getProtocolEra()).toBe('modern');
       const resources = (await client.listResources()).resources;
       expect(resources.map((resource) => resource.uri).sort()).toEqual(
-        ['travel://agent', ...toolIds.map((id) => 'travel://prompt/' + id)].sort(),
+        [
+          'travel://agent',
+          ...catalog.agents.map((agent) => 'travel://agent/' + agent.id),
+          ...commandIds.map((id) => 'travel://prompt/' + id),
+        ].sort(),
       );
       const agent = await client.readResource({ uri: 'travel://agent' });
       expect(agent.contents[0]).toHaveProperty('text');
       const prompts = (await client.listPrompts()).prompts;
-      expect(prompts).toHaveLength(10);
+      expect(prompts).toHaveLength(1 + catalog.agents.length + catalog.commands.length);
       const prompt = await client.getPrompt({ name: 'travel_group_split', arguments: {} });
       expect(prompt.messages[0]?.content.type).toBe('text');
+      for (const command of catalog.commands) {
+        const loaded = await client.readResource({ uri: 'travel://prompt/' + command.id });
+        expect(loaded.contents[0]).toHaveProperty(
+          'text',
+          readFileSync(new URL('../' + command.path, import.meta.url), 'utf8'),
+        );
+        const selected = await client.getPrompt({
+          name: 'travel_' + command.id.replaceAll('-', '_'),
+          arguments: {},
+        });
+        expect(selected.messages[0]?.content).toHaveProperty(
+          'text',
+          readFileSync(new URL('../' + command.path, import.meta.url), 'utf8'),
+        );
+        const schema = decoded(
+          await client.callTool({
+            name: 'travel_schema',
+            arguments: { name: 'workflow/' + command.id },
+          }),
+        );
+        expect(schema).toHaveProperty('properties.workflowId.const', command.id);
+      }
+      for (const agent of catalog.agents) {
+        const loaded = await client.readResource({ uri: 'travel://agent/' + agent.id });
+        expect(loaded.contents[0]).toHaveProperty(
+          'text',
+          readFileSync(new URL('../' + agent.path, import.meta.url), 'utf8'),
+        );
+        const prompt = await client.getPrompt({
+          name: 'travel_role_' + agent.id.replaceAll('-', '_'),
+          arguments: {},
+        });
+        expect(prompt.messages[0]?.content).toHaveProperty(
+          'text',
+          readFileSync(new URL('../' + agent.path, import.meta.url), 'utf8'),
+        );
+      }
       await expect(client.readResource({ uri: 'file:///arbitrary-local-file' })).rejects.toThrow();
       await expect(client.getPrompt({ name: 'arbitrary', arguments: {} })).rejects.toThrow();
+    } finally {
+      await client.close();
+    }
+  }, 30000);
+
+  it('discovers domains, prepares every workflow and settles supplied expenses without external effects', async () => {
+    const { client } = await connected();
+    try {
+      const hotels = decoded(
+        await client.callTool({
+          name: 'travel_catalog',
+          arguments: { domain: 'lodging', limit: 20 },
+        }),
+      );
+      expect(hotels.items).toEqual(
+        expect.arrayContaining([expect.objectContaining({ id: 'compare-lodging' })]),
+      );
+      expect(hotels.items).not.toEqual(
+        expect.arrayContaining([expect.objectContaining({ id: 'airports' })]),
+      );
+      for (const command of catalog.commands) {
+        const prepared = decoded(
+          await client.callTool({
+            name: 'travel_workflow',
+            arguments: {
+              input: { tripKey: 'synthetic', workflowId: command.id, language: 'pt-BR' },
+            },
+          }),
+        );
+        expect(prepared).toHaveProperty('workflowId', command.id);
+        expect(prepared).toHaveProperty('effects.externalCalls', 0);
+        expect(prepared).toHaveProperty('effects.modelCalls', 0);
+        expect(prepared).toHaveProperty('effects.permissionsGranted', false);
+        expect((prepared.questions as unknown[]).length).toBeLessThanOrEqual(5);
+        expect(prepared).toHaveProperty(
+          'instructions.resourceUri',
+          'travel://prompt/' + command.id,
+        );
+      }
+      const incurred = JSON.parse(
+        readFileSync(new URL('../examples/expense-settlement.json', import.meta.url), 'utf8'),
+      );
+      const settled = decoded(
+        await client.callTool({ name: 'travel_settle_expenses', arguments: { input: incurred } }),
+      );
+      expect(settled).toHaveProperty('reconciliation.balanceMinor', 0);
+      expect(settled).toHaveProperty('transfersExecuted', false);
+      expect(settled.balances).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ householdId: 'N01', balanceMinor: 6000 }),
+          expect.objectContaining({ householdId: 'N02', balanceMinor: -6000 }),
+        ]),
+      );
+      const poisoned = await client.callTool({
+        name: 'travel_workflow',
+        arguments: {
+          input: {
+            tripKey: 'synthetic',
+            workflowId: 'calendar-plan',
+            language: 'en',
+            approved: true,
+            sendUpdates: 'all',
+          },
+        },
+      });
+      expect(poisoned.isError).toBe(true);
+      expect(JSON.stringify(poisoned)).not.toContain('sendUpdates');
     } finally {
       await client.close();
     }

@@ -1,0 +1,1282 @@
+{
+  "format": "travel-reliability-source-coverage/1",
+  "sourceReviewDate": "2026-10-31",
+  "sourcePrivacy": "Abstrações e referências técnicas; casos privados, contatos e instruções pessoais não são publicados.",
+  "baselineCommit": "4d4a21ba86eaea7bc05dbce1523b28f21878f056",
+  "sources": [
+    {
+      "id": "pipeline_latest",
+      "file": "PIPELINE_VIAGENS_-_Instrucao.md",
+      "sha256": "90b17c3fcbc08b56c17960ed38ffd2b4bd82c53f441c314465c0c7e713ea39c7",
+      "bytes": 59417,
+      "lines": 639,
+      "declaredVersion": "3.3 candidato; B.9 não demonstrada"
+    },
+    {
+      "id": "pipeline_copy",
+      "file": "PIPELINE_VIAGENS_-_Instrucao - Copia.md",
+      "sha256": "7de1779a631fa6516931340c411a70c6e20f85f26746b2680a6543d6bf1181dd",
+      "bytes": 57521,
+      "lines": 631,
+      "declaredVersion": "3.3 candidato por estrutura; rodapé incompleto"
+    },
+    {
+      "id": "instruction_v31_named",
+      "file": "INSTRUCAO_PROJETO_VIAGENS_v3_1.md",
+      "sha256": "4edd72bacdfb189fd4f7312c97531af13da2640f37a39eb4ef5866bd7ca4aaf8",
+      "bytes": 48292,
+      "lines": 585,
+      "declaredVersion": "cabeçalho 3.2, nome de arquivo e nota interna 3.1"
+    },
+    {
+      "id": "instruction_usage",
+      "file": "INSTRUCAO_PROJETO_VIAGENS_v3_1 - Uso.md",
+      "sha256": "2f34a39e9e12c229db01fdb0a13fe6a46325e0cd216eb1969761b7bf05b00cd8",
+      "bytes": 41211,
+      "lines": 496,
+      "declaredVersion": "variante de uso sem cabeçalho de versão inequívoco"
+    },
+    {
+      "id": "instruction_normalized",
+      "file": "INSTRUÇÃO_DE_PROJETO_-_PIPELINE_DE_PLANEJAMENTO_DE_VIAGENS.md",
+      "sha256": "8b5a91f0cd45bd9e10a9063bf0924c6a0975212f59e7ec7f782eec2f290ef92f",
+      "bytes": 41297,
+      "lines": 501,
+      "declaredVersion": "3.2 (declaração interna)"
+    },
+    {
+      "id": "report_combination_full",
+      "file": "Claude_-_Ecossistema-Viagens_-_combinacao_-_2026-09-01-02.md",
+      "sha256": "a3eb34532dfdad5a12ff3f83bcd3d023eb58e12b1f3214d20de5ec71eb8d2484",
+      "bytes": 26414,
+      "lines": 245,
+      "declaredVersion": "relatório retrospectivo; não prova execução atual"
+    },
+    {
+      "id": "report_combination",
+      "file": "Claude_-_Ecossistema-Viagens_-_combinacao_-_2026-09-01.md",
+      "sha256": "4a9e5531e684b6ee2377596f6d68d392ad10e3ff954fe433f13d78b81a8f5b2c",
+      "bytes": 21180,
+      "lines": 199,
+      "declaredVersion": "relatório retrospectivo; não prova execução atual"
+    },
+    {
+      "id": "report_skill_script",
+      "file": "Claude_-_Ecossistema-Viagens_-_skill-com-script_-_2026-09-01.md",
+      "sha256": "493c1ef1f0f29457863d54ffaddb09dc280e1271da70b5abff63086b3e6a31a4",
+      "bytes": 26473,
+      "lines": 206,
+      "declaredVersion": "relatório retrospectivo; não prova execução atual"
+    },
+    {
+      "id": "runtime_invocations",
+      "file": "PIPELINE_VIAGENS_-_Prompts.md",
+      "sha256": "c4dc55d1290460faeb264f3c258ea8303751734c0a7bdd10b7752bc54d9238c2",
+      "bytes": 4065,
+      "lines": 29,
+      "declaredVersion": "quatro invocações de runtime da instrução candidata"
+    },
+    {
+      "id": "prompt_01",
+      "file": "PROMPT_01_Datas_Flexiveis_2026-10-29.md",
+      "sha256": "7d78dbda20248b52d9cbd99bdf529397861ea65d8257eda8ab19fe0c643e048e",
+      "bytes": 5061,
+      "lines": 52,
+      "declaredVersion": "1.0.0"
+    },
+    {
+      "id": "prompt_02",
+      "file": "PROMPT_02_Aeroportos_e_Companhias_2026-10-29.md",
+      "sha256": "0a8eb8ef6f12132e88e3b6a2146502fc79fa48f32c667f48f2a0c6f549f3a500",
+      "bytes": 5537,
+      "lines": 53,
+      "declaredVersion": "1.0.1"
+    },
+    {
+      "id": "prompt_03",
+      "file": "PROMPT_03_Rotas_e_Conexoes_2026-10-29.md",
+      "sha256": "0996fe91632c394ca1342f391543b3b4073cba21d184d885fc3f2db03abe86a8",
+      "bytes": 5546,
+      "lines": 54,
+      "declaredVersion": "1.0.0"
+    },
+    {
+      "id": "prompt_04",
+      "file": "PROMPT_04_Descontos_e_Promocoes_2026-10-29.md",
+      "sha256": "49f2cc711e4a90ac530f39661021aee2893b405201f40acca4b3e9cda84acb23",
+      "bytes": 5065,
+      "lines": 40,
+      "declaredVersion": "1.0.0"
+    },
+    {
+      "id": "prompt_05",
+      "file": "PROMPT_05_Custo_Total_da_Passagem_2026-10-29.md",
+      "sha256": "2c02aec8833deedb70d06b1132c5d2b1e6fe850a6cee5f2d9690e7aafdcdcd95",
+      "bytes": 5686,
+      "lines": 40,
+      "declaredVersion": "1.0.0"
+    },
+    {
+      "id": "prompt_06",
+      "file": "PROMPT_06_Alteracao_Cancelamento_e_Reembolso_2026-10-29.md",
+      "sha256": "83f00db279e27f6c9b88e2a4bb9a3ba69d8b2dc21e2d00706bfbcb02fdf4145e",
+      "bytes": 5798,
+      "lines": 40,
+      "declaredVersion": "1.0.0"
+    },
+    {
+      "id": "prompt_07",
+      "file": "PROMPT_07_Negociacao_Comercial_2026-10-29.md",
+      "sha256": "6a035c143b0f7cfc6ca3c6de4dd179a5b340a93b21dbe9bc3b78190de06a7103",
+      "bytes": 4800,
+      "lines": 46,
+      "declaredVersion": "1.0.0"
+    },
+    {
+      "id": "prompt_08",
+      "file": "PROMPT_08_Riscos_de_Hidden_City_2026-10-29.md",
+      "sha256": "c53ea747533a632db3d34cd8fb79e33848b1b813de6273f21c5a6fd2885373da",
+      "bytes": 5641,
+      "lines": 42,
+      "declaredVersion": "1.0.0"
+    },
+    {
+      "id": "prompt_09",
+      "file": "PROMPT_09_Viagens_em_Grupo_e_Rateio_2026-10-29.md",
+      "sha256": "29c3d58490283047233665938d4ca71d07407205406ec8f76b37d128d6eb4e13",
+      "bytes": 9777,
+      "lines": 64,
+      "declaredVersion": "1.0.1"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "flex-dates",
+      "label": "Comparar datas flexíveis preservando duração e grupo",
+      "requiredBehavior": "Preservar contrato explícito, fontes datadas, desconhecidos e limites de ação externa; manter calculadora determinística existente.",
+      "sources": [
+        {
+          "source": "prompt_01",
+          "lines": [33, 52]
+        }
+      ],
+      "workflowIds": ["flex-dates"],
+      "agentIds": ["travel-agent"],
+      "delivery": "deterministic_calculator_and_prompt"
+    },
+    {
+      "id": "airports",
+      "label": "Comparar aeroportos, operadores e custo porta a porta",
+      "requiredBehavior": "Preservar contrato explícito, fontes datadas, desconhecidos e limites de ação externa; manter calculadora determinística existente.",
+      "sources": [
+        {
+          "source": "prompt_02",
+          "lines": [34, 53]
+        }
+      ],
+      "workflowIds": ["airports"],
+      "agentIds": ["travel-agent"],
+      "delivery": "deterministic_calculator_and_prompt"
+    },
+    {
+      "id": "connections",
+      "label": "Comparar rotas e conexões com viabilidade documentada",
+      "requiredBehavior": "Preservar contrato explícito, fontes datadas, desconhecidos e limites de ação externa; manter calculadora determinística existente.",
+      "sources": [
+        {
+          "source": "prompt_03",
+          "lines": [37, 54]
+        }
+      ],
+      "workflowIds": ["connections"],
+      "agentIds": ["travel-risk"],
+      "delivery": "deterministic_calculator_and_prompt"
+    },
+    {
+      "id": "promotions",
+      "label": "Conferir descontos, promoção e elegibilidade",
+      "requiredBehavior": "Preservar contrato explícito, fontes datadas, desconhecidos e limites de ação externa; manter calculadora determinística existente.",
+      "sources": [
+        {
+          "source": "prompt_04",
+          "lines": [24, 40]
+        }
+      ],
+      "workflowIds": ["promotions"],
+      "agentIds": ["points-strategist"],
+      "delivery": "deterministic_calculator_and_prompt"
+    },
+    {
+      "id": "total-cost",
+      "label": "Calcular custo total equivalente sem dupla contagem",
+      "requiredBehavior": "Preservar contrato explícito, fontes datadas, desconhecidos e limites de ação externa; manter calculadora determinística existente.",
+      "sources": [
+        {
+          "source": "prompt_05",
+          "lines": [23, 40]
+        }
+      ],
+      "workflowIds": ["total-cost"],
+      "agentIds": ["travel-agent"],
+      "delivery": "deterministic_calculator_and_prompt"
+    },
+    {
+      "id": "fare-scenarios",
+      "label": "Comparar alteração, cancelamento e reembolso por cenário",
+      "requiredBehavior": "Preservar contrato explícito, fontes datadas, desconhecidos e limites de ação externa; manter calculadora determinística existente.",
+      "sources": [
+        {
+          "source": "prompt_06",
+          "lines": [23, 40]
+        }
+      ],
+      "workflowIds": ["fare-scenarios"],
+      "agentIds": ["consumer-rights"],
+      "delivery": "deterministic_calculator_and_prompt"
+    },
+    {
+      "id": "negotiation",
+      "label": "Redigir negociação comercial factual sem enviar",
+      "requiredBehavior": "Preservar contrato explícito, fontes datadas, desconhecidos e limites de ação externa; manter calculadora determinística existente.",
+      "sources": [
+        {
+          "source": "prompt_07",
+          "lines": [26, 46]
+        }
+      ],
+      "workflowIds": ["negotiation"],
+      "agentIds": ["travel-agent"],
+      "delivery": "deterministic_calculator_and_prompt"
+    },
+    {
+      "id": "hidden-city",
+      "label": "Avaliar preço e riscos de trecho descartado sem ocultação",
+      "requiredBehavior": "Preservar contrato explícito, fontes datadas, desconhecidos e limites de ação externa; manter calculadora determinística existente.",
+      "sources": [
+        {
+          "source": "prompt_08",
+          "lines": [29, 42]
+        }
+      ],
+      "workflowIds": ["hidden-city"],
+      "agentIds": ["travel-risk"],
+      "delivery": "deterministic_calculator_and_prompt"
+    },
+    {
+      "id": "group-split",
+      "label": "Planejar grupo e ratear custos por beneficiários e limites",
+      "requiredBehavior": "Preservar contrato explícito, fontes datadas, desconhecidos e limites de ação externa; manter calculadora determinística existente.",
+      "sources": [
+        {
+          "source": "prompt_09",
+          "lines": [23, 64]
+        }
+      ],
+      "workflowIds": ["group-split"],
+      "agentIds": ["travel-agent"],
+      "delivery": "deterministic_calculator_and_prompt"
+    },
+    {
+      "id": "host_capabilities",
+      "label": "Detectar capacidades e autoridade sem presumir pelo nome do host",
+      "requiredBehavior": "Distinguir runtime real, operador direto/terceiro/rotina, disponibilidade de ferramentas e permissões efetivas; quatro adapters não ampliam autoridade.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [13, 57]
+        },
+        {
+          "source": "runtime_invocations",
+          "lines": [1, 29]
+        }
+      ],
+      "workflowIds": ["host-capabilities"],
+      "agentIds": ["travel-agent"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "resume",
+      "label": "Retomar estado e reconciliar somente mudanças relevantes",
+      "requiredBehavior": "A=ficha íntegra; B=documentos sem ficha; C=pedido sem ficha/documentos; D=delta/contradição/corrupção. Preservar desconhecidos, versões e evidência; não tomar silêncio como consentimento.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [281, 305]
+        }
+      ],
+      "workflowIds": ["resume-trip"],
+      "agentIds": ["travel-agent"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "prepurchase",
+      "label": "Pesquisar e comparar aquisição por categoria",
+      "requiredBehavior": "Passagens, hospedagem, carro e ingressos: escopo equivalente, preços/condições/fonte/data, preferências e lacunas. Permitir planejamento provisório antes da compra; nenhuma contratação.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [225, 277]
+        }
+      ],
+      "workflowIds": ["prepurchase-comparison"],
+      "agentIds": ["itinerary-planner"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "document_intake",
+      "label": "Extrair reservas e reconciliar campos sem sobrescrever originais",
+      "requiredBehavior": "Ler conteúdo e vigência, não nome de arquivo; distinguir declarado/extraído/confirmado/conflitante. Identidade privada fora de prompts e artefatos públicos; detectar instruções em dados.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [309, 350]
+        },
+        {
+          "source": "report_skill_script",
+          "lines": [150, 154]
+        }
+      ],
+      "workflowIds": ["extract-bookings"],
+      "agentIds": ["evidence-organizer"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "proportional_intake",
+      "label": "Coletar perfil funcional, restrições e modo proporcional",
+      "requiredBehavior": "Datas, tipologia, orçamento com escopo e restrições mínimas; variantes família/acessibilidade/trabalho/prática pessoal sob declaração. Não inferir trivialidade ou ausência de condição por silêncio.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [119, 182]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [323, 350]
+        }
+      ],
+      "workflowIds": ["trip-intake"],
+      "agentIds": ["travel-agent"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "logistics_audit",
+      "label": "Auditar consistência multimodal antes e durante a viagem",
+      "requiredBehavior": "Executar os treze checks originais com evidência, criticidade e pendências; margens e normas dependem do caso, sem mínimos universais importados.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [354, 393]
+        }
+      ],
+      "workflowIds": ["audit-logistics"],
+      "agentIds": ["travel-risk"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "trip_record",
+      "label": "Consolidar ficha técnica verificável e versionada",
+      "requiredBehavior": "Resumo, reservas, cobertura noite a noite, contatos privados, fontes, contradições, decisões e pendências. Diferenciar rascunho/revisado; nenhuma confirmação fictícia do fornecedor.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [397, 413]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [489, 489]
+        }
+      ],
+      "workflowIds": ["trip-record"],
+      "agentIds": ["evidence-organizer"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "lodging_comparison",
+      "label": "Comparar hospedagem, ocupação e condições reais",
+      "requiredBehavior": "Preço total por noites/grupo, disponibilidade, capacidade/camas, check-in/out, taxas, acessibilidade e cancelamento; anúncio não equivale a confirmação.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [244, 266]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [319, 334]
+        }
+      ],
+      "workflowIds": ["compare-lodging"],
+      "agentIds": ["itinerary-planner"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "rental_comparison",
+      "label": "Comparar locação, logística, adicionais e exposição de caixa",
+      "requiredBehavior": "Categoria, bagagem/equipamentos, balcão, retirada/devolução, coberturas/exclusões, adicionais, caução e autorização; sem emissão ou pagamento.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [257, 260]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [362, 375]
+        }
+      ],
+      "workflowIds": ["compare-rentals"],
+      "agentIds": ["itinerary-planner"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "ticketed_attractions",
+      "label": "Comparar passeios e ingressos antecipados",
+      "requiredBehavior": "Fonte do organizador, data/horário/capacidade, cancelamento, equivalência, reserva necessária e acesso. Não confundir pesquisa informativa com aquisição.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [261, 266]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [423, 428]
+        }
+      ],
+      "workflowIds": ["compare-attractions"],
+      "agentIds": ["itinerary-planner"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "points_strategy",
+      "label": "Comparar dinheiro, milhas/pontos e encargos verificáveis",
+      "requiredBehavior": "Mesma oferta e moeda, taxas, validade/regras, custos marginais, elegibilidade e cenários; nenhum limiar monetário universal, transferência ou compra de pontos.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [239, 260]
+        },
+        {
+          "source": "report_combination_full",
+          "lines": [59, 59]
+        }
+      ],
+      "workflowIds": ["points-strategy"],
+      "agentIds": ["points-strategist"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "itinerary",
+      "label": "Construir roteiro diário compatível com reservas e preferências",
+      "requiredBehavior": "Datas/fusos, atividades, deslocamentos, funcionamento, custos conhecidos, reservas, pausas e alternativa; manter fontes e hipóteses separadas.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [417, 443]
+        }
+      ],
+      "workflowIds": ["build-itinerary"],
+      "agentIds": ["itinerary-planner"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "packing",
+      "label": "Gerar checklist operacional e distribuição por bagagem",
+      "requiredBehavior": "Documentos, saúde/higiene sem prescrição, roupas/clima, equipamentos, alimentação, eletrônicos e distribuição funcional de bagagem.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [429, 437]
+        },
+        {
+          "source": "report_skill_script",
+          "lines": [172, 173]
+        }
+      ],
+      "workflowIds": ["departure-checklist"],
+      "agentIds": ["itinerary-planner"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "family_accessibility",
+      "label": "Adequar logística a dependentes e acessibilidade",
+      "requiredBehavior": "Necessidades funcionais declaradas, ritmo/pausas, alimentação, sono, equipamentos e cuidadores; não diagnosticar ou impor quota clínica de atividades.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [329, 346]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [431, 434]
+        }
+      ],
+      "workflowIds": ["accessibility-plan"],
+      "agentIds": ["itinerary-planner"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "work_hybrid",
+      "label": "Preservar blocos de trabalho e logística de viagem híbrida",
+      "requiredBehavior": "Reuniões, conectividade, espaço silencioso, transferência e margens; separar acompanhantes/blocos pessoais conforme pedido.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [326, 345]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [436, 436]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [455, 455]
+        }
+      ],
+      "workflowIds": ["hybrid-travel"],
+      "agentIds": ["itinerary-planner"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "personal_commitments",
+      "label": "Preservar compromissos pessoais/espirituais expressamente declarados",
+      "requiredBehavior": "Reservar horários e logística quando solicitados, sem pressupor crença ou universalizar calendário religioso; minimizar perfil sensível e separar cuidado de dependentes.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [333, 346]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [435, 435]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [454, 454]
+        }
+      ],
+      "workflowIds": ["personal-commitments"],
+      "agentIds": ["itinerary-planner"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "emergency_support",
+      "label": "Mapear infraestrutura de apoio e plano B",
+      "requiredBehavior": "Hospitais, farmácias, apoio local e acesso com fonte atual; não prometer capacidade clínica, segurança ou atendimento. Não publicar localização privada.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [427, 443]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [486, 486]
+        }
+      ],
+      "workflowIds": ["emergency-plan"],
+      "agentIds": ["travel-risk"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "weather_contingency",
+      "label": "Replanejar por clima, fechamento e imprevistos",
+      "requiredBehavior": "Previsões e alertas datados e aplicáveis ao local/período, sem falsa média entre fontes incompatíveis; preservar atividades executadas e ajustar apenas o restante.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [428, 441]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [464, 464]
+        },
+        {
+          "source": "report_combination_full",
+          "lines": [226, 231]
+        }
+      ],
+      "workflowIds": ["weather-contingency"],
+      "agentIds": ["travel-radar"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "itinerary_audit",
+      "label": "Auditar o roteiro e reavaliar contradições",
+      "requiredBehavior": "Restrições, compromissos, trabalho, reservas, fontes comerciais, ritmo, distâncias, plano B, orçamento e infraestrutura; corrigir com ciclos limitados e declarar impedimentos.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [447, 471]
+        }
+      ],
+      "workflowIds": ["audit-itinerary"],
+      "agentIds": ["itinerary-planner"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "calendar_preview",
+      "label": "Preparar agenda e reconciliação de eventos com autorização por efeito",
+      "requiredBehavior": "Detectar conector real; preview exato de eventos/destino/fuso IANA correto/convidados/notificações; efeitos só com autorização específica e ferramenta; iCal como alternativa.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [491, 521]
+        },
+        {
+          "source": "runtime_invocations",
+          "lines": [13, 20]
+        }
+      ],
+      "workflowIds": ["calendar-plan"],
+      "agentIds": ["travel-agent"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "delivery",
+      "label": "Entregar pacote utilizável e exportações verificadas",
+      "requiredBehavior": "Alertas no topo, resumo/roteiro/checklist/fontes/pendências; Markdown e, conforme capacidade, JSON/PDF/iCal/DOCX. Verificar artefatos antes de afirmar geração, com metadados privados minimizados.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [475, 525]
+        },
+        {
+          "source": "report_combination_full",
+          "lines": [172, 182]
+        }
+      ],
+      "workflowIds": ["deliver-trip"],
+      "agentIds": ["evidence-organizer"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "document_organization",
+      "label": "Organizar arquivos com proveniência e preservação",
+      "requiredBehavior": "Pasta por viagem, tipos e versões, originais preservados, colisões sem sobrescrita, log de divergências, idioma/encoding e exportação sanitizada. Não aplicar classificação a pasta privada sem autorização.",
+      "sources": [
+        {
+          "source": "report_skill_script",
+          "lines": [150, 154]
+        },
+        {
+          "source": "report_skill_script",
+          "lines": [177, 185]
+        }
+      ],
+      "workflowIds": ["organize-documents"],
+      "agentIds": ["evidence-organizer"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "risk_assessment",
+      "label": "Avaliar riscos e cascatas de dependências de serviços",
+      "requiredBehavior": "Risco factual vs hipótese, ligação entre reservas, evidências necessárias, ações e responsáveis; sem porcentagens arbitrárias ou garantia de indenização.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [354, 393]
+        },
+        {
+          "source": "report_skill_script",
+          "lines": [170, 171]
+        }
+      ],
+      "workflowIds": ["manage-risk"],
+      "agentIds": ["travel-risk"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "rights_compliance",
+      "label": "Verificar direitos e conformidade por serviço e jurisdição",
+      "requiredBehavior": "Norma oficial vigente e fatos aplicáveis, doméstico/internacional/menores/seguro/Cadastur quando pertinente; organizar pedido/dossiê neutro sem parecer individual ou envio automático.",
+      "sources": [
+        {
+          "source": "report_combination_full",
+          "lines": [60, 60]
+        },
+        {
+          "source": "report_skill_script",
+          "lines": [170, 171]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [529, 541]
+        }
+      ],
+      "workflowIds": ["consumer-rights"],
+      "agentIds": ["consumer-rights"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "travel_radar",
+      "label": "Executar revisão periódica delimitada e alertar somente mudança material",
+      "requiredBehavior": "Malha, greve, clima, vencimentos e cancelamentos com fontes; relógio e calendário determinísticos, estado anterior/novo, prazo de término, retry limitado e silêncio sem novidade. Não criar agendamento por inferência.",
+      "sources": [
+        {
+          "source": "report_combination_full",
+          "lines": [226, 227]
+        },
+        {
+          "source": "report_combination_full",
+          "lines": [117, 130]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [271, 273]
+        }
+      ],
+      "workflowIds": ["monitor-trip"],
+      "agentIds": ["travel-radar"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "task_board",
+      "label": "Produzir painel de pendências com evidência e contagem reconciliada",
+      "requiredBehavior": "Um item por ação material, deduplicado entre fontes, prioridade/prazo/responsável/estado por viagem; fechamento exige evidência, não apenas aparência ou marcação automática.",
+      "sources": [
+        {
+          "source": "report_combination_full",
+          "lines": [178, 182]
+        },
+        {
+          "source": "report_skill_script",
+          "lines": [154, 154]
+        },
+        {
+          "source": "report_skill_script",
+          "lines": [174, 175]
+        }
+      ],
+      "workflowIds": ["task-board"],
+      "agentIds": ["evidence-organizer"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "executed_itinerary",
+      "label": "Registrar executado e readequar apenas o futuro",
+      "requiredBehavior": "Distinguir planejado/declarado/observado/confirmado, preservar histórico e conflitos; geolocalização/captura não prova sozinha toda atividade; não reescrever o passado sem pedido.",
+      "sources": [
+        {
+          "source": "report_combination_full",
+          "lines": [229, 231]
+        },
+        {
+          "source": "report_skill_script",
+          "lines": [173, 173]
+        },
+        {
+          "source": "report_combination",
+          "lines": [151, 151]
+        }
+      ],
+      "workflowIds": ["planned-vs-actual"],
+      "agentIds": ["evidence-organizer"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "multi_trip",
+      "label": "Separar viagens concorrentes e consolidar somente o necessário",
+      "requiredBehavior": "Pseudônimos e estado por viagem, sem transferir identidades/fatos; leitura paralela delimitada se houver capacidade e duas ou mais viagens autorizadas; painel mantém origem de cada pendência.",
+      "sources": [
+        {
+          "source": "report_skill_script",
+          "lines": [174, 175]
+        },
+        {
+          "source": "report_skill_script",
+          "lines": [184, 185]
+        }
+      ],
+      "workflowIds": ["multi-trip"],
+      "agentIds": ["travel-agent"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "ecosystem_boundaries",
+      "label": "Compor papéis e comandos por contratos sem sobreposição de gatilhos",
+      "requiredBehavior": "Catálogo único, gatilhos positivos e negativos, dono/entrada/saída/capacidades, integração explícita e teste adversarial. Metaoperação só por pedido; não autoeditar/prometer promover skills.",
+      "sources": [
+        {
+          "source": "report_combination_full",
+          "lines": [217, 220]
+        },
+        {
+          "source": "report_skill_script",
+          "lines": [133, 154]
+        }
+      ],
+      "workflowIds": ["ecosystem-setup"],
+      "agentIds": ["ecosystem-architect"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "empirical_review",
+      "label": "Avaliar qualidade, fricções e custo com evidência de uso",
+      "requiredBehavior": "Conjunto sintético representativo, regressões, rubrica e baseline comparável; métricas reais com limites, sem herdar B.9 ou afirmar independência de modelo por provedor/nome.",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [553, 553]
+        },
+        {
+          "source": "report_skill_script",
+          "lines": [74, 76]
+        },
+        {
+          "source": "report_combination_full",
+          "lines": [95, 98]
+        }
+      ],
+      "workflowIds": ["evaluate-agent"],
+      "agentIds": ["ecosystem-architect"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "runtime-autonomous",
+      "label": "Adaptação de runtime: Agente autônomo/cron/terceiro",
+      "requiredBehavior": "Rotina apenas se configurada; limites, parada, evidência e humano responsável para efeitos.",
+      "sources": [
+        {
+          "source": "runtime_invocations",
+          "lines": [3, 6]
+        }
+      ],
+      "workflowIds": ["scheduled-review"],
+      "agentIds": ["travel-radar"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "runtime-code",
+      "label": "Adaptação de runtime: CLI com arquivos/shell",
+      "requiredBehavior": "Usar somente capacidades reais e caminhos autorizados; preview para efeitos externos.",
+      "sources": [
+        {
+          "source": "runtime_invocations",
+          "lines": [8, 11]
+        }
+      ],
+      "workflowIds": ["code-workbench"],
+      "agentIds": ["travel-agent"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "runtime-desktop",
+      "label": "Adaptação de runtime: Cowork/desktop",
+      "requiredBehavior": "Detectar ferramentas e permissões efetivas; não pressupor Calendar ou automações.",
+      "sources": [
+        {
+          "source": "runtime_invocations",
+          "lines": [13, 16]
+        }
+      ],
+      "workflowIds": ["cowork-workbench"],
+      "agentIds": ["travel-agent"],
+      "delivery": "reviewed_host_workflow"
+    },
+    {
+      "id": "runtime-chat",
+      "label": "Adaptação de runtime: Chat/manual",
+      "requiredBehavior": "Instruções e comando selecionado; capacidade ausente explícita; sem fingir execução.",
+      "sources": [
+        {
+          "source": "runtime_invocations",
+          "lines": [18, 20]
+        }
+      ],
+      "workflowIds": ["chat-guidance"],
+      "agentIds": ["travel-agent"],
+      "delivery": "reviewed_host_workflow"
+    }
+  ],
+  "logisticsChecks": [
+    {
+      "number": 1,
+      "label": "Cobertura contínua de hospedagem noite a noite",
+      "source": {
+        "source": "pipeline_latest",
+        "lines": [360, 377]
+      }
+    },
+    {
+      "number": 2,
+      "label": "Chegada do transporte × funcionamento do balcão de retirada",
+      "source": {
+        "source": "pipeline_latest",
+        "lines": [360, 377]
+      }
+    },
+    {
+      "number": 3,
+      "label": "Chegada efetiva com bagagem/traslado × check-in real",
+      "source": {
+        "source": "pipeline_latest",
+        "lines": [360, 377]
+      }
+    },
+    {
+      "number": 4,
+      "label": "Retirada/devolução de veículo × chegada/partida",
+      "source": {
+        "source": "pipeline_latest",
+        "lines": [360, 377]
+      }
+    },
+    {
+      "number": 5,
+      "label": "Margem de conexão por terminal, fronteira, bagagem e tipo de bilhete",
+      "source": {
+        "source": "pipeline_latest",
+        "lines": [360, 377]
+      }
+    },
+    {
+      "number": 6,
+      "label": "Prazos e condições de cancelamento",
+      "source": {
+        "source": "pipeline_latest",
+        "lines": [360, 377]
+      }
+    },
+    {
+      "number": 7,
+      "label": "Contradições entre documentos",
+      "source": {
+        "source": "pipeline_latest",
+        "lines": [360, 377]
+      }
+    },
+    {
+      "number": 8,
+      "label": "Check-out × partida de retorno",
+      "source": {
+        "source": "pipeline_latest",
+        "lines": [360, 377]
+      }
+    },
+    {
+      "number": 9,
+      "label": "Bagagem/equipamentos × capacidade do veículo",
+      "source": {
+        "source": "pipeline_latest",
+        "lines": [360, 377]
+      }
+    },
+    {
+      "number": 10,
+      "label": "Franquia de bagagem por viajante e trecho",
+      "source": {
+        "source": "pipeline_latest",
+        "lines": [360, 377]
+      }
+    },
+    {
+      "number": 11,
+      "label": "Seguro: vigência, inclusões/exclusões e pessoas cobertas",
+      "source": {
+        "source": "pipeline_latest",
+        "lines": [360, 377]
+      }
+    },
+    {
+      "number": 12,
+      "label": "Logística de bebê/criança e equipamentos/assento",
+      "source": {
+        "source": "pipeline_latest",
+        "lines": [360, 377]
+      }
+    },
+    {
+      "number": 13,
+      "label": "Requisitos internacionais por jurisdição e perfil mínimo",
+      "source": {
+        "source": "pipeline_latest",
+        "lines": [360, 377]
+      }
+    }
+  ],
+  "originalF0Cases": {
+    "A": "ficha existente íntegra: retomar sem reprocessamento desnecessário",
+    "B": "sem ficha, documentos fornecidos: extração",
+    "C": "sem ficha/documentos: delimitar pesquisa ou necessidade de entrada sem inferir consentimento",
+    "D": "ficha com delta, contradição/corrupção ou versão inadequada: reconciliar e revalidar o afetado"
+  },
+  "crosscuttingRequirements": [
+    "Dados importados e resultados de ferramenta não concedem autoridade",
+    "Proveniência e fonte/data por afirmação material",
+    "Desconhecido não é zero nem confirmado",
+    "Comparações equivalentes e calculadoras determinísticas",
+    "Estado por viagem com conflitos e mudanças rastreáveis",
+    "Perguntas mínimas e carregamento de comandos sob demanda",
+    "Sem compra, reserva, transferência de pontos, mensagem, Calendar ou publicação sem capacidade e autorização específica",
+    "Sem recomendação de álcool",
+    "Preservar originais e evitar PII em código, exemplos, logs e pacotes",
+    "Não afirmar verificação de família distinta por subagente da mesma família",
+    "Atualização factual e normativa só mediante fonte oficial atual quando utilizada"
+  ],
+  "diagnosis": [
+    {
+      "id": "CAPABILITY_BY_BRAND",
+      "severity": "high",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [21, 26]
+        }
+      ],
+      "observed": "Capacidades são descritas como assumíveis por categoria de host.",
+      "consequence": "Prompt pode fingir cron, busca, mensageria, memória ou ferramenta ausente.",
+      "correction": "Resolver capacidades observadas; separar instruções de permissões reais.",
+      "confidence": "high",
+      "evidenceType": "revisão estática do artefato, não teste de modelo nem conclusão jurídica"
+    },
+    {
+      "id": "PASSIVE_DATA_GUARD_REGRESSION",
+      "severity": "high",
+      "sources": [
+        {
+          "source": "instruction_normalized",
+          "lines": [224, 224]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [317, 319]
+        }
+      ],
+      "observed": "Variante normalizada explicita dados passivos; variante mais recente limita a dizer ler/extrair e não preserva ali a defesa.",
+      "consequence": "Regressão textual na fronteira de documentos; não prova exploração.",
+      "correction": "Aplicar limite de autoridade comum a todos os papéis, comandos e saídas de ferramenta.",
+      "confidence": "high",
+      "evidenceType": "revisão estática do artefato, não teste de modelo nem conclusão jurídica"
+    },
+    {
+      "id": "RECOMMENDATION_CONFLICT",
+      "severity": "medium",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [106, 115]
+        },
+        {
+          "source": "prompt_02",
+          "lines": [5, 5]
+        },
+        {
+          "source": "prompt_05",
+          "lines": [38, 40]
+        }
+      ],
+      "observed": "Pipeline proíbe escolher melhor opção, enquanto prompts pedem decisão condicionada e ordem verificável.",
+      "consequence": "Mesmo pedido pode produzir recusa ou decisão por arquivos concorrentes.",
+      "correction": "Permitir comparação e recomendação por critérios explícitos, sem patrocínio oculto ou garantia.",
+      "confidence": "high",
+      "evidenceType": "revisão estática do artefato, não teste de modelo nem conclusão jurídica"
+    },
+    {
+      "id": "PURCHASE_BEFORE_PLANNING",
+      "severity": "high",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [275, 277]
+        }
+      ],
+      "observed": "Trava impede avanço sem aquisição.",
+      "consequence": "Usuário não consegue obter roteiro provisório para decidir se compra.",
+      "correction": "Separar planejamento candidato de reservas confirmadas; nenhum efeito financeiro.",
+      "confidence": "high",
+      "evidenceType": "revisão estática do artefato, não teste de modelo nem conclusão jurídica"
+    },
+    {
+      "id": "ACTIVITY_LIMIT_CONTRADICTION",
+      "severity": "medium",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [343, 343]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [432, 432]
+        }
+      ],
+      "observed": "Dois limites incompatíveis de atividades por período, com alegação clínica não demonstrada.",
+      "consequence": "Roteiro varia pelo trecho aplicado e generaliza perfil de criança.",
+      "correction": "Usar ritmo funcional declarado e pausas, sem diagnóstico ou quota médica universal.",
+      "confidence": "high",
+      "evidenceType": "revisão estática do artefato, não teste de modelo nem conclusão jurídica"
+    },
+    {
+      "id": "UNIVERSAL_CONNECTION_AND_ENTRY_DEFAULTS",
+      "severity": "high",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [366, 377]
+        },
+        {
+          "source": "prompt_03",
+          "lines": [46, 47]
+        }
+      ],
+      "observed": "Pipeline fixa margem e validade documental universal; prompt03 já exige aplicabilidade.",
+      "consequence": "Pode classificar conexão ou elegibilidade sem fatos suficientes.",
+      "correction": "Fonte operacional/oficial vigente e específica; desconhecido não vira elegível.",
+      "confidence": "high",
+      "evidenceType": "revisão estática do artefato, não teste de modelo nem conclusão jurídica"
+    },
+    {
+      "id": "SILENCE_AS_TRIVIALITY",
+      "severity": "medium",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [134, 148]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [297, 297]
+        }
+      ],
+      "observed": "Omissão temporal conduz classificação simples ou início automático de nova pesquisa.",
+      "consequence": "Ausência pode virar conhecimento ou autorização inferida.",
+      "correction": "Manter campos desconhecidos e prosseguir só no escopo independente autorizado.",
+      "confidence": "high",
+      "evidenceType": "revisão estática do artefato, não teste de modelo nem conclusão jurídica"
+    },
+    {
+      "id": "CANONICAL_ALWAYS_RIGHT",
+      "severity": "high",
+      "sources": [
+        {
+          "source": "report_combination_full",
+          "lines": [205, 206]
+        },
+        {
+          "source": "report_combination",
+          "lines": [163, 163]
+        }
+      ],
+      "observed": "Fonte privada canônica é tratada como infalível e reserva divergente como errada.",
+      "consequence": "Pode propagar um cadastro desatualizado ou conflito não resolvido.",
+      "correction": "Preservar ambas as fontes; conciliar com humano e evidência competente, sem corrigir silenciosamente.",
+      "confidence": "high",
+      "evidenceType": "revisão estática do artefato, não teste de modelo nem conclusão jurídica"
+    },
+    {
+      "id": "SENSITIVE_PROFILE_DEFAULTS",
+      "severity": "high",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [329, 346]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [454, 454]
+        }
+      ],
+      "observed": "Blocos amplos de saúde e prática pessoal podem virar coleta/agenda obrigatória.",
+      "consequence": "Coleta excessiva ou imposição de preferências de um operador a outros usuários.",
+      "correction": "Dados funcionais mínimos, opt-in e necessidade declarada; manter restrição global de não recomendar álcool.",
+      "confidence": "high",
+      "evidenceType": "revisão estática do artefato, não teste de modelo nem conclusão jurídica"
+    },
+    {
+      "id": "CALENDAR_ASSUMPTIONS",
+      "severity": "medium",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [493, 525]
+        }
+      ],
+      "observed": "Fuso administrativo, convidados/notificações e disponibilidade por host são defaults globais.",
+      "consequence": "Eventos podem estar incorretos ou comunicar dados sem controle suficiente.",
+      "correction": "Fuso IANA real, preview integral e autorização específica; alternativa iCal quando sem ferramenta.",
+      "confidence": "high",
+      "evidenceType": "revisão estática do artefato, não teste de modelo nem conclusão jurídica"
+    },
+    {
+      "id": "CANDIDATE_STATUS_AND_VERSION_DRIFT",
+      "severity": "medium",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [3, 9]
+        },
+        {
+          "source": "pipeline_latest",
+          "lines": [611, 639]
+        },
+        {
+          "source": "instruction_v31_named",
+          "lines": [3, 16]
+        }
+      ],
+      "observed": "Fonte é candidata com dependências pendentes; outro arquivo tem versões divergentes entre nome e cabeçalho.",
+      "consequence": "Pode herdar promoção, compatibilidade ou aprovação inexistente.",
+      "correction": "Versionar pacote novo com testes e registros próprios, preservando fontes; não afirmar B.9 satisfeita.",
+      "confidence": "high",
+      "evidenceType": "revisão estática do artefato, não teste de modelo nem conclusão jurídica"
+    },
+    {
+      "id": "MISSING_OPERATIONAL_CONTRACTS",
+      "severity": "high",
+      "sources": [
+        {
+          "source": "pipeline_latest",
+          "lines": [57, 57]
+        },
+        {
+          "source": "report_combination_full",
+          "lines": [172, 182]
+        },
+        {
+          "source": "report_skill_script",
+          "lines": [154, 154]
+        }
+      ],
+      "observed": "Texto reconhece que write gating, logs e scripts determinísticos dependem da implantação; arquivos ad hoc são apenas candidatos.",
+      "consequence": "Instrução não prova cron, exportação, sincronização ou painel efetivamente executados.",
+      "correction": "Expor contratos e capacidades reais, testes estruturais e comportamentais separados, nunca simular ação externa.",
+      "confidence": "high",
+      "evidenceType": "revisão estática do artefato, não teste de modelo nem conclusão jurídica"
+    },
+    {
+      "id": "GROUP_SCOPE_AND_MATRIX_DEFAULTS",
+      "severity": "medium",
+      "sources": [
+        {
+          "source": "prompt_09",
+          "lines": [5, 5]
+        },
+        {
+          "source": "prompt_09",
+          "lines": [23, 42]
+        }
+      ],
+      "observed": "Original restringe grupo por tamanho e obriga três destinos por três modelos inclusive quando só se pede rateio.",
+      "consequence": "Expansão de escopo, perguntas inúteis e custo de contexto.",
+      "correction": "Roteamento planejamento vs despesas existentes e quantidades conforme pedido; correção já presente parcialmente na v0.2, preservar.",
+      "confidence": "high",
+      "evidenceType": "revisão estática do artefato, não teste de modelo nem conclusão jurídica"
+    },
+    {
+      "id": "RETROSPECTIVE_REPORT_LIMITS",
+      "severity": "medium",
+      "sources": [
+        {
+          "source": "report_combination",
+          "lines": [190, 199]
+        },
+        {
+          "source": "report_skill_script",
+          "lines": [195, 206]
+        }
+      ],
+      "observed": "Relatórios discordam sobre necessidade de ecossistema e declaram índices parciais/persistência não confirmada.",
+      "consequence": "Alegação histórica pode ser usada como prova de estado atual.",
+      "correction": "Relatórios são requisitos e hipóteses; consultar estado atual para instalação, execução, artefatos e integrações.",
+      "confidence": "high",
+      "evidenceType": "revisão estática do artefato, não teste de modelo nem conclusão jurídica"
+    }
+  ],
+  "limits": "Cobertura estática por origem; instruções não provam execução de LLM, integrações externas ou revisão por família distinta."
+}

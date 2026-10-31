@@ -46,6 +46,7 @@ it('marks only missing return information unknown and uses canonical executable 
     tripKey: 'trip-2',
     request: 'compare',
     language: 'en',
+    domain: 'flight',
     origin: 'AAA',
     destination: 'BBB',
     departureDate: '2030-03-01',
@@ -67,7 +68,9 @@ it('handles existing group expenses without asking for new destinations or trave
   });
   expect(result.state).toBe('ready_for_expense_evidence');
   expect(result.questions).toEqual([]);
-  expect(result.recommendedCommands).toEqual(['group-split']);
+  expect(result.recommendedCommands).toEqual([]);
+  expect(result.recommendedWorkflows).toEqual(['expense-settlement']);
+  expect(result.recommendedTools).toContain('travel_settle_expenses');
 });
 
 it('represents a declared unaccompanied minor without assuming eligibility or an adult companion', () => {
@@ -103,6 +106,7 @@ it('preserves explicit zeros and contradictory dates require correction', () => 
   const known = {
     ...draft(),
     request: 'compare',
+    domain: 'flight',
     origin: 'AAA',
     destination: 'BBB',
     departureDate: '2030-03-01',
@@ -121,4 +125,52 @@ it('preserves explicit zeros and contradictory dates require correction', () => 
   expect(() => prepareBrief({ ...known, returnTrip: true, returnDate: '2030-02-28' })).toThrow(
     'CONFLICTING_TRIP_DATES',
   );
+});
+
+it.each([
+  ['lodging', 'compare-lodging'],
+  ['ground', 'ground-transport'],
+  ['insurance', 'insurance-review'],
+  ['health', 'health-plan'],
+  ['documents', 'travel-documents'],
+])('routes a %s planning request without airline assumptions', (domain, workflowId) => {
+  const result = prepareBrief({ tripKey: 'domain-1', request: 'plan', language: 'pt-BR', domain });
+  expect(result.recommendedWorkflows).toEqual([workflowId]);
+  expect(result.recommendedCommands).toEqual([]);
+  expect(result.questions.flatMap((question) => question.fields)).not.toContain('returnTrip');
+  expect(result.recommendedWorkflows).not.toContain('airports');
+});
+
+it('keeps an unspecified planning domain unknown instead of assuming a flight', () => {
+  const result = prepareBrief({ tripKey: 'unknown-mode', request: 'plan', language: 'en' });
+  expect(result.unknowns).toContain('domain');
+  expect(result.recommendedWorkflows).toEqual(['trip-intake']);
+  expect(result.recommendedCommands).toEqual([]);
+});
+
+it('resumes and selects explicit catalog workflows without requesting a new destination', () => {
+  const result = prepareBrief({ tripKey: 'resume-1', request: 'resume', language: 'pt-BR' });
+  expect(result.recommendedWorkflows).toEqual(['resume-trip']);
+  expect(result.unknowns).toEqual(['session_checkpoint']);
+  const selected = prepareBrief({
+    tripKey: 'explicit-1',
+    request: 'plan',
+    language: 'en',
+    workflowId: 'calendar-plan',
+  });
+  expect(selected.recommendedWorkflows).toEqual(['calendar-plan']);
+  expect(selected.recommendedTools).not.toContain('calendar_write');
+});
+
+it('keeps disruption triage ahead of a conflicting workflow selection', () => {
+  const result = prepareBrief({
+    tripKey: 'incident-2',
+    request: 'disruption',
+    language: 'en',
+    workflowId: 'build-itinerary',
+    incident: { serviceKind: 'bus', kind: 'cancellation', country: 'BR', ongoing: true },
+  });
+  expect(result.state).toBe('incident_triage');
+  expect(result.recommendedWorkflows).toContain('consumer-rights');
+  expect(result.recommendedWorkflows).not.toContain('build-itinerary');
 });

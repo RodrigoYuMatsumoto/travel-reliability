@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.3.0 — complete source-derived agent catalog
+
+- Recovered 39 functions, eight roles, four runtime invocations and 13 logistics checks from 18 original instruction sources; public coverage contains sanitized abstractions and source hashes, never private cases.
+- Revised every existing prompt and agent; expanded to 52 on-demand commands and eight role definitions, including one explicit ecosystem metarole.
+- Added a validated catalog, domain-aware intake, bounded documentary workflow/checkpoint preparation, paginated discovery and fixed MCP resources/prompts; retained all nine calculator IDs and legacy aliases.
+- Added exact expense settlement with accepted beneficiary weights, mandatory prior-settlement history, deterministic rounding, residual reconciliation and no payment execution.
+- Generalized manual/skill packaging with all roles, commands, schemas, synthetic examples and relative-link validation; CI verifies both complete archives.
+- Expanded deterministic fuzzing to 13 families; local two-seed campaign completed 26,000 executions. Security and service-backed verification continue on every change.
+
 ## 0.2.0 — agent-first
 
 - Portable agent instructions, self-contained skill packaging and four optional bounded MCP stdio tools for the user's own LLM host.

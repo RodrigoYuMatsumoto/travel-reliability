@@ -1,0 +1,27 @@
+{
+  "tripKey": "demo-1",
+  "currency": "BRL",
+  "acceptedRule": true,
+  "priorSettlements": [],
+  "households": [
+    "N01",
+    "N02"
+  ],
+  "expenses": [
+    {
+      "id": "E01",
+      "amountMinor": 12000,
+      "paidBy": "N01",
+      "beneficiaries": [
+        {
+          "householdId": "N01",
+          "weight": 1
+        },
+        {
+          "householdId": "N02",
+          "weight": 1
+        }
+      ]
+    }
+  ]
+}
