@@ -22,6 +22,13 @@ export const domainIds = [
   'monitoring',
   'operations',
   'ecosystem',
+  'geography',
+  'culture',
+  'business',
+  'rail',
+  'water',
+  'entry',
+  'connectors',
   'all',
 ] as const;
 export const phaseIds = [
@@ -48,9 +55,26 @@ export const capabilityIds = [
   'background_schedule',
   'code_execution',
   'provider_status',
+  'email_read',
+  'account_read',
+  'file_organize',
 ] as const;
 const id = { type: 'string', pattern: '^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$', maxLength: 64 };
 const text = { type: 'string', minLength: 1, maxLength: 600 };
+const contractNames = [
+  'brief',
+  'planning',
+  'trip',
+  'catalog',
+  'workflow',
+  'expenses',
+  'globalContext',
+  'connectorRequest',
+  'reconciliation',
+  'documentWorkspace',
+  'extensionDraft',
+  'operatorProfile',
+] as const;
 const list = (items: object, maxItems = 24) => ({
   type: 'array',
   minItems: 1,
@@ -78,18 +102,18 @@ export const catalogSchema = {
   ],
   properties: {
     format: { const: 'travel-reliability-agent-kit' },
-    formatVersion: { const: 2 },
+    formatVersion: { const: 3 },
     version: { type: 'string', pattern: '^\\d+\\.\\d+\\.\\d+$' },
     entrypoint: { const: 'agents/TRAVEL_AGENT.md' },
     purpose: text,
-    defaultLanguage: { const: 'pt-BR' },
-    license: { const: 'Apache-2.0' },
+    defaultLanguage: { const: 'host' },
+    license: { const: 'MIT' },
     contracts: {
       type: 'object',
       additionalProperties: false,
-      required: ['brief', 'planning', 'trip', 'catalog', 'workflow', 'expenses'],
+      required: contractNames,
       properties: Object.fromEntries(
-        ['brief', 'planning', 'trip', 'catalog', 'workflow', 'expenses'].map((name) => [
+        contractNames.map((name) => [
           name,
           { type: 'string', pattern: '^schema/[a-z0-9-]+\\.schema\\.json$' },
         ]),
@@ -123,7 +147,7 @@ export const catalogSchema = {
           title: text,
           summary: text,
           mode: { enum: ['operational', 'meta'] },
-          legacyNames: list({ type: 'string', maxLength: 100 }),
+          legacyNames: { ...list({ type: 'string', maxLength: 100 }), minItems: 0 },
         },
       },
     },
@@ -207,11 +231,11 @@ export interface CommandDefinition {
 }
 export interface AgentCatalog {
   format: string;
-  formatVersion: 2;
+  formatVersion: 3;
   version: string;
   entrypoint: string;
   purpose: string;
-  defaultLanguage: 'pt-BR';
+  defaultLanguage: 'host';
   license: string;
   contracts: Record<string, string>;
   execution: string;

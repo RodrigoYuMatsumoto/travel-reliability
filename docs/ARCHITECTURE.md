@@ -1,6 +1,6 @@
 # Architecture
 
-Version 0.3 separates the portable catalog from executable calculators. `agents/manifest.json` declares eight roles and 52 commands with explicit domain, phase, owner, minimum inputs and optional executor. `agent/catalog.ts` validates it; MCP and release packaging consume the same registry. `agents/coverage.json` traces the recovered source functions without private source contents. The nine planning calculators retain their IDs and API/UI contracts; known-expense settlement is a separate read-only executor.
+Version 0.4 separates the portable catalog from executable capabilities. `agents/manifest.json`, format 3, declares eleven roles and 66 commands with explicit domain, phase, owner, minimum inputs and optional executor. `agent/catalog.ts` validates it; MCP and release packaging consume the same registry. `agents/coverage.json` contains opaque provenance identifiers and functional coverage without private filenames, source hashes, case details or source text. The nine planning calculators retain their IDs and API/UI contracts; known-expense settlement is a separate read-only executor. Original work adopts MIT from v0.4.0; historical releases and third-party materials retain their own terms.
 
 MCP adds compact catalog discovery and stateless workflow preparation. Checkpoints retain only pseudonymous IDs, declared field/source references, deadlines and counters; they are neither verified facts nor reusable permissions. Host research, external effects, scheduling and accumulated resource enforcement remain the host's responsibility. Instructions are selected on demand rather than concatenating all roles and prompts.
 
@@ -8,15 +8,18 @@ MCP adds compact catalog discovery and stateless workflow preparation. Checkpoin
 
 The primary user experience is an agent attached to the traveler's own LLM host. The portable agent and nine selected commands require no application installation. A self-contained skill ZIP supports hosts that discover `SKILL.md`; other hosts use the same instructions manually. Host tools supply authorized browsing, current supplier information and private evidence storage. None of those capabilities are invented by a prompt.
 
-The optional MCP stdio runtime exposes four bounded, stateless tools: `travel_prepare_brief`, `travel_schema`, `travel_plan` and `travel_check_trip`. Schemas and individual reviewed workflows are loaded on demand. It makes no model/provider/network calls, accepts no arbitrary file path and executes no booking, payment or messaging action. The host retains its permissions and user consent boundary. A brief separates trips, groups, explicit constraints and unknowns; checklists anticipate connections, deadlines, coverage gaps and contingency needs without claiming to predict events.
+The optional MCP stdio runtime announces thirteen bounded tools and 78 fixed resources/prompts, including compatibility aliases. The original calculator, schema, brief and contract-check tools coexist with catalog discovery, workflow preparation, expense settlement, global context, booking reconciliation, operator-scoped source reads, workspace inventory/planning and extension drafts. The default entrypoint is offline and makes no model/provider/network calls. Optional account reads require an operator-configured registry; the Gmail profile reads only explicitly bound messages. No tool accepts credentials, modules or an arbitrary private root, or performs booking, payment or messaging. The host retains its permissions and user consent boundary.
 
 ```mermaid
 flowchart LR
   T[Traveler] --> HOST[User-controlled LLM host]
   PACK[Portable agent / selected prompts / skill] --> HOST
   HOST -->|Host permissions| RESEARCH[Current authorized sources]
-  HOST -->|Local stdio / bounded JSON| MCP[Four MCP tools]
-  MCP --> CORE[Brief / schemas / deterministic calculators / checks]
+  HOST -->|Local stdio / bounded JSON| MCP[Thirteen MCP tools]
+  MCP --> CORE[Catalog / contracts / deterministic preparation and checks]
+  OP[Trusted operator configuration] --> SCOPES[Fixed workspace and connector scopes]
+  SCOPES --> MCP
+  MCP -->|Explicitly configured read scopes only| READ[Selected source observations]
   HOST -->|Explicit choice| SUPPORT[Optional evidence web workbench]
 ```
 
@@ -24,16 +27,16 @@ The web workbench below is an optional evidence and operations layer. Its separa
 
 ## Decisions
 
-| Decision                     | Reason and consequence                                                                                                                               |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Modular monolith, one API    | Lower operational cost and fewer distributed failure modes. Isolated document parsing is a separate process/service.                                 |
-| Public JSON Schema           | Portable trip data, explicit unknowns, generated TypeScript and contract validation before persistence.                                              |
-| Deterministic core           | Money, dates, permissions, rule applicability and allocation never depend on an LLM.                                                                 |
-| Encrypted records and blobs  | PostgreSQL/S3 do not receive plaintext payloads. Indexed metadata is minimized; encryption does not hide record counts, sizes or access patterns.    |
-| Workspace transaction        | PostgreSQL advisory transaction lock and CAS version checks serialize edits and erasure. Demo memory store implements equivalent workspace rollback. |
-| Durable tasks in PostgreSQL  | Queue/recovery status and erasure outbox survive restart. Redis handles sessions and one-time state, not the only copy of evidence or jobs.          |
-| No automatic provider lookup | v0.1 accepts supplied documentary evidence and authenticated webhooks. No fabricated inventory or unauthorized scraping.                             |
-| Installable web app          | One responsive pt-BR/en interface; offline static shell plus explicitly exported encrypted bundles. Native mobile is deferred.                       |
+| Decision                     | Reason and consequence                                                                                                                                                                                                  |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Modular monolith, one API    | Lower operational cost and fewer distributed failure modes. Isolated document parsing is a separate process/service.                                                                                                    |
+| Public JSON Schema           | Portable trip data, explicit unknowns, generated TypeScript and contract validation before persistence.                                                                                                                 |
+| Deterministic core           | Money, dates, permissions, rule applicability and allocation never depend on an LLM.                                                                                                                                    |
+| Encrypted records and blobs  | PostgreSQL/S3 do not receive plaintext payloads. Indexed metadata is minimized; encryption does not hide record counts, sizes or access patterns.                                                                       |
+| Workspace transaction        | PostgreSQL advisory transaction lock and CAS version checks serialize edits and erasure. Demo memory store implements equivalent workspace rollback.                                                                    |
+| Durable tasks in PostgreSQL  | Queue/recovery status and erasure outbox survive restart. Redis handles sessions and one-time state, not the only copy of evidence or jobs.                                                                             |
+| Explicit provider boundaries | Documentary inputs and signed webhooks remain supported. Optional connector reads are operator-compiled/scoped; Gmail does not search the entire inbox, and no universal airline, lodging or live-fare API is inferred. |
+| Installable web app          | One responsive pt-BR/en interface; offline static shell plus explicitly exported encrypted bundles. Native mobile is deferred.                                                                                          |
 
 ```mermaid
 flowchart LR
@@ -51,12 +54,46 @@ flowchart LR
 
 ## Modules
 
-`agents/` and `prompts/`: portable agent/workflows. `skills/`: skill entrypoint whose references are assembled from canonical files. `agent/`: bounded MCP/brief runtime. `security/`: reproducible SAST/DAST/fuzzing support. `schema/`: canonical closed contracts and generated types. `api/`: authentication,
+`agents/` and `prompts/`: portable agent/workflows. `skills/`: skill entrypoint whose references are assembled from canonical files. `agent/`: bounded MCP/catalog/brief runtime, global context, connector registry, booking reconciliation, document workspace, operator profile and extension drafts. `security/`: reproducible SAST/DAST/fuzzing support. `schema/`: canonical closed contracts and generated types. `api/`: authentication,
 records, evidence lifecycle, assessment, planning, exports and moderation.
 `web/`: responsive app, offline verifier and static-only service worker. `mobile/`:
 PWA installation contract. `ingest/`: bounded extraction subprocesses and HTTP
 worker. `rules/`: dated country facts. `prompts/`: portable commands. `docs/`:
 operator/contributor contracts.
+
+## International context and operator capabilities
+
+Language tags use BCP 47 validation. Requested language, formatting locale,
+currency, time zone and jurisdiction are separate fields; deterministic message
+templates currently use pt-BR/en and expose their actual fallback. Global
+context covers international, domestic, subdivision, intermunicipal and local
+travel, multiple purposes, DST ambiguity and multimodal dependencies. Supplied
+location codes are not geocoding or assigned-code verification. Country source
+plugins discover selected official portals; they do not imply executable foreign
+rights, entry eligibility, current exchange rates or authenticated reservations.
+
+The [operator profile](OPERATOR_PROFILE.md) is startup configuration, never an
+LLM tool argument. It binds a local document root and optional Gmail trip/record
+selectors. Secrets come only from the process environment. MIME normalization
+uses an absolute, preprepared Python interpreter, isolated flags, a fixed reviewed
+module and bounded pipes; it does not resolve an interpreter from the working
+directory, invoke an installer or pass raw mail/secrets through arguments/logs.
+Adapters are trusted operator code, not a JavaScript sandbox. Read budgets are
+per process and do not measure every upstream request or host token cost.
+
+The [document workspace](DOCUMENT_WORKSPACE.md) inventories metadata and prepares
+plans. Copy/move preserves opaque PDF/image bytes; text control files use strict
+bounded UTF-8. Actual writes and rollback remain in the operator CLI, with
+specific plan digests, source rehashing, destination checks and journals. MCP has
+no apply/rollback tool. Cooperative locking and filesystem checks do not provide
+atomic multi-file transactions or isolation from another writer with the same OS
+permissions. Partial writes without a journal require reconciliation.
+
+[Extension generation](EXTENSIONS.md) produces complete reviewable files and
+hashes without installation, execution or new permissions. [PDF export](UNICODE_EXPORTS.md)
+preflights glyph coverage against the same font bytes it embeds. The operator
+supplies a local licensed font; fonts are neither bundled nor downloaded. Missing
+coverage fails explicitly, and complex-script layout still needs visual review.
 
 ## Evidence lifecycle
 

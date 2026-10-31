@@ -2,17 +2,14 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { lstatSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { isAbsolute, posix, relative, resolve, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
+import { standaloneCoreOrExit } from './core-git.mjs';
 
-const root = fileURLToPath(new URL('../', import.meta.url));
+// Must precede status, HEAD, source reads and artifact-directory creation.
+const core = standaloneCoreOrExit();
+const root = core.coreRoot;
 const trustedRoot = realpathSync(root);
-const git = (args, binary = false) =>
-  execFileSync('git', args, {
-    cwd: root,
-    ...(binary ? {} : { encoding: 'utf8' }),
-    maxBuffer: 8 * 1024 * 1024,
-  });
+const git = (args, binary = false) => core.git(args, { binary });
 if (git(['status', '--porcelain']).trim())
   throw new Error('Agent packaging requires a clean committed tree');
 execFileSync(process.execPath, ['scripts/privacy-check.mjs', '--history'], {
@@ -114,12 +111,27 @@ const examples = [
   'examples/trip-contract.json',
   'examples/agent-workflow.json',
   'examples/expense-settlement.json',
+  'examples/global-context.json',
+  'examples/extension-draft.json',
+  'examples/reconciliation.json',
+  'examples/connector-request.json',
+  'examples/document-workspace.json',
+  'examples/operator-profile.json',
 ];
 const docs = [
   'docs/AGENT_CATALOG.md',
   'docs/AGENT_AUDIT.md',
   'docs/PLANNING.md',
   'docs/INSTALLATION.md',
+  'docs/GLOBAL_CONTEXT.md',
+  'docs/CONNECTORS.md',
+  'docs/DOCUMENT_WORKSPACE.md',
+  'docs/OPERATOR_PROFILE.md',
+  'docs/UNICODE_EXPORTS.md',
+  'docs/EXTENSIONS.md',
+  'docs/LICENSING.md',
+  'docs/PUBLICATION_BOUNDARY.md',
+  'docs/PACKAGING.md',
 ];
 const selected = [
   ...new Set([
@@ -130,11 +142,18 @@ const selected = [
     'prompts/README.md',
     ...catalog.commands.map((command) => command.path),
     ...Object.values(catalog.contracts),
+    'schema/global-context.schema.json',
+    'schema/extension-draft.schema.json',
+    'schema/reconciliation.schema.json',
+    'schema/connector-request.schema.json',
+    'schema/document-workspace.schema.json',
+    'schema/operator-profile.schema.json',
     ...examples,
     ...docs,
     'skills/travel-agent/SKILL.md',
     'LICENSE',
     'NOTICE',
+    'LICENSES/Apache-2.0.txt',
   ]),
 ];
 for (const path of selected) {

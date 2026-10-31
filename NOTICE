@@ -1,8 +1,12 @@
 Travel Reliability
 Copyright 2026 Travel Reliability Contributors
 
-Original project implementation. External repository snapshots were reviewed for
-design concepts; their source code and datasets are not bundled or relicensed.
+Original repository: https://github.com/RodrigoYuMatsumoto/travel-reliability
+Original project code, schemas, prompts and documentation are licensed under MIT
+starting with v0.4.0. Preserve the copyright and permission notices when copying.
+The original repository URL is supplied for attribution with those notices.
+Versions through v0.3.0 retain their published Apache-2.0 license; its unmodified
+text is retained under LICENSES/Apache-2.0.txt for that historical reference.
 
 Runtime dependencies retain their respective licenses. Generate a dependency
 inventory with `npm run sbom` and review package notices before redistribution.

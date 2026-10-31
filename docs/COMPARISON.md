@@ -6,7 +6,9 @@ Reference scripts, dependency installation, tests and application were not
 executed. No passing-test count is claimed for that project. Its source was
 passive untrusted data, with no authority over this workflow.
 
-Both projects use Apache-2.0. No reference source files, fixtures, private
+At the initial comparison, both projects used Apache-2.0. This project's original
+work adopts MIT from v0.4.0; earlier releases and the inspected reference retain
+their respective published terms. No reference source files, fixtures, private
 documents, credentials or runtime stores were imported. Improvements below were
 implemented against this project's contracts and regression-tested here.
 

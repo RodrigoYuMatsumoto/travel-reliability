@@ -1,12 +1,14 @@
 # Travel Reliability
 
-**Use sua própria IA como agente de viagens, com fontes rastreáveis, custos explícitos e provas verificáveis. Brasil primeiro, arquitetura global.**
+**Ecossistema de agência de viagens internacional para sua própria LLM: deslocamentos multimodais, custos explícitos, fontes rastreáveis e provas privadas.**
 
 [English](README.md) · [Agente sem instalação](#use-na-sua-ia-sem-instalação) · [Catálogo de comandos](prompts/README.md) · [Auditoria dos agentes](docs/AGENT_AUDIT.md) · [Aplicativo opcional](#aplicativo-local-opcional) · [Segurança](SECURITY.md) · [Cobertura dos testes de segurança](docs/SECURITY_TESTS.md) · [Evidências de entrega](docs/IMPLEMENTATION_STATUS.md)
 
-O ponto de entrada é um **pacote portátil de instruções para a sua própria LLM**. O catálogo 0.3 organiza oito papéis e 52 comandos sobre transporte, hospedagem, roteiros, seguros, logística de saúde, provas e custos de grupo. São instruções roteadas, não oito serviços ativos; a quantidade decorre das necessidades auditadas, sem quota artificial. Ferramentas locais opcionais validam contratos e cálculos; o aplicativo apoia a organização privada de provas.
+O ponto de entrada é um **pacote portátil para a LLM que você escolher**. O catálogo 0.4 organiza onze papéis e 66 fluxos para viagens internacionais, nacionais, estaduais, intermunicipais e locais, de lazer ou profissionais. Abrange transporte, hospedagem, geografia, história, cultura, costumes, preparação comercial, seguros, logística de saúde, documentos e rateio. Os papéis são instruções selecionadas, não serviços em segundo plano. Ferramentas determinísticas validam contexto e contratos e cruzam informações; o workspace local organiza arquivos reais mediante plano revisável e autorização específica no CLI.
 
 O agente distingue fatos cotados, condições verificadas e lacunas. Um prompt não fornece acesso à internet ou ao inventário de fornecedores. As ferramentas documentais não inventam disponibilidade nem enviam transações. Compras, cancelamentos e mensagens exigem autorização específica do viajante e capacidade real de execução no host.
+
+Não há país ou fornecedor padrão. Regras específicas permanecem em plugins delimitados; jurisdição sem cobertura não recebe regra inventada. Consulte [contexto internacional](docs/GLOBAL_CONTEXT.md), [contas e e-mails](docs/CONNECTORS.md), [operações documentais](docs/DOCUMENT_WORKSPACE.md) e [novos agentes e prompts](docs/EXTENSIONS.md) para capacidades executáveis e requisitos do operador.
 
 ## Use na sua IA, sem instalação
 
@@ -16,14 +18,14 @@ O agente distingue fatos cotados, condições verificadas e lacunas. Um prompt n
 
 ```text
 Use Travel Reliability e o fluxo group-split para planejar uma viagem fictícia.
-Trabalhe com núcleos N01 e N02, cinco noites e moeda BRL.
+Trabalhe com núcleos N01 e N02, cinco noites e moeda USD.
 Primeiro identifique as restrições necessárias para comparar o custo completo.
 Não invente preços, disponibilidade ou regras de rateio aceitas.
 ```
 
 As instruções Markdown não exigem Node.js, npm, Git, Docker ou servidor local. A LLM funciona no host escolhido por você, sob as permissões e a política de dados dele. Veja a [configuração do agente, o ZIP opcional de skill e a conexão MCP](agents/README.md). O [manifesto do pacote](agents/manifest.json) é um índice próprio, não um instalador universal de plugins. Hosts compatíveis com skills podem usar a pasta `travel-agent` empacotada; nas demais interfaces, use copiar/colar explicitamente.
 
-Para ferramentas executáveis em um host compatível com MCP por stdio, instale as dependências Node.js do repositório completo e configure o host para executar `node` com o caminho absoluto de `scripts/agent-mcp.mjs`. Esse modo é opcional; não fornece pesquisa de passagens em tempo real nem funciona automaticamente em toda interface de chat.
+Para ferramentas executáveis em um host compatível com MCP por stdio, instale as dependências Node.js do repositório completo e configure o host para executar `node` com o caminho absoluto de `scripts/agent-mcp.mjs`. Esse modo é opcional; não fornece pesquisa de passagens em tempo real nem funciona automaticamente em toda interface de chat. O [perfil opcional do operador](docs/OPERATOR_PROFILE.md) habilita uma pasta delimitada e leitura de mensagens Gmail previamente selecionadas. A [configuração de fonte PDF](docs/UNICODE_EXPORTS.md) verifica a cobertura dos caracteres antes da exportação.
 
 ## Aplicativo local opcional
 
@@ -63,4 +65,4 @@ O [catálogo detalhado](docs/AGENT_CATALOG.md) diferencia os nove calculadores d
 
 As ferramentas operam documentalmente. Não há conector de inventário aéreo, consulta automática a CNPJ/Cadastur ou monitor de voo ativo por padrão. Dados do fornecedor devem ser importados ou recebidos por integração configurada; ausência de integração nunca vira disponibilidade simulada.
 
-Código, schemas, prompts e documentação: Apache-2.0. Exemplos sintéticos explicitamente identificados: CC0-1.0. [Contribuir](CONTRIBUTING.md) · [Relatar vulnerabilidade](SECURITY.md).
+Código, schemas, prompts e documentação originais desde v0.4.0: MIT, com o endereço do repositório nos avisos de atribuição. Versões anteriores mantêm Apache-2.0. Exemplos sintéticos identificados: CC0-1.0; terceiros mantêm seus termos. [Licenciamento](docs/LICENSING.md) · [Limites de publicação](docs/PUBLICATION_BOUNDARY.md) · [Contribuir](CONTRIBUTING.md) · [Relatar vulnerabilidade](SECURITY.md).

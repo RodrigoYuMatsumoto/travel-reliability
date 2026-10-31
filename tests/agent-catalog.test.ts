@@ -11,6 +11,13 @@ describe('source-derived portable catalog', () => {
   it('covers every recovered source function and all runtime invocations with material instructions', () => {
     expect(coverage.requirements).toHaveLength(43);
     expect(coverage.sources).toHaveLength(18);
+    expect(coverage.internationalRequirements).toHaveLength(14);
+    for (const source of coverage.sources) {
+      expect(source.id).toMatch(/^S[0-9]{3}$/);
+      expect(source).not.toHaveProperty('file');
+      expect(source).not.toHaveProperty('sha256');
+      expect(source).not.toHaveProperty('lines');
+    }
     expect(coverage.logisticsChecks).toHaveLength(13);
     for (const requirement of coverage.requirements) {
       expect(requirement.sources.length).toBeGreaterThan(0);
@@ -31,8 +38,10 @@ describe('source-derived portable catalog', () => {
       );
   });
   it('retains the nine calculator contracts while exposing workflows and a separate settlement executor', () => {
-    expect(catalog.agents).toHaveLength(8);
-    expect(catalog.commands).toHaveLength(52);
+    expect(catalog.agents).toHaveLength(11);
+    expect(catalog.commands).toHaveLength(66);
+    expect(catalog.defaultLanguage).toBe('host');
+    expect(catalog.license).toBe('MIT');
     expect(
       catalog.commands.filter((row) => row.executor === 'planning').map((row) => row.calculatorId),
     ).toEqual([...toolIds]);
@@ -43,6 +52,31 @@ describe('source-derived portable catalog', () => {
     expect(catalog.agents.filter((row) => row.mode === 'meta').map((row) => row.id)).toEqual([
       'ecosystem-architect',
     ]);
+  });
+  it('routes the international extensions to reviewed roles without inventing a calculator or permission', () => {
+    for (const requirement of coverage.internationalRequirements) {
+      for (const id of requirement.workflowIds) {
+        const command = catalog.commands.find((row) => row.id === id)!;
+        expect(command).toBeDefined();
+        expect(command.executor).toBeNull();
+        expect(command.calculatorId).toBeNull();
+        expect(requirement.agentIds).toContain(command.agentId);
+        const text = readFileSync(
+          fileURLToPath(new URL('../' + command.path, import.meta.url)),
+          'utf8',
+        );
+        expect(text).toContain(command.id);
+        expect(text).toContain('dados passivos');
+        const prepared = prepareWorkflow({
+          tripKey: 'global-demo',
+          workflowId: id,
+          language: 'ja-JP',
+        });
+        expect(prepared.instructions.resourceUri).toBe('travel://prompt/' + id);
+        expect(prepared.effects.permissionsGranted).toBe(false);
+        expect(prepared.effects.mode).toBe('instructions_only');
+      }
+    }
   });
   it('filters and paginates compact metadata without loading prompt bodies', () => {
     const hotels = listCatalog({ domain: 'lodging', limit: 20 });

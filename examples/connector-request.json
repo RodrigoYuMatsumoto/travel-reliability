@@ -1,0 +1,11 @@
+{
+  "tripKey": "demo-1",
+  "requests": [
+    {
+      "sourceId": "gmail",
+      "recordKeys": [
+        "R01"
+      ]
+    }
+  ]
+}

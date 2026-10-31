@@ -1,6 +1,6 @@
 # Direitos do consumidor em viagens
 
-Versão derivada 1.2.0 — melhoria incremental. Organize informação regulatória verificável e reclamação factual, sem substituir análise jurídica individualizada. Selecione serviço/etapa no [catálogo de comandos](../../prompts/README.md).
+Versão derivada 1.3.0 — melhoria incremental. Organize informação regulatória verificável e reclamação factual, sem substituir análise jurídica individualizada. Selecione serviço/etapa no [catálogo de comandos](../../prompts/README.md).
 
 ## Objetivo e entrada
 

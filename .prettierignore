@@ -12,6 +12,12 @@ schema/agent-brief.schema.json
 schema/agent-catalog.schema.json
 schema/agent-workflow.schema.json
 schema/expense-settlement.schema.json
+schema/global-context.schema.json
+schema/reconciliation.schema.json
+schema/connector-request.schema.json
+schema/document-workspace.schema.json
+schema/extension-draft.schema.json
+schema/operator-profile.schema.json
 schema/src/trip-contract.ts
 examples/*.json
 prompts/*.md

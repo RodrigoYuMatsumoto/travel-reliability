@@ -1,10 +1,10 @@
 # PROMPT 05 — CUSTO TOTAL COMPARÁVEL DA PASSAGEM
 
-Versão derivada 1.2.0 — melhoria incremental de 31/10/2026. Comando autocontido; preencha os dados pertinentes antes de usar.
+Versão derivada 1.3.0 — melhoria incremental de 31/10/2026. Comando autocontido; preencha os dados pertinentes antes de usar.
 
 **Escopo:** Custo comparável da passagem aérea e extras do escopo escolhido. Não equivale ao custo integral de qualquer viagem nem importa condições de hospedagem ou ônibus.
 
-Decomponha o custo da passagem para atender às minhas necessidades e compare alternativas equivalentes quando existirem. Responda em português brasileiro, com cálculo verificável e recomendação condicionada à evidência. Não pressuponha cobrança indevida nem que todo adicional seja necessário.
+Decomponha o custo da passagem para atender às minhas necessidades e compare alternativas equivalentes quando existirem. Responda no idioma solicitado pelo viajante; sem preferência, siga o idioma do host, com cálculo verificável e recomendação condicionada à evidência. Não pressuponha cobrança indevida nem que todo adicional seja necessário.
 
 ## Dados de entrada
 

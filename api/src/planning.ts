@@ -13,6 +13,7 @@ import {
   type GroupInput,
 } from '../../schema/src/planning.js';
 import { AppError, requireCondition } from './errors.js';
+import { canonicalLocale, messageLanguage } from '../../schema/src/locale.js';
 
 const ajv = new Ajv2020({ strict: true, allErrors: false });
 (addFormats as unknown as (a: Ajv2020) => void)(ajv);
@@ -381,7 +382,7 @@ function scenarios(input: FareScenarioInput) {
   });
 }
 function negotiation(input: NegotiationInput) {
-  const pt = input.language === 'pt-BR';
+  const pt = messageLanguage(input.language) === 'pt-BR';
   const comparison = input.comparison ? evaluateOffers(input.comparison, 'total-cost') : null;
   const constraints = input.constraints.length
     ? (pt ? ' Condições necessárias: ' : ' Required conditions: ') +
@@ -392,6 +393,8 @@ function negotiation(input: NegotiationInput) {
     recipient = input.recipient.replace(/[\r\n]/g, ' ');
   return {
     comparison,
+    requestedLocale: input.language,
+    messageLocale: messageLanguage(input.language),
     subject:
       input.channel === 'email'
         ? pt
@@ -732,6 +735,12 @@ export function plan(tool: string, value: unknown) {
     }
   };
   validateTimes(value);
+  if (tool === 'negotiation')
+    requireCondition(
+      canonicalLocale((value as NegotiationInput).language) !== null,
+      'INVALID_LOCALE',
+      422,
+    );
   let result: unknown;
   if (['flex-dates', 'airports', 'connections', 'total-cost'].includes(tool))
     result = evaluateOffers(value as ComparisonInput, tool as ToolId);

@@ -1,0 +1,18 @@
+{
+  "id": "museum-visit-coordinator",
+  "title": "Museum visit coordinator",
+  "purpose": "Compare museum visits using dated official opening, accessibility and reservation information for the traveler approved schedule.",
+  "domains": ["culture", "itinerary", "accessibility"],
+  "capabilities": ["web_research"],
+  "fields": [
+    {"id": "visit-date", "label": "Proposed local visit date", "type": "date", "required": true},
+    {"id": "party-size", "label": "Number of visitors without identity information", "type": "integer", "required": true},
+    {"id": "step-free", "label": "Whether step-free access is required", "type": "boolean", "required": true},
+    {"id": "visit-format", "label": "Preferred visit format", "type": "enum", "required": false, "values": ["independent", "guided", "either"]}
+  ],
+  "acceptanceCriteria": [
+    "Distinguish current official opening information from unverified claims.",
+    "Keep unavailable or unknown accessibility information visible.",
+    "Do not book, pay or contact a venue without separate authorization."
+  ]
+}

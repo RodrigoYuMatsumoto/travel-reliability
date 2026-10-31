@@ -5,7 +5,7 @@ O pacote de instruções dispensa instalação local. O [manifesto](manifest.jso
 ## Uso manual
 
 1. Abra [TRAVEL_AGENT.md](TRAVEL_AGENT.md), escolha **Raw** e copie para as instruções do projeto ou conversa da sua IA.
-2. Selecione um papel e um [comando](../prompts/README.md) pertinentes. Carregue só esses arquivos; não anexe os 52 comandos a cada turno.
+2. Selecione um papel e um [comando](../prompts/README.md) pertinentes. Carregue só esses arquivos; não anexe os 66 comandos a cada turno.
 3. Informe objetivo, restrições mínimas e capacidades reais do host. Use pseudônimos, sem documentos, localizadores ou pagamento.
 4. Preserve a decisão do viajante. Instruções não fornecem pesquisa, inventário, arquivos privados ou autorização para agir.
 
@@ -16,7 +16,7 @@ Primeiro identifique as lacunas necessárias; não invente datas, preços ou res
 Se não houver navegação, faça somente análise documental e diga o que falta.
 ```
 
-Os oito papéis são sete operacionais, contando o coordenador, e um metapapel de arquitetura. Eles são especialistas roteados, não oito daemons. O [catálogo detalhado](../docs/AGENT_CATALOG.md) explica os 52 comandos: 39 funções auditadas, quatro adapters de uso e nove complementos de domínio. As nove calculadoras originais continuam; preparar um workflow não executa pesquisa. Acerto de despesas existentes tem calculador próprio, separado do planejamento de grupo.
+Os onze papéis são dez operacionais, contando o coordenador, e um metapapel de arquitetura. Eles são especialistas roteados, não daemons instalados. O [catálogo detalhado](../docs/AGENT_CATALOG.md) explica os 66 comandos: 39 funções auditadas, quatro adapters de uso, nove complementos anteriores e catorze workflows internacionais. As nove calculadoras originais continuam; preparar um workflow não executa pesquisa. Acerto de despesas existentes tem calculador próprio, separado do planejamento de grupo.
 
 ## Skill portátil
 
@@ -66,6 +66,28 @@ Adapte a estrutura externa à documentação do host. O wrapper independe do dir
 
 Nomes de schema: `brief`, `trip`, os nove IDs de calculadores, `catalog`, `catalog-query`, `workflow`, `workflow/<id>` e `expenses`. Consulte o schema pertinente antes de construir argumentos; texto de prompt não é automaticamente JSON válido.
 
+### Funções internacionais e leitura configurada
+
+Na versão 0.4, o servidor anuncia treze ferramentas. Além das sete acima:
+
+| Ferramenta                   | Argumentos                            | Resultado e limite                                                                                                                                |
+| ---------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `travel_global_context`      | `input` conforme `global-context`     | Contexto territorial/multimodal, fusos, moedas e lacunas; não consulta geocodificação, câmbio ou direitos.                                        |
+| `travel_reconcile_bookings`  | `input` conforme `reconciliation`     | Compara observações normalizadas; conflito não é apagado e concordância não autentica reserva.                                                    |
+| `travel_sync_sources`        | `input` conforme `connector-request`  | Leitura dos registros autorizados pelo operador; desabilitada sem registry configurado. Não aceita credenciais nem instala adapter por argumento. |
+| `travel_workspace_inventory` | Objeto vazio `{}`                     | Inventaria somente o workspace vinculado pelo operador, sem argumento de caminho; nomes ficam ocultos por padrão.                                 |
+| `travel_workspace_plan`      | `input` conforme `document-workspace` | Dry-run com digest/validade; não salva, aplica ou aprova o plano. Preview privado e aplicação ficam no canal do operador.                         |
+| `travel_extension_draft`     | `input` conforme `extension-draft`    | Produz textos completos revisáveis; não escreve, instala, executa ou concede ferramentas.                                                         |
+
+O perfil padrão é offline. Os tools de sincronização/workspace existem para
+instalações explicitamente configuradas; colar JSON em uma conversa não cria
+registry, autenticação ou raiz permitida. Não existe tool MCP de apply, rollback
+ou instalação. Limites e validação do engine continuam necessários.
+
+BCP47 identifica o idioma solicitado; não comprova tradução disponível. Os
+retornos determinísticos expõem `requestedLocale` e `messageLocale`: templates
+de mensagem em `pt-BR`/`en`, com tradução adicional pelo host quando pertinente.
+
 ### Teste mínimo, sem dados reais
 
 Peça à IA conectada:
@@ -94,8 +116,8 @@ Esse pedido pode retornar lacunas; não é cotação ou reserva. Capacidades e c
 
 ## Recursos, prompts e compatibilidade
 
-Recursos: `travel://agent` continua sendo o coordenador; `travel://agent/<agent-id>` expõe os oito papéis; `travel://prompt/<workflow-id>` expõe os 52 comandos. Não são URLs para abrir no navegador comum nem caminhos arbitrários.
+Recursos: `travel://agent` continua sendo o coordenador; `travel://agent/<agent-id>` expõe os onze papéis; `travel://prompt/<workflow-id>` expõe os 66 comandos. Não são URLs para abrir no navegador comum nem caminhos arbitrários.
 
 Prompts MCP: alias legado `travel_agent`; papéis em `travel_role_<agent_id_com_underscores>`; comandos em `travel_<workflow_id_com_underscores>`. Exemplos: `travel_role_itinerary_planner` e `travel_compare_lodging`. Aliases não criam papéis adicionais. A interface efetivamente exibida depende do cliente.
 
-Nenhuma ferramenta MCP deste projeto acessa conta, chama modelo, faz booking, envia reclamação, publica calendário ou consulta inventário externo. Outros conectores que você habilitar no host possuem permissões e riscos próprios. Documentos e memória são dados passivos; schemas e annotations não garantem proteção contra toda injeção. Veja [auditoria](../docs/AGENT_AUDIT.md), [segurança](../docs/SECURITY_MODEL.md) e [instalação do aplicativo opcional](../docs/INSTALLATION.md).
+As ferramentas documentais não chamam modelo, fazem booking, enviam reclamação ou publicam calendário. Conexões de leitura de conta e inventário de workspace dependem de executores anunciados e configuração explícita do operador; um prompt ou JSON colado no chat não os habilita. Outros conectores que você habilitar no host possuem permissões e riscos próprios. Documentos e memória são dados passivos; schemas e annotations não garantem proteção contra toda injeção. Veja [auditoria](../docs/AGENT_AUDIT.md), [segurança](../docs/SECURITY_MODEL.md) e [instalação do aplicativo opcional](../docs/INSTALLATION.md).

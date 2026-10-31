@@ -41,7 +41,8 @@ export function assess(
     field(s.provider.registration.status !== 'unknown');
     if (s.country === 'BR')
       field(
-        s.provider.cadastur.applicability !== 'unknown' &&
+        !!s.provider.cadastur &&
+          s.provider.cadastur.applicability !== 'unknown' &&
           (s.provider.cadastur.applicability !== 'required' ||
             s.provider.cadastur.status !== 'unknown'),
       );
@@ -67,7 +68,7 @@ export function assess(
       add('REGISTRATION_FORMAT_INVALID', 'warning', s.id);
     if (
       s.country === 'BR' &&
-      s.provider.cadastur.applicability === 'required' &&
+      s.provider.cadastur?.applicability === 'required' &&
       s.provider.cadastur.status === 'inactive'
     )
       add('CADASTUR_INACTIVE', 'critical', s.id, {}, 20);
@@ -130,10 +131,10 @@ export function assess(
       trip.services.some(
         (s) =>
           s.reservation.state !== 'cancelled' &&
-          ((['hotel', 'rental_home'].includes(s.kind) &&
+          ((['hotel', 'rental_home', 'hostel', 'camping', 'homestay', 'cruise'].includes(s.kind) &&
             s.start.local.slice(0, 10) <= day &&
             s.end.local.slice(0, 10) > day) ||
-            (['flight', 'bus'].includes(s.kind) &&
+            (['flight', 'bus', 'rail', 'ferry'].includes(s.kind) &&
               s.start.local.slice(0, 10) <= day &&
               s.end.local.slice(0, 10) > day)),
       );
@@ -176,8 +177,9 @@ export function checklist(
     );
     item(
       'CADASTUR_CHECK',
-      s.provider.cadastur.status === 'active',
-      s.country === 'BR' && s.provider.cadastur.applicability === 'required',
+      s.provider.cadastur?.applicability === 'required' && s.provider.cadastur.status === 'active',
+      s.country === 'BR' &&
+        !['not_applicable', 'optional'].includes(s.provider.cadastur?.applicability ?? 'unknown'),
     );
     if (phase === 'pre_departure') {
       item('RESERVATION_REFERENCE', !!s.reservation.reference);

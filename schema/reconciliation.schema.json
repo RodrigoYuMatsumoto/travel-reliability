@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "tripKey",
+    "observations"
+  ],
+  "properties": {
+    "tripKey": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,40}$"
+    },
+    "observations": {
+      "type": "array",
+      "maxItems": 80,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "recordKey",
+          "sourceRef",
+          "referenceToken",
+          "startDate",
+          "endDate",
+          "status",
+          "currency",
+          "totalMinor",
+          "policyHash",
+          "observedAt",
+          "expiresAt",
+          "origin"
+        ],
+        "properties": {
+          "recordKey": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_-]{1,39}$"
+          },
+          "sourceRef": {
+            "type": "string",
+            "pattern": "^SRC[0-9]{2,6}$"
+          },
+          "referenceToken": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "startDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "endDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "status": {
+            "enum": [
+              "quote",
+              "booked",
+              "cancelled",
+              "completed",
+              "unknown"
+            ]
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[A-Z]{3}$"
+          },
+          "totalMinor": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "policyHash": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "observedAt": {
+            "type": "string",
+            "format": "date-time",
+            "maxLength": 40
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "maxLength": 40
+          },
+          "origin": {
+            "enum": [
+              "email_claim",
+              "provider_response",
+              "user_export"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

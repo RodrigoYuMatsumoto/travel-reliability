@@ -1,6 +1,6 @@
 # Prompt 03 — Comparar rotas e conexões dentro do orçamento
 
-Versão derivada 1.2.0 — melhoria incremental de 31/10/2026. Comando autocontido; preencha os dados pertinentes antes de usar.
+Versão derivada 1.3.0 — melhoria incremental de 31/10/2026. Comando autocontido; preencha os dados pertinentes antes de usar.
 
 **Escopo:** Itinerários e conexões aéreas, com traslados autorizados. Outros modais têm condições e regras próprias; não os valide com proteção ou prazo de companhia aérea.
 

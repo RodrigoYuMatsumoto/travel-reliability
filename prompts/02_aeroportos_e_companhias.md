@@ -1,6 +1,6 @@
 # Prompt 02 — Comparar aeroportos e companhias alternativas
 
-Versão derivada 1.2.0 — melhoria incremental de 31/10/2026. Comando autocontido; preencha os dados pertinentes antes de usar.
+Versão derivada 1.3.0 — melhoria incremental de 31/10/2026. Comando autocontido; preencha os dados pertinentes antes de usar.
 
 **Escopo:** Aeroportos e companhias aéreas, incluindo os acessos terrestres autorizados. Não transforma a comparação em pesquisa ilimitada de destinos ou em cotação rodoviária especializada.
 

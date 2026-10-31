@@ -10,6 +10,18 @@ import zipfile
 from pathlib import Path, PurePosixPath
 from urllib.parse import unquote
 
+LEGACY_CALCULATORS = {
+    "flex-dates", "airports", "connections", "promotions", "total-cost",
+    "fare-scenarios", "negotiation", "hidden-city", "group-split",
+}
+
+OPERATOR_PROFILE_FILES = {
+    "schema/operator-profile.schema.json",
+    "examples/operator-profile.json",
+    "docs/OPERATOR_PROFILE.md",
+    "docs/UNICODE_EXPORTS.md",
+}
+
 
 def require(condition, code):
     if not condition:
@@ -29,6 +41,29 @@ def targets(markdown):
         yield match.group(1)
     for match in re.finditer(r"^\s{0,3}\[[^\]\r\n]+\]:\s*(<[^>\r\n]+>|[^\s]+)", markdown, re.MULTILINE):
         yield match.group(1)
+
+
+def instruction_file(path, is_skill):
+    """A declared inventory alone must never admit executable runtime files."""
+    if is_skill:
+        if path in {"SKILL.md", "LICENSE", "NOTICE", "PACKAGE-MANIFEST.json"}:
+            return True
+        if not path.startswith("references/"):
+            return False
+        path = path[len("references/"):]
+        if path == "agent.md":
+            return True
+    return bool(re.fullmatch(
+        r"(?:README(?:\.pt-BR)?\.md|LICENSE|NOTICE|"
+        r"LICENSES/[A-Za-z0-9.-]+\.txt|"
+        r"agents/(?:README|TRAVEL_AGENT|roles/[a-z0-9-]+)\.md|"
+        r"agents/(?:manifest|coverage)\.json|"
+        r"prompts/(?:README|[0-9]{2,3}_[a-z0-9_]+)\.md|"
+        r"schema/[a-z0-9-]+\.schema\.json|"
+        r"examples/(?:README\.md|[a-z0-9-]+\.json)|"
+        r"docs/[A-Z0-9_]+\.md|skills/travel-agent/SKILL\.md|"
+        r"PACKAGE-MANIFEST\.json)", path,
+    ))
 
 
 def validate_archive(archive, expected_commit=None, expected_version=None):
@@ -56,6 +91,7 @@ def validate_archive(archive, expected_commit=None, expected_version=None):
         require(manifest["version"] == expected_version, "PACKAGE_VERSION_MISMATCH")
     is_skill = manifest["format"] == "travel-reliability-skill/1"
     require(prefix == ("travel-agent/" if is_skill else f"travel-reliability-agent-kit-v{manifest['version']}/"), "ARCHIVE_ROOT_MISMATCH")
+    require(all(instruction_file(name[len(prefix):], is_skill) for name in names), "EXECUTABLE_OR_UNEXPECTED_PACKAGE_FILE")
     files = manifest.get("files")
     require(isinstance(files, list) and 0 < len(files) <= 499, "INVALID_PACKAGE_INVENTORY")
     expected_names = {manifest_name}
@@ -74,6 +110,8 @@ def validate_archive(archive, expected_commit=None, expected_version=None):
     require(set(names) == expected_names, "UNLISTED_ARCHIVE_FILE")
     require(prefix + "LICENSE" in names and prefix + "NOTICE" in names, "LICENSE_FILE_MISSING")
     base = prefix + ("references/" if is_skill else "")
+    if tuple(map(int, manifest["version"].split("-", 1)[0].split("."))) >= (0, 4, 0):
+        require(all(base + path in names for path in OPERATOR_PROFILE_FILES), "OPERATOR_PROFILE_PACKAGE_INCOMPLETE")
     catalog_path = base + "agents/manifest.json"
     require(catalog_path in names, "BUNDLED_CATALOG_MISSING")
     catalog = json.loads(archive.read(catalog_path).decode("utf-8"))
@@ -85,6 +123,7 @@ def validate_archive(archive, expected_commit=None, expected_version=None):
     for path in catalog.get("contracts", {}).values():
         require(base + safe_path(path) in names, "CATALOG_CONTRACT_MISSING")
     counts = {"agents": len(agents), "workflows": len(commands), "calculators": len({row.get("calculatorId") for row in commands if row.get("calculatorId")})}
+    require({row.get("calculatorId") for row in commands if row.get("calculatorId")} == LEGACY_CALCULATORS, "LEGACY_CALCULATORS_MISMATCH")
     require(manifest.get("counts") == counts, "PACKAGE_COUNT_MISMATCH")
     if is_skill:
         require(prefix + "SKILL.md" in names and base + "agent.md" in names, "SKILL_ENTRYPOINT_MISSING")
@@ -102,7 +141,7 @@ def validate_archive(archive, expected_commit=None, expected_version=None):
             require(resolved == prefix.rstrip("/") or resolved.startswith(prefix), "DOCUMENTATION_LINK_ESCAPES_PACKAGE")
             require(resolved in names or any(path.startswith(resolved.rstrip("/") + "/") for path in names), "BROKEN_RELATIVE_FILE_LINK")
             checked += 1
-    return {"status": "PASS", "format": manifest["format"], "version": manifest["version"], "sourceCommit": manifest["sourceCommit"], "files": len(names), "counts": counts, "relativeFileLinksChecked": checked, "limits": ["External URLs and fragment anchors were not fetched or semantically validated.", "Manifest integrity is not independent authenticity or proof of anonymization."]}
+    return {"status": "PASS", "format": manifest["format"], "version": manifest["version"], "sourceCommit": manifest["sourceCommit"], "files": len(names), "counts": counts, "manualInstructionsOnly": True, "relativeFileLinksChecked": checked, "limits": ["External URLs and fragment anchors were not fetched or semantically validated.", "Manifest integrity is not independent authenticity or proof of anonymization."]}
 
 
 def main():

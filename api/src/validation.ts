@@ -4,6 +4,7 @@ import tripSchema from '../../schema/trip-contract.schema.json' with { type: 'js
 import type { TripContract } from '../../schema/src/trip-contract.js';
 import { Temporal } from '@js-temporal/polyfill';
 import { AppError, requireCondition } from './errors.js';
+import { canonicalLocale } from '../../schema/src/locale.js';
 
 const ajv = new Ajv2020({
   allErrors: false,
@@ -32,6 +33,7 @@ export function validateTrip(input: unknown): TripContract {
         .map((e) => ({ path: e.instancePath.slice(0, 300), keyword: e.keyword })),
     );
   const trip = input as unknown as TripContract;
+  requireCondition(canonicalLocale(trip.locale) !== null, 'INVALID_LOCALE', 422);
   requireCondition(trip.endDate >= trip.startDate, 'END_BEFORE_START', 422);
   const duration = Temporal.PlainDate.from(trip.startDate).until(
     Temporal.PlainDate.from(trip.endDate),
@@ -66,6 +68,7 @@ export function validateTrip(input: unknown): TripContract {
         422,
       );
     for (const reg of [service.provider.registration, service.provider.cadastur]) {
+      if (!reg) continue;
       if (reg.status === 'active' || reg.status === 'inactive') {
         requireCondition(reg.sourceUrl && reg.checkedAt, 'REGISTRATION_NEEDS_PROVENANCE', 422);
         requireCondition(/^https:\/\//i.test(reg.sourceUrl), 'PROVENANCE_REQUIRES_HTTPS', 422);

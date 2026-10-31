@@ -1,6 +1,6 @@
 # Radar de viagem
 
-Versão derivada 1.2.0 — melhoria incremental. Verificação de mudanças relevantes, sem monitoramento contínuo implícito. Consulte o [catálogo de comandos](../../prompts/README.md) e carregue só o fluxo pertinente.
+Versão derivada 1.3.0 — melhoria incremental. Verificação de mudanças relevantes, sem monitoramento contínuo implícito. Consulte o [catálogo de comandos](../../prompts/README.md) e carregue só o fluxo pertinente.
 
 ## Objetivo e entrada
 

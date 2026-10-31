@@ -1,4 +1,70 @@
-# Delivery evidence — 0.3.0
+# Delivery evidence — 0.4.0 candidate
+
+## Current local checkpoint — 2026-10-31
+
+The international catalog contains **eleven roles, 66 commands, thirteen MCP
+tools and 78 fixed resources/prompts**, including compatibility aliases. The
+traveler chooses the LLM host; instructions, model access and real tool
+permissions remain separate. Original code, schemas, prompts and documentation
+adopt MIT from v0.4.0; earlier releases keep their published terms. See
+[licensing](LICENSING.md) and [publication boundaries](PUBLICATION_BOUNDARY.md).
+
+Implemented additions include BCP 47 locale validation and global/multimodal
+context; source-bound booking reconciliation; bounded connector reads; an
+operator-selected document workspace with digest-bound CLI application and
+rollback; complete extension drafts without installation; literal MIME parsing;
+and explicit PDF font coverage checks. The default MCP is offline. Selected
+Gmail messages and the document workspace require the separate
+[operator profile](OPERATOR_PROFILE.md). There is no MCP apply/rollback tool,
+arbitrary-path argument, account-write tool or universal provider connector.
+
+JSON/calendar preserve UTF-8. PDF preflights every rendered character against
+the operator's local font, or standard WinAnsi coverage without one. Missing
+glyphs fail explicitly. Glyph coverage does not certify bidirectional layout,
+complex-script shaping or typographic quality. See [Unicode exports](UNICODE_EXPORTS.md).
+
+The following checks were executed against the local v0.4 candidate. At this
+checkpoint, v0.4 remote CI and release publication had **not** been executed;
+local success is not a remote check result. The completed per-commit
+[verification](https://github.com/RodrigoYuMatsumoto/travel-reliability/actions/workflows/ci.yml)
+and [security](https://github.com/RodrigoYuMatsumoto/travel-reliability/actions/workflows/security-audit.yml)
+runs, archived reports and release manifests remain the authority for published
+commit/asset verification.
+
+| Executed local check                   | Result and scope                                                                                       |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Strict TypeScript and production build | PASS                                                                                                   |
+| TypeScript tests                       | 361 passed; three PostgreSQL/Redis/S3 cases skipped locally and reserved for provisioned CI services   |
+| Python ingest tests                    | 24 passed; one native OCR case skipped locally and reserved for CI with Tesseract                      |
+| Desktop/mobile Playwright              | Four passed on an isolated test port                                                                   |
+| Audit and package report gates         | Twenty-two standard-library unittest regressions passed                                                |
+| Authenticated DAST                     | 54 assertions passed against a new synthetic loopback target                                           |
+| Legacy mutation campaigns              | 13,000 TypeScript and 384 document-ingest case executions passed                                       |
+| Ecosystem mutation campaigns           | 2,000 TypeScript and 384 MIME case executions passed                                                   |
+| Formatting and Python lint             | PASS                                                                                                   |
+| Dependency advisories                  | npm audit and locked Python runtime pip-audit reported zero known vulnerabilities at verification time |
+| Current-source and history privacy     | PASS; heuristic scan plus manual review, not proof of complete anonymization                           |
+
+Final portable-archive verification, exact-commit SAST/ZAP,
+service-backed CI, both repository integrations and release/download verification
+are separate publication gates. They were still pending at this checkpoint;
+configured jobs alone do not establish completion. Fuzzing is bounded and
+deterministic, not exhaustive or coverage-guided. See
+[ecosystem security evidence](SECURITY_ECOSYSTEM.md).
+
+The same-family runtime review confirmed and replayed corrections for mutable
+connector requests, non-finite observation dates, currency-conflicting amounts,
+working-directory interpreter selection and unknown supplier-registration
+status. A separate regression binds Gmail records to both trip and record IDs.
+These reviews do not establish model-family independence, B.9 verification,
+behavioral compliance of every host LLM or universal prompt-injection immunity.
+All fixtures are synthetic; no real account or personal travel archive was used
+for these checks.
+
+## Historical v0.3 local delivery record
+
+The following dated record describes the earlier v0.3 checkpoint. Its counts,
+license and runtime limitations are historical, not the current v0.4 contract.
 
 The primary product is a portable agent for the traveler's own LLM: canonical
 instructions, eight roles and 52 commands loaded on demand, phase-aware intake, and optional
@@ -11,7 +77,7 @@ scanner reports accompany the release. The [verification workflow](https://githu
 and [security workflow](https://github.com/RodrigoYuMatsumoto/travel-reliability/actions/workflows/security-audit.yml)
 record the actual result for each commit; a configured job alone is not evidence.
 
-## Implemented
+### Implemented
 
 Agent instructions/skill/manual kit, seven fixed MCP tools, 61 fixed resources
 and prompts (including legacy aliases), validated catalog/coverage, stateless
@@ -30,7 +96,7 @@ Apache-2.0, synthetic-data license declaration, contributor/security/operations
 docs, locked dependencies, CI, privacy/history scanner and source-only packager
 are included. No personal travel records or reference-repository code is bundled.
 
-## Executed checks
+### Executed checks
 
 | Check                                | Result                                                                                                                                        |
 | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -57,7 +123,7 @@ the corrected prior-settlement defect are recorded in [agent audit](AGENT_AUDIT.
 These reviews do not establish model-family independence or LLM execution.
 Earlier restricted Claude Code reviews concern the v0.1 baseline; see [review record](REVIEW_RECORD.md).
 
-## Deployment verification
+### Deployment verification
 
 - CI provisions real PostgreSQL, Redis, S3-compatible storage and native OCR, and
   builds both images. The release's completed workflow records prove the tested
@@ -68,7 +134,7 @@ Earlier restricted Claude Code reviews concern the v0.1 baseline; see [review re
   private vulnerability-reporting channel enabled. Release packaging requires a
   clean committed tree and a passing source/history privacy scan.
 
-## Scope limits
+### Scope limits
 
 The host provides the LLM and authorized research capabilities; instructions do
 not create inventory, browsing, account access or permissions. MCP tools make no
@@ -90,6 +156,6 @@ Only synthetic examples and generic command specifications enter the source
 archive. Credentials, runtime data, private original folders, dependency
 directories and Git internals are excluded.
 
-## Reference-informed changes
+### Reference-informed changes
 
 See [comparison](COMPARISON.md): conservative model snippet screening, minimal calendar defaults, hidden-HTML exclusion, numeric/alphanumeric CNPJ checks, exact money display, readable decision tables, safe HTTP client errors, literal supplier/date/amount proposals, factual advertised/observed comparisons and concise governance. Reference scripts and data were not imported or executed.

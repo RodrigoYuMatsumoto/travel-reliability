@@ -1,6 +1,6 @@
 # Estratégia de pontos e milhas
 
-Versão derivada 1.2.0 — melhoria incremental. Compare alternativas documentadas de pagamento/emissão; não opere contas. Use só o fluxo pertinente do [catálogo de comandos](../../prompts/README.md).
+Versão derivada 1.3.0 — melhoria incremental. Compare alternativas documentadas de pagamento/emissão; não opere contas. Use só o fluxo pertinente do [catálogo de comandos](../../prompts/README.md).
 
 ## Objetivo e entrada
 

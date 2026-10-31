@@ -1,10 +1,10 @@
 # Prompt 01 — Comparar voos com datas flexíveis
 
-Versão derivada 1.2.0 — melhoria incremental de 31/10/2026. Comando autocontido; preencha os dados pertinentes antes de usar.
+Versão derivada 1.3.0 — melhoria incremental de 31/10/2026. Comando autocontido; preencha os dados pertinentes antes de usar.
 
 **Escopo:** Comparação de voos. Para hospedagem, ônibus, seguro ou outro serviço, selecione um fluxo próprio disponível no host; não transplante regras aéreas.
 
-Compare voos para identificar até três combinações de datas adequadas às minhas restrições. Responda em português brasileiro, com justificativas breves, cálculo reproduzível e fontes. Preserve minha decisão de compra.
+Compare voos para identificar até três combinações de datas adequadas às minhas restrições. Responda no idioma solicitado pelo viajante; sem preferência, siga o idioma do host, com justificativas breves, cálculo reproduzível e fontes. Preserve minha decisão de compra.
 
 ## Dados da viagem
 

@@ -1,0 +1,33 @@
+{
+  "tripKey": "demo-1",
+  "observations": [
+    {
+      "recordKey": "R01",
+      "sourceRef": "SRC01",
+      "referenceToken": null,
+      "startDate": "2030-01-10",
+      "endDate": "2030-01-15",
+      "status": "booked",
+      "currency": "USD",
+      "totalMinor": 100,
+      "policyHash": null,
+      "observedAt": "2026-10-31T00:00:00Z",
+      "expiresAt": null,
+      "origin": "email_claim"
+    },
+    {
+      "recordKey": "R01",
+      "sourceRef": "SRC02",
+      "referenceToken": null,
+      "startDate": "2030-01-10",
+      "endDate": "2030-01-15",
+      "status": "booked",
+      "currency": "USD",
+      "totalMinor": 200,
+      "policyHash": null,
+      "observedAt": "2026-10-31T00:00:00Z",
+      "expiresAt": null,
+      "origin": "provider_response"
+    }
+  ]
+}

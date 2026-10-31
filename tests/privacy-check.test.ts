@@ -1,15 +1,19 @@
 import { it, expect } from 'vitest';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync, rmSync, realpathSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, rmSync, realpathSync, mkdirSync, copyFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve, dirname, basename } from 'node:path';
 
-const checker = resolve('scripts/privacy-check.mjs');
+const sourceScripts = resolve('scripts');
 const syntheticEmail = 'traveler' + '@' + 'private.invalid';
 
 function fixture(privateParent = false) {
   const base = realpathSync(tmpdir());
   const dir = mkdtempSync(join(base, 'travel-privacy-check-'));
+  mkdirSync(join(dir, 'scripts'));
+  for (const file of ['privacy-check.mjs', 'core-git.mjs'])
+    copyFileSync(join(sourceScripts, file), join(dir, 'scripts', file));
+  const checker = join(dir, 'scripts/privacy-check.mjs');
   const env = {
     ...process.env,
     GIT_AUTHOR_NAME: 'Synthetic Test',

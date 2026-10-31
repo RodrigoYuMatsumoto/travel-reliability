@@ -1,18 +1,24 @@
 {
   "format": "travel-reliability-agent-kit",
-  "formatVersion": 2,
-  "version": "0.3.0",
+  "formatVersion": 3,
+  "version": "0.4.0",
   "entrypoint": "agents/TRAVEL_AGENT.md",
-  "purpose": "Agentes e comandos portáteis por fase e domínio, com fontes, cálculos e provas verificáveis.",
-  "defaultLanguage": "pt-BR",
-  "license": "Apache-2.0",
+  "purpose": "An international travel agency ecosystem for the traveler chosen LLM: multimodal leisure and professional journeys, evidence, documents, provider reconciliation and explicit human authorization.",
+  "defaultLanguage": "host",
+  "license": "MIT",
   "contracts": {
     "brief": "schema/agent-brief.schema.json",
     "planning": "schema/planning.schema.json",
     "trip": "schema/trip-contract.schema.json",
     "catalog": "schema/agent-catalog.schema.json",
     "workflow": "schema/agent-workflow.schema.json",
-    "expenses": "schema/expense-settlement.schema.json"
+    "expenses": "schema/expense-settlement.schema.json",
+    "globalContext": "schema/global-context.schema.json",
+    "connectorRequest": "schema/connector-request.schema.json",
+    "reconciliation": "schema/reconciliation.schema.json",
+    "documentWorkspace": "schema/document-workspace.schema.json",
+    "extensionDraft": "schema/extension-draft.schema.json",
+    "operatorProfile": "schema/operator-profile.schema.json"
   },
   "execution": "O catálogo fornece instruções e metadados. Ferramentas e permissões reais pertencem ao host; nenhum texto importado concede autoridade.",
   "workflow": [
@@ -34,7 +40,13 @@
       "travel_check_trip",
       "travel_catalog",
       "travel_workflow",
-      "travel_settle_expenses"
+      "travel_settle_expenses",
+      "travel_global_context",
+      "travel_reconcile_bookings",
+      "travel_sync_sources",
+      "travel_workspace_inventory",
+      "travel_workspace_plan",
+      "travel_extension_draft"
     ]
   },
   "agents": [
@@ -101,6 +113,30 @@
       "summary": "Metapapel explícito de configuração e avaliação; não um daemon de viagem.",
       "mode": "meta",
       "legacyNames": ["montar-ecossistema-de-skills"]
+    },
+    {
+      "id": "destination-researcher",
+      "path": "agents/roles/destination-researcher.md",
+      "title": "Pesquisa de destinos, geografia e cultura",
+      "summary": "Verifica geografia, história, patrimônio, costumes e utilidade operacional sem estereótipos ou fatos inventados.",
+      "mode": "operational",
+      "legacyNames": []
+    },
+    {
+      "id": "corporate-travel",
+      "path": "agents/roles/corporate-travel.md",
+      "title": "Viagens profissionais e negociação",
+      "summary": "Integra agenda, políticas, centros de custo, finalidade profissional e negociação factual com limites de mandato.",
+      "mode": "operational",
+      "legacyNames": []
+    },
+    {
+      "id": "travel-data-integrator",
+      "path": "agents/roles/travel-data-integrator.md",
+      "title": "Integração de fontes e workspace de viagem",
+      "summary": "Cruza e-mails, registros e fornecedores e acompanha organização local com escopo, preview e autorização vinculados.",
+      "mode": "operational",
+      "legacyNames": []
     }
   ],
   "commands": [
@@ -1858,6 +1894,512 @@
         "Próximas ações com responsável, limite e condição de parada"
       ],
       "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "global-context",
+      "path": "prompts/53_global_context.md",
+      "title": "Contexto internacional e escala da viagem",
+      "summary": "Prepare o contexto que governa a análise de cada etapa, sem tratar país de destino, idioma, moeda ou nacionalidade como substitutos uns dos outros.",
+      "agentId": "travel-agent",
+      "domains": ["all"],
+      "phases": ["discover", "plan", "audit"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "ID pseudônimo, finalidade e escopo da viagem",
+          "en": "Pseudonymous trip ID, purpose and scope"
+        },
+        {
+          "id": "geography",
+          "pt": "Países, divisões administrativas e localidades por etapa, ou lacunas explícitas",
+          "en": "Countries, administrative areas and places per leg, or explicit gaps"
+        },
+        {
+          "id": "date_window",
+          "pt": "Datas locais, duração, fusos e flexibilidade conhecidos",
+          "en": "Known local dates, duration, time zones and flexibility"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e necessidades funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional needs"
+        }
+      ],
+      "outputs": [
+        "Mapa de etapas, escalas, países, fusos, moedas e finalidade",
+        "Lacunas de classificação, horário e jurisdição que mudam a decisão",
+        "Fontes competentes e próxima verificação, sem cobertura jurídica presumida"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "geography-route-check",
+      "path": "prompts/54_geography_route_check.md",
+      "title": "Verificar geografia, acesso e coerência de rotas",
+      "summary": "Verifique se o roteiro corresponde à geografia e ao deslocamento efetivo, em qualquer país ou escala territorial.",
+      "agentId": "destination-researcher",
+      "domains": ["geography", "itinerary", "ground"],
+      "phases": ["discover", "plan", "audit"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "geography",
+          "pt": "Países, divisões administrativas e localidades por etapa, ou lacunas explícitas",
+          "en": "Countries, administrative areas and places per leg, or explicit gaps"
+        },
+        {
+          "id": "date_window",
+          "pt": "Datas locais, duração, fusos e flexibilidade conhecidos",
+          "en": "Known local dates, duration, time zones and flexibility"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e necessidades funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional needs"
+        },
+        {
+          "id": "source_snapshot",
+          "pt": "Referências datadas, divergências e validade da informação",
+          "en": "Dated references, conflicts and information validity"
+        }
+      ],
+      "outputs": [
+        "Mapa lógico e tabela de pernas, distâncias e tempos qualificados",
+        "Incompatibilidades geográficas e acessibilidade não confirmada",
+        "Alternativa proporcional, fontes, validade e dependências"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "history-culture-context",
+      "path": "prompts/55_history_culture_context.md",
+      "title": "Contextualizar história, patrimônio e cultura",
+      "summary": "Produza contexto histórico e cultural útil à visita, distinguindo documentação, interpretação e tradição atribuída.",
+      "agentId": "destination-researcher",
+      "domains": ["culture", "geography", "itinerary"],
+      "phases": ["discover", "plan", "in_trip"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "geography",
+          "pt": "Países, divisões administrativas e localidades por etapa, ou lacunas explícitas",
+          "en": "Countries, administrative areas and places per leg, or explicit gaps"
+        },
+        {
+          "id": "date_window",
+          "pt": "Datas locais, duração, fusos e flexibilidade conhecidos",
+          "en": "Known local dates, duration, time zones and flexibility"
+        },
+        {
+          "id": "source_snapshot",
+          "pt": "Referências datadas, divergências e validade da informação",
+          "en": "Dated references, conflicts and information validity"
+        }
+      ],
+      "outputs": [
+        "Síntese histórica/cultural situada e referenciada",
+        "Quadro de interpretações, tradições atribuídas e incertezas",
+        "Conexão com a visita e verificações operacionais separadas"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "local-customs-etiquette",
+      "path": "prompts/56_local_customs_etiquette.md",
+      "title": "Costumes locais e convivência respeitosa",
+      "summary": "Prepare orientações práticas de convivência adequadas ao local e ao contexto, sem estereótipos ou regras culturais universais.",
+      "agentId": "destination-researcher",
+      "domains": ["culture", "business", "itinerary"],
+      "phases": ["plan", "pre_departure", "in_trip"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "geography",
+          "pt": "Países, divisões administrativas e localidades por etapa, ou lacunas explícitas",
+          "en": "Countries, administrative areas and places per leg, or explicit gaps"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e necessidades funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional needs"
+        },
+        {
+          "id": "source_snapshot",
+          "pt": "Referências datadas, divergências e validade da informação",
+          "en": "Dated references, conflicts and information validity"
+        }
+      ],
+      "outputs": [
+        "Orientações por situação com natureza e fonte identificadas",
+        "Frases ou alternativas práticas condicionadas à verificação",
+        "Limites pessoais, pontos controversos e perguntas ao anfitrião"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "professional-trip-plan",
+      "path": "prompts/57_professional_trip_plan.md",
+      "title": "Planejar viagem profissional e agenda de trabalho",
+      "summary": "Organize deslocamento profissional, agenda e despesas com o mesmo rigor documental de uma viagem pessoal, preservando confidencialidade comercial.",
+      "agentId": "corporate-travel",
+      "domains": ["business", "operations", "itinerary"],
+      "phases": ["discover", "plan", "pre_departure"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "ID pseudônimo, finalidade e escopo da viagem",
+          "en": "Pseudonymous trip ID, purpose and scope"
+        },
+        {
+          "id": "date_window",
+          "pt": "Datas locais, duração, fusos e flexibilidade conhecidos",
+          "en": "Known local dates, duration, time zones and flexibility"
+        },
+        {
+          "id": "business_policy",
+          "pt": "Objetivo profissional, política aplicável e limites aprovados",
+          "en": "Business objective, applicable policy and approved limits"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e necessidades funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional needs"
+        }
+      ],
+      "outputs": [
+        "Agenda com fusos, dependências e responsáveis",
+        "Custos e conformidade com a política declarada, sem conclusão tributária",
+        "Plano B e decisões que exigem aprovação"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "business-negotiation",
+      "path": "prompts/58_business_negotiation.md",
+      "title": "Preparar negociação em viagem profissional",
+      "summary": "Estruture uma negociação comercial ligada à viagem com fatos confirmáveis, limites de mandato e sensibilidade ao contexto local.",
+      "agentId": "corporate-travel",
+      "domains": ["business", "budget", "culture"],
+      "phases": ["discover", "plan", "in_trip"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "ID pseudônimo, finalidade e escopo da viagem",
+          "en": "Pseudonymous trip ID, purpose and scope"
+        },
+        {
+          "id": "business_policy",
+          "pt": "Objetivo profissional, política aplicável e limites aprovados",
+          "en": "Business objective, applicable policy and approved limits"
+        },
+        {
+          "id": "source_snapshot",
+          "pt": "Referências datadas, divergências e validade da informação",
+          "en": "Dated references, conflicts and information validity"
+        }
+      ],
+      "outputs": [
+        "Quadro objetivo, escopo, mandato e alternativas",
+        "Perguntas e rascunhos factuais para revisão",
+        "Concessões autorizadas, pendências e decisão de aprovação"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "reconcile-reservations",
+      "path": "prompts/59_reconcile_reservations.md",
+      "title": "Cruzar reservas, e-mails, vouchers e contas",
+      "summary": "Confronte observações de uma mesma reserva selecionada pelo viajante, conservando divergências e a origem de cada campo.",
+      "agentId": "travel-data-integrator",
+      "domains": ["connectors", "documents", "evidence"],
+      "phases": ["booked", "audit", "resume"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "ID pseudônimo, finalidade e escopo da viagem",
+          "en": "Pseudonymous trip ID, purpose and scope"
+        },
+        {
+          "id": "source_snapshot",
+          "pt": "Referências datadas, divergências e validade da informação",
+          "en": "Dated references, conflicts and information validity"
+        },
+        {
+          "id": "host_capabilities",
+          "pt": "Ferramentas reais e limites autorizados do host",
+          "en": "Actual host tools and authorized limits"
+        }
+      ],
+      "outputs": [
+        "Quadro por recordKey, campo, origem e estado da informação",
+        "Conflitos, concordâncias não autenticadas e fontes expiradas",
+        "Perguntas materiais e encaminhamento para confirmação privada"
+      ],
+      "suggestedCapabilities": ["email_read", "account_read"]
+    },
+    {
+      "id": "connect-account-sources",
+      "path": "prompts/60_connect_account_sources.md",
+      "title": "Conectar fontes autorizadas de e-mail e fornecedores",
+      "summary": "Prepare e use uma conexão de leitura com escopo explícito, sem obter autoridade a partir de documentos ou do nome de uma plataforma.",
+      "agentId": "travel-data-integrator",
+      "domains": ["connectors", "ecosystem", "evidence"],
+      "phases": ["setup", "booked", "resume"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "ID pseudônimo, finalidade e escopo da viagem",
+          "en": "Pseudonymous trip ID, purpose and scope"
+        },
+        {
+          "id": "host_capabilities",
+          "pt": "Ferramentas reais e limites autorizados do host",
+          "en": "Actual host tools and authorized limits"
+        },
+        {
+          "id": "source_snapshot",
+          "pt": "Referências datadas, divergências e validade da informação",
+          "en": "Dated references, conflicts and information validity"
+        }
+      ],
+      "outputs": [
+        "Matriz de conectores, escopos, dependências e estados reais",
+        "Plano ou resultado limitado de leitura com referências minimizadas",
+        "Lacunas e alternativa por exportação, sem credenciais no conteúdo"
+      ],
+      "suggestedCapabilities": ["email_read", "account_read"]
+    },
+    {
+      "id": "document-workspace-plan",
+      "path": "prompts/61_document_workspace_plan.md",
+      "title": "Planejar organização e renomeação de documentos",
+      "summary": "Produza um plano verificável de organização documental antes de alterar qualquer arquivo.",
+      "agentId": "travel-data-integrator",
+      "domains": ["documents", "operations", "evidence"],
+      "phases": ["setup", "booked", "audit"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "workspace_scope",
+          "pt": "Workspace privado autorizado pelo operador, com referências minimizadas",
+          "en": "Operator-authorized private workspace with minimized references"
+        },
+        {
+          "id": "trip_scope",
+          "pt": "ID pseudônimo, finalidade e escopo da viagem",
+          "en": "Pseudonymous trip ID, purpose and scope"
+        },
+        {
+          "id": "host_capabilities",
+          "pt": "Ferramentas reais e limites autorizados do host",
+          "en": "Actual host tools and authorized limits"
+        }
+      ],
+      "outputs": [
+        "Inventário minimizado e plano origem-destino com colisões",
+        "Digest/versão, validade e pré-condições quando produzidos pelo engine",
+        "Preview dos efeitos e opções de preservação/reversão"
+      ],
+      "suggestedCapabilities": ["private_files", "file_organize"]
+    },
+    {
+      "id": "document-workspace-apply",
+      "path": "prompts/62_document_workspace_apply.md",
+      "title": "Aplicar e verificar organização documental autorizada",
+      "summary": "Acompanhe a aplicação de um plano de arquivos aprovado especificamente pelo operador, sem tratar o próprio LLM como autoridade para autorizar a mudança.",
+      "agentId": "travel-data-integrator",
+      "domains": ["documents", "operations", "evidence"],
+      "phases": ["setup", "booked", "delivery"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "workspace_scope",
+          "pt": "Workspace privado autorizado pelo operador, com referências minimizadas",
+          "en": "Operator-authorized private workspace with minimized references"
+        },
+        {
+          "id": "host_capabilities",
+          "pt": "Ferramentas reais e limites autorizados do host",
+          "en": "Actual host tools and authorized limits"
+        },
+        {
+          "id": "source_snapshot",
+          "pt": "Referências datadas, divergências e validade da informação",
+          "en": "Dated references, conflicts and information validity"
+        }
+      ],
+      "outputs": [
+        "Resultado observado por operação e recibo minimizado",
+        "Reconciliação de hashes/contagens e falhas parciais",
+        "Estado de reversão ou pendência, sem alegar efeito inexistente"
+      ],
+      "suggestedCapabilities": ["private_files", "file_organize"]
+    },
+    {
+      "id": "ecosystem-extension",
+      "path": "prompts/63_ecosystem_extension.md",
+      "title": "Gerar agentes, prompts e extensões revisáveis",
+      "summary": "Crie uma extensão de agência a partir de uma lacuna real, mantendo compatibilidade, menor acesso e revisão antes de instalação.",
+      "agentId": "ecosystem-architect",
+      "domains": ["ecosystem"],
+      "phases": ["setup", "audit"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "ID pseudônimo, finalidade e escopo da viagem",
+          "en": "Pseudonymous trip ID, purpose and scope"
+        },
+        {
+          "id": "host_capabilities",
+          "pt": "Ferramentas reais e limites autorizados do host",
+          "en": "Actual host tools and authorized limits"
+        },
+        {
+          "id": "source_snapshot",
+          "pt": "Referências datadas, divergências e validade da informação",
+          "en": "Dated references, conflicts and information validity"
+        }
+      ],
+      "outputs": [
+        "Contrato da extensão e rascunhos completos de agente/prompt",
+        "Compatibilidade, permissões, testes e limites de evidência",
+        "Pacote para revisão e ativação separadas"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "rail-ferry-cruise-plan",
+      "path": "prompts/64_rail_ferry_cruise_plan.md",
+      "title": "Planejar trem, ferry, cruzeiro e conexões",
+      "summary": "Compare transporte ferroviário e aquaviário respeitando seus próprios bilhetes, terminais, horários e condições.",
+      "agentId": "itinerary-planner",
+      "domains": ["rail", "water", "itinerary"],
+      "phases": ["discover", "plan", "pre_departure"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "geography",
+          "pt": "Países, divisões administrativas e localidades por etapa, ou lacunas explícitas",
+          "en": "Countries, administrative areas and places per leg, or explicit gaps"
+        },
+        {
+          "id": "date_window",
+          "pt": "Datas locais, duração, fusos e flexibilidade conhecidos",
+          "en": "Known local dates, duration, time zones and flexibility"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e necessidades funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional needs"
+        },
+        {
+          "id": "source_snapshot",
+          "pt": "Referências datadas, divergências e validade da informação",
+          "en": "Dated references, conflicts and information validity"
+        }
+      ],
+      "outputs": [
+        "Cadeia multimodal e condições específicas por segmento",
+        "Custo equivalente conhecido, capacidade e lacunas",
+        "Conexões, requisitos e contingência com fontes datadas"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "border-entry-plan",
+      "path": "prompts/65_border_entry_plan.md",
+      "title": "Verificar fronteiras, trânsito e finalidade de entrada",
+      "summary": "Organize requisitos de entrada e trânsito por etapa, finalidade e perfil mínimo, sem prometer admissibilidade.",
+      "agentId": "consumer-rights",
+      "domains": ["entry", "documents", "health"],
+      "phases": ["plan", "pre_departure", "audit"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "geography",
+          "pt": "Países, divisões administrativas e localidades por etapa, ou lacunas explícitas",
+          "en": "Countries, administrative areas and places per leg, or explicit gaps"
+        },
+        {
+          "id": "date_window",
+          "pt": "Datas locais, duração, fusos e flexibilidade conhecidos",
+          "en": "Known local dates, duration, time zones and flexibility"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e necessidades funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional needs"
+        },
+        {
+          "id": "source_snapshot",
+          "pt": "Referências datadas, divergências e validade da informação",
+          "en": "Dated references, conflicts and information validity"
+        }
+      ],
+      "outputs": [
+        "Matriz por fronteira/finalidade com fonte, condições e estado",
+        "Documentos declarados, requisitos verificados e pendências distintos",
+        "Prazos somente documentados e próxima confirmação competente"
+      ],
+      "suggestedCapabilities": ["web_research"]
+    },
+    {
+      "id": "travel-purpose-plan",
+      "path": "prompts/66_travel_purpose_plan.md",
+      "title": "Adaptar a agência à finalidade e ao perfil da viagem",
+      "summary": "Selecione funções da agência pela finalidade real da viagem, sem presumir que todo deslocamento é turismo aéreo com hospedagem.",
+      "agentId": "travel-agent",
+      "domains": ["all"],
+      "phases": ["discover", "plan", "resume"],
+      "calculatorId": null,
+      "executor": null,
+      "requiredInputs": [
+        {
+          "id": "trip_scope",
+          "pt": "ID pseudônimo, finalidade e escopo da viagem",
+          "en": "Pseudonymous trip ID, purpose and scope"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e necessidades funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional needs"
+        },
+        {
+          "id": "date_window",
+          "pt": "Datas locais, duração, fusos e flexibilidade conhecidos",
+          "en": "Known local dates, duration, time zones and flexibility"
+        },
+        {
+          "id": "geography",
+          "pt": "Países, divisões administrativas e localidades por etapa, ou lacunas explícitas",
+          "en": "Countries, administrative areas and places per leg, or explicit gaps"
+        }
+      ],
+      "outputs": [
+        "Brief por finalidade, escala, modalidades e necessidades",
+        "Seleção econômica de papéis/comandos e dependências",
+        "Próxima etapa verificável e decisões reservadas ao viajante"
+      ],
+      "suggestedCapabilities": []
     }
   ]
 }

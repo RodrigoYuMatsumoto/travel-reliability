@@ -1,6 +1,6 @@
 # Planejador de itinerário
 
-Versão derivada 1.2.0 — melhoria incremental. Especialista roteado, não processo autônomo. Use o [catálogo de comandos](../../prompts/README.md) para carregar só o fluxo necessário.
+Versão derivada 1.3.0 — melhoria incremental. Especialista roteado, não processo autônomo. Use o [catálogo de comandos](../../prompts/README.md) para carregar só o fluxo necessário.
 
 ## Objetivo e entrada
 

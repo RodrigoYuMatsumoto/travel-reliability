@@ -2,6 +2,7 @@ import { Ajv2020 } from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 import { AppError } from '../api/src/errors.js';
 import { capabilityIds, commandIds, getCommand } from './catalog.js';
+import { localeSchema, canonicalLocale, messageLanguage } from '../schema/src/locale.js';
 
 const SESSION_MS = 30 * 60 * 1000;
 const fieldId = { type: 'string', pattern: '^[a-z][a-z0-9_]{0,63}$' } as const;
@@ -28,7 +29,7 @@ export const workflowSchema = {
   properties: {
     tripKey,
     workflowId: { enum: commandIds },
-    language: { enum: ['pt-BR', 'en'] },
+    language: localeSchema,
     suppliedFields: fields,
     sourceRefs,
     capabilities: {
@@ -78,7 +79,7 @@ export const workflowSchema = {
 interface WorkflowInput {
   tripKey: string;
   workflowId: string;
-  language: 'pt-BR' | 'en';
+  language: string;
   suppliedFields?: string[];
   sourceRefs?: string[];
   capabilities?: (typeof capabilityIds)[number][];
@@ -173,6 +174,7 @@ export function prepareWorkflow(input: unknown, now = Date.now()) {
   if (!Number.isSafeInteger(now) || now < 0 || now > 8640000000000000 - SESSION_MS)
     reject('WORKFLOW_CLOCK_UNAVAILABLE');
   const supplied = input as WorkflowInput;
+  if (!canonicalLocale(supplied.language)) reject();
   const command = getCommand(supplied.workflowId);
   const selectedFields = new Set(command.requiredInputs.map((field) => field.id));
   const checkpoint = supplied.checkpoint;
@@ -226,7 +228,7 @@ export function prepareWorkflow(input: unknown, now = Date.now()) {
         : notDeclared.length
           ? 'capability_limited'
           : 'ready_for_documentary_review';
-  const pt = supplied.language === 'pt-BR';
+  const pt = messageLanguage(supplied.language) === 'pt-BR';
   const expiry = Math.min(
     now + SESSION_MS,
     deadline,
@@ -235,6 +237,8 @@ export function prepareWorkflow(input: unknown, now = Date.now()) {
   const result = {
     tripKey: supplied.tripKey,
     workflowId: command.id,
+    requestedLocale: supplied.language,
+    messageLocale: pt ? 'pt-BR' : 'en',
     state,
     stopReason,
     agentId: command.agentId,

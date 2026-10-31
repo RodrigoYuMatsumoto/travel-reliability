@@ -671,7 +671,7 @@ export async function buildApp(config = loadConfig(), dependencies: Dependencies
     reply
       .type('application/pdf')
       .header('Content-Disposition', 'attachment; filename="travel-dossier.pdf"');
-    return pdf(report);
+    return pdf(report, { fontPath: config.pdfFontPath, fontFamily: config.pdfFontFamily });
   });
   app.get<{ Params: { id: string }; Querystring: { format?: string; privacy?: string } }>(
     '/v1/trips/:id/export',
@@ -688,7 +688,7 @@ export async function buildApp(config = loadConfig(), dependencies: Dependencies
         reply
           .type('application/pdf')
           .header('Content-Disposition', 'attachment; filename="travel-dossier.pdf"');
-        return pdf(report);
+        return pdf(report, { fontPath: config.pdfFontPath, fontFamily: config.pdfFontFamily });
       }
       if (format === 'ics') {
         const privacy = request.query.privacy ?? 'minimal';

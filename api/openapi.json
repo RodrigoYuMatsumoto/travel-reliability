@@ -3,7 +3,7 @@
   "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
   "info": {
     "title": "Travel Reliability API",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "description": "Documentary travel contracts and evidence. Never sends a booking or complaint. Response domain types: schema/src/domain.ts. Regenerate from registered routes with npm run contracts:generate."
   },
   "servers": [
@@ -3385,10 +3385,10 @@
             "pattern": "^[A-Z]{3}$"
           },
           "locale": {
-            "enum": [
-              "pt-BR",
-              "en"
-            ]
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 64,
+            "pattern": "^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8}){0,12}$"
           },
           "startDate": {
             "type": "string",
@@ -3596,7 +3596,20 @@
                   "activity",
                   "car_rental",
                   "insurance",
-                  "transfer"
+                  "transfer",
+                  "rail",
+                  "ferry",
+                  "cruise",
+                  "hostel",
+                  "camping",
+                  "homestay",
+                  "taxi",
+                  "rideshare",
+                  "bicycle",
+                  "walking",
+                  "campervan",
+                  "event",
+                  "coworking"
                 ]
               },
               "title": {
@@ -3623,7 +3636,6 @@
                   "name",
                   "category",
                   "registration",
-                  "cadastur",
                   "contact"
                 ],
                 "properties": {
@@ -3643,7 +3655,15 @@
                       "guide",
                       "car_rental",
                       "insurer",
-                      "other"
+                      "other",
+                      "rail_operator",
+                      "ferry_operator",
+                      "cruise_operator",
+                      "campground",
+                      "hostel",
+                      "transfer_operator",
+                      "venue",
+                      "coworking"
                     ]
                   },
                   "registration": {
@@ -3909,6 +3929,15 @@
                       ]
                     }
                   }
+                }
+              },
+              "jurisdictions": {
+                "type": "array",
+                "maxItems": 16,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Z]{2}$"
                 }
               }
             }
@@ -7765,10 +7794,10 @@
             "maxLength": 400
           },
           "language": {
-            "enum": [
-              "pt-BR",
-              "en"
-            ]
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 64,
+            "pattern": "^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8}){0,12}$"
           },
           "channel": {
             "enum": [

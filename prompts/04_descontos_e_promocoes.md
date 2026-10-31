@@ -1,10 +1,10 @@
 # PROMPT 04 — DESCONTOS E PROMOÇÕES DE PASSAGENS
 
-Versão derivada 1.2.0 — melhoria incremental de 31/10/2026. Comando autocontido; preencha os dados pertinentes antes de usar.
+Versão derivada 1.3.0 — melhoria incremental de 31/10/2026. Comando autocontido; preencha os dados pertinentes antes de usar.
 
 **Escopo:** Descontos de passagens aéreas nas companhias/rotas delimitadas. Não pressuponha que a mesma promoção, elegibilidade ou regra vale para hotel, ônibus ou outro produto.
 
-Encontre descontos aplicáveis à minha viagem e compare o preço final elegível com uma oferta equivalente sem o benefício. Responda em português brasileiro. Não prometa economia nem trate anúncio como desconto efetivamente obtido.
+Encontre descontos aplicáveis à minha viagem e compare o preço final elegível com uma oferta equivalente sem o benefício. Responda no idioma solicitado pelo viajante; sem preferência, siga o idioma do host. Não prometa economia nem trate anúncio como desconto efetivamente obtido.
 
 ## Dados de entrada
 

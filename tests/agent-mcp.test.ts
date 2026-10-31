@@ -47,7 +47,70 @@ async function rejected(promise: Promise<unknown>) {
 }
 
 describe('official MCP stdio transport', () => {
-  it('initializes outside cwd, preserves calculators and advertises seven bounded read-only tools', async () => {
+  it('executes the new documentary tools and keeps all unconfigured reads disabled', async () => {
+    const { client } = await connected();
+    try {
+      const load = (name: string) =>
+        JSON.parse(readFileSync(new URL('../examples/' + name + '.json', import.meta.url), 'utf8'));
+      const global = decoded(
+        await client.callTool({
+          name: 'travel_global_context',
+          arguments: { input: load('global-context') },
+        }),
+      );
+      expect(global).toHaveProperty('effects.externalCalls', 0);
+      expect(global).toHaveProperty('effects.permissionsGranted', false);
+      const reconciled = decoded(
+        await client.callTool({
+          name: 'travel_reconcile_bookings',
+          arguments: { input: load('reconciliation') },
+        }),
+      );
+      expect(reconciled).toHaveProperty('factsVerified', false);
+      expect(
+        (
+          reconciled.records as Array<{ fields: Array<{ field: string; state: string }> }>
+        )[0]!.fields.find((row) => row.field === 'totalMinor')?.state,
+      ).toBe('conflict');
+      const draft = decoded(
+        await client.callTool({
+          name: 'travel_extension_draft',
+          arguments: { input: load('extension-draft') },
+        }),
+      );
+      expect(draft).toHaveProperty('status', 'draft_not_installed');
+      expect(draft).toHaveProperty('effects.filesystemWrites', 0);
+      expect(draft.files as unknown[]).toHaveLength(6);
+      for (const [name, arguments_, code] of [
+        ['travel_sync_sources', { input: load('connector-request') }, 'CONNECTOR_NOT_CONFIGURED'],
+        ['travel_workspace_inventory', {}, 'WORKSPACE_NOT_CONFIGURED'],
+        [
+          'travel_workspace_plan',
+          { input: load('document-workspace') },
+          'WORKSPACE_NOT_CONFIGURED',
+        ],
+      ] as const) {
+        const response = await client.callTool({ name, arguments: arguments_ });
+        expect(response.isError).toBe(true);
+        expect(decoded(response)).toEqual({ error: code });
+      }
+      await rejected(
+        client.callTool({
+          name: 'travel_workspace_inventory',
+          arguments: { root: 'C:/arbitrary' },
+        }),
+      );
+      await rejected(
+        client.callTool({ name: 'travel_workspace_apply', arguments: { approved: true } }),
+      );
+      await rejected(
+        client.callTool({ name: 'travel_install_extension', arguments: { approved: true } }),
+      );
+    } finally {
+      await client.close();
+    }
+  }, 30000);
+  it('initializes outside cwd, preserves calculators and advertises thirteen bounded tools in the offline profile', async () => {
     const { client, errors } = await connected();
     try {
       expect(client.getServerVersion()?.name).toBe('travel-reliability');
@@ -56,11 +119,17 @@ describe('official MCP stdio transport', () => {
       expect(tools.map((tool) => tool.name).sort()).toEqual([
         'travel_catalog',
         'travel_check_trip',
+        'travel_extension_draft',
+        'travel_global_context',
         'travel_plan',
         'travel_prepare_brief',
+        'travel_reconcile_bookings',
         'travel_schema',
         'travel_settle_expenses',
+        'travel_sync_sources',
         'travel_workflow',
+        'travel_workspace_inventory',
+        'travel_workspace_plan',
       ]);
       expect(
         tools.every(
@@ -81,6 +150,11 @@ describe('official MCP stdio transport', () => {
         'catalog-query',
         'workflow',
         'expenses',
+        'global-context',
+        'reconciliation',
+        'connector-request',
+        'document-workspace',
+        'extension-draft',
         ...toolIds,
       ]) {
         const schema = decoded(

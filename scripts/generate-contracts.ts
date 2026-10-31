@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, readdir } from 'node:fs/promises';
 import { planningSchemas, toolIds } from '../schema/src/planning.js';
 import { inputSchemas } from '../api/src/input-schemas.js';
 import { planningExamples } from '../web/src/planning-examples.js';
@@ -11,8 +11,25 @@ import { APP_VERSION } from '../api/src/version.js';
 import { catalogSchema } from '../agent/catalog.js';
 import { workflowSchema } from '../agent/workflow.js';
 import { expenseSchema } from '../agent/expenses.js';
+import { globalContextSchema } from '../agent/global-context.js';
+import { connectorRequestSchema, reconciliationSchema } from '../agent/connectors.js';
+import { documentWorkspaceInputSchema } from '../agent/document-workspace.js';
+import { extensionDraftSchema } from '../agent/extension-draft.js';
+import { operatorProfileSchema } from '../agent/operator-profile.js';
 const json = async (path: string, value: unknown) =>
   writeFile(path, JSON.stringify(value, null, 2) + '\n');
+for (const [name, schema] of Object.entries({
+  'global-context': globalContextSchema,
+  'connector-request': connectorRequestSchema,
+  reconciliation: reconciliationSchema,
+  'document-workspace': documentWorkspaceInputSchema,
+  'extension-draft': extensionDraftSchema,
+  'operator-profile': operatorProfileSchema,
+}))
+  await json(`schema/${name}.schema.json`, {
+    $schema: 'https://json-schema.org/draft/2020-12/schema',
+    ...schema,
+  });
 await json('schema/agent-brief.schema.json', {
   $schema: 'https://json-schema.org/draft/2020-12/schema',
   title: 'Pseudonymous travel agent intake',
@@ -227,6 +244,6 @@ console.log(
   JSON.stringify({
     paths: Object.keys(paths).length,
     planningTools: toolIds.length,
-    syntheticExamples: toolIds.length + 3,
+    syntheticExamples: (await readdir('examples')).filter((name) => name.endsWith('.json')).length,
   }),
 );

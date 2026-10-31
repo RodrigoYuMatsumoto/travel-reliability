@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto';
+import { validatePdfFontOptions } from './pdf-font.js';
 export interface Config {
   mode: 'demo' | 'production';
   host: string;
@@ -21,6 +22,8 @@ export interface Config {
   llmBaseUrl?: string;
   llmModel?: string;
   llmApiKey?: string;
+  pdfFontPath?: string;
+  pdfFontFamily?: string;
 }
 export function loadConfig(env = process.env): Config {
   if (env.APP_MODE && !['demo', 'production'].includes(env.APP_MODE))
@@ -51,7 +54,10 @@ export function loadConfig(env = process.env): Config {
     llmBaseUrl: env.LLM_BASE_URL,
     llmModel: env.LLM_MODEL,
     llmApiKey: env.LLM_API_KEY,
+    pdfFontPath: env.PDF_FONT_PATH || undefined,
+    pdfFontFamily: env.PDF_FONT_FAMILY || undefined,
   };
+  validatePdfFontOptions({ fontPath: config.pdfFontPath, fontFamily: config.pdfFontFamily });
   if (
     !Number.isInteger(config.port) ||
     config.port < 1 ||

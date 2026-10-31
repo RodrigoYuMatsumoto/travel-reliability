@@ -4,6 +4,7 @@ import { Temporal } from '@js-temporal/polyfill';
 import { AppError } from '../api/src/errors.js';
 import { commandIds, domainIds, getCommand } from './catalog.js';
 import { prepareWorkflow } from './workflow.js';
+import { localeSchema, canonicalLocale, messageLanguage } from '../schema/src/locale.js';
 
 const requestIds = [
   'plan',
@@ -40,7 +41,7 @@ export const briefSchema = {
   properties: {
     tripKey: { type: 'string', pattern: '^[A-Za-z0-9_-]{1,40}$' },
     request: { enum: requestIds },
-    language: { enum: ['pt-BR', 'en'] },
+    language: localeSchema,
     domain: { enum: [...domainIds, null] },
     workflowId: { enum: [...commandIds, null] },
     groupMode: { enum: ['planning', 'expenses_only', null] },
@@ -127,7 +128,7 @@ export const briefSchema = {
 interface Brief {
   tripKey: string;
   request: (typeof requestIds)[number];
-  language: 'pt-BR' | 'en';
+  language: string;
   domain: (typeof domainIds)[number] | null;
   workflowId: string | null;
   groupMode: 'planning' | 'expenses_only' | null;
@@ -169,6 +170,7 @@ const validate = ajv.compile(briefSchema);
 export function prepareBrief(input: unknown) {
   if (!validate(input)) throw new AppError('INVALID_AGENT_BRIEF', 422);
   const supplied = input as Partial<Brief>;
+  if (!canonicalLocale(supplied.language!)) throw new AppError('INVALID_AGENT_BRIEF', 422);
   const brief: Brief = {
     tripKey: supplied.tripKey!,
     request: supplied.request!,
@@ -205,7 +207,7 @@ export function prepareBrief(input: unknown) {
     (brief.departureDate && brief.returnDate && brief.returnDate < brief.departureDate)
   )
     throw new AppError('CONFLICTING_TRIP_DATES', 422);
-  const pt = brief.language === 'pt-BR';
+  const pt = messageLanguage(brief.language) === 'pt-BR';
   const questions: Array<{ fields: string[]; question: string }> = [];
   const add = (fields: string[], br: string, en: string) =>
     questions.push({ fields, question: pt ? br : en });
@@ -225,6 +227,8 @@ export function prepareBrief(input: unknown) {
     planning = false,
   ) => ({
     tripKey: brief.tripKey,
+    requestedLocale: brief.language,
+    messageLocale: messageLanguage(brief.language),
     state,
     genericWorkflow,
     brief,
@@ -394,6 +398,13 @@ export function prepareBrief(input: unknown) {
     monitoring: 'monitor-trip',
     operations: 'task-board',
     ecosystem: 'ecosystem-setup',
+    geography: 'geography-route-check',
+    culture: 'history-culture-context',
+    business: 'professional-trip-plan',
+    rail: 'rail-ferry-cruise-plan',
+    water: 'rail-ferry-cruise-plan',
+    entry: 'border-entry-plan',
+    connectors: 'connect-account-sources',
     all: 'trip-intake',
   };
   const selectedWorkflow =
@@ -542,6 +553,8 @@ export function prepareBrief(input: unknown) {
         : ['flex-dates', 'airports', 'connections', 'promotions', 'total-cost'];
   return {
     tripKey: brief.tripKey,
+    requestedLocale: brief.language,
+    messageLocale: messageLanguage(brief.language),
     state: questions.length ? 'needs_critical_information' : 'ready_for_evidence_collection',
     brief,
     questions: questions.slice(0, 5),

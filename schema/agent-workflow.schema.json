@@ -66,14 +66,28 @@
         "listing-review",
         "claim-dossier",
         "expense-settlement",
-        "route-data"
+        "route-data",
+        "global-context",
+        "geography-route-check",
+        "history-culture-context",
+        "local-customs-etiquette",
+        "professional-trip-plan",
+        "business-negotiation",
+        "reconcile-reservations",
+        "connect-account-sources",
+        "document-workspace-plan",
+        "document-workspace-apply",
+        "ecosystem-extension",
+        "rail-ferry-cruise-plan",
+        "border-entry-plan",
+        "travel-purpose-plan"
       ]
     },
     "language": {
-      "enum": [
-        "pt-BR",
-        "en"
-      ]
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8}){0,12}$"
     },
     "suppliedFields": {
       "type": "array",
@@ -95,7 +109,7 @@
     },
     "capabilities": {
       "type": "array",
-      "maxItems": 8,
+      "maxItems": 11,
       "uniqueItems": true,
       "items": {
         "enum": [
@@ -106,7 +120,10 @@
           "notifications",
           "background_schedule",
           "code_execution",
-          "provider_status"
+          "provider_status",
+          "email_read",
+          "account_read",
+          "file_organize"
         ]
       }
     },
@@ -211,7 +228,21 @@
             "listing-review",
             "claim-dossier",
             "expense-settlement",
-            "route-data"
+            "route-data",
+            "global-context",
+            "geography-route-check",
+            "history-culture-context",
+            "local-customs-etiquette",
+            "professional-trip-plan",
+            "business-negotiation",
+            "reconcile-reservations",
+            "connect-account-sources",
+            "document-workspace-plan",
+            "document-workspace-apply",
+            "ecosystem-extension",
+            "rail-ferry-cruise-plan",
+            "border-entry-plan",
+            "travel-purpose-plan"
           ]
         },
         "suppliedFields": {

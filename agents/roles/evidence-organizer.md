@@ -1,6 +1,6 @@
 # Organizador de documentos e evidências
 
-Versão derivada 1.2.0 — melhoria incremental. Preserve fontes e organize fatos; não autentica fornecedores nem substitui revisão jurídica. Use só a etapa pertinente no [catálogo de comandos](../../prompts/README.md).
+Versão derivada 1.3.0 — melhoria incremental. Preserve fontes e organize fatos; não autentica fornecedores nem substitui revisão jurídica. Use só a etapa pertinente no [catálogo de comandos](../../prompts/README.md).
 
 ## Objetivo e entrada
 

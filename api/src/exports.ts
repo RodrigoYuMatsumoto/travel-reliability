@@ -5,7 +5,8 @@ import type { Assessment, EvidenceDocument, DisruptionEvent } from '../../schema
 import { instant } from './validation.js';
 import { sha256 } from './crypto.js';
 import { addMinor } from './money.js';
-import { requireCondition } from './errors.js';
+import { AppError, requireCondition } from './errors.js';
+import { preparePdfFont, type PdfFontOptions } from './pdf-font.js';
 
 const escapeIcal = (text: string) =>
   text
@@ -112,7 +113,64 @@ export function dossier(
   };
 }
 export type Dossier = ReturnType<typeof dossier>;
-export async function pdf(report: Dossier): Promise<Buffer> {
+interface PdfLine {
+  text: string;
+  size: number;
+  gap?: number;
+}
+
+function pdfLines(report: Dossier): PdfLine[] {
+  const lines: PdfLine[] = [
+    { text: 'Travel Reliability', size: 22 },
+    { text: 'Factual travel dossier / Dossiê factual de viagem', size: 11 },
+    { text: report.trip.title, size: 16, gap: 1 },
+    {
+      text: `${report.trip.startDate} — ${report.trip.endDate} | ${report.trip.country}`,
+      size: 10,
+    },
+    { text: 'Services / Serviços', size: 12, gap: 1 },
+  ];
+  for (const service of report.trip.services)
+    lines.push(
+      { text: `${service.kind}: ${service.title}`, size: 10, gap: 0.5 },
+      {
+        text: `${service.start.local} [${service.start.timeZone ?? 'unknown'}] -> ${service.end.local} [${service.end.timeZone ?? 'unknown'}]`,
+        size: 10,
+      },
+      { text: `Provider: ${service.provider.name}`, size: 10 },
+      {
+        text: `Reference: ${service.reservation.reference ?? 'unknown'}; confirmation: ${service.reservation.confirmation}`,
+        size: 10,
+      },
+      { text: `Terms: ${service.cancellation.summary ?? 'unknown'}`, size: 10 },
+    );
+  lines.push({ text: 'Chronology — traveler reports / Cronologia — relatos', size: 12, gap: 1 });
+  for (const event of report.timeline)
+    lines.push(
+      { text: `${event.occurredAt} | ${event.kind} | ${event.serviceId}`, size: 10, gap: 0.4 },
+      { text: event.description, size: 10 },
+    );
+  lines.push(
+    { text: 'Request / Pedido', size: 12, gap: 1 },
+    { text: report.request || 'Not specified / Não especificado', size: 10 },
+    { text: 'Evidence manifest / Manifesto de evidências', size: 12, gap: 1 },
+  );
+  for (const evidence of report.evidence)
+    lines.push(
+      { text: `${evidence.id} | ${evidence.label} | ${evidence.bytes} bytes`, size: 9, gap: 0.4 },
+      { text: `SHA-256 ${evidence.sha256}`, size: 9 },
+    );
+  lines.push({ text: report.limitations.join('\n'), size: 9, gap: 1 });
+  return lines;
+}
+
+export async function pdf(report: Dossier, options: PdfFontOptions = {}): Promise<Buffer> {
+  const lines = pdfLines(report);
+  const font = await preparePdfFont(
+    lines.map((line) => line.text),
+    options,
+  );
+  // Coverage is complete before a document or response body is generated.
   const doc = new PDFDocument({
     size: 'A4',
     margin: 44,
@@ -122,52 +180,22 @@ export async function pdf(report: Dossier): Promise<Buffer> {
   const result = new Promise<Buffer>((resolve, reject) => {
     doc.on('data', (data) => buffers.push(data));
     doc.on('end', () => resolve(Buffer.concat(buffers)));
-    doc.on('error', reject);
+    doc.on('error', () => reject(new AppError('PDF_RENDER_FAILED', 500)));
   });
-  doc.fontSize(22).text('Travel Reliability');
-  doc.fontSize(11).text('Factual travel dossier / Dossiê factual de viagem');
-  doc.moveDown();
-  doc.fontSize(16).text(report.trip.title);
-  doc
-    .fontSize(10)
-    .text(`${report.trip.startDate} — ${report.trip.endDate} | ${report.trip.country}`);
-  doc.moveDown().fontSize(12).text('Services / Serviços');
-  for (const service of report.trip.services) {
-    doc
-      .moveDown(0.5)
-      .fontSize(10)
-      .text(`${service.kind}: ${service.title}`)
-      .text(
-        `${service.start.local} [${service.start.timeZone ?? 'unknown'}] → ${service.end.local} [${service.end.timeZone ?? 'unknown'}]`,
-      )
-      .text(`Provider: ${service.provider.name}`)
-      .text(
-        `Reference: ${service.reservation.reference ?? 'unknown'}; confirmation: ${service.reservation.confirmation}`,
-      )
-      .text(`Terms: ${service.cancellation.summary ?? 'unknown'}`);
+  try {
+    if (font.source === 'Helvetica') doc.font('Helvetica');
+    else {
+      doc.registerFont('TravelDossier', font.source, font.family);
+      doc.font('TravelDossier');
+    }
+    for (const line of lines) {
+      if (line.gap !== undefined) doc.moveDown(line.gap);
+      doc.fontSize(line.size).text(line.text);
+    }
+    doc.end();
+  } catch {
+    doc.destroy(new AppError('PDF_RENDER_FAILED', 500));
   }
-  doc.moveDown().fontSize(12).text('Chronology — traveler reports / Cronologia — relatos');
-  for (const event of report.timeline)
-    doc
-      .moveDown(0.4)
-      .fontSize(10)
-      .text(`${event.occurredAt} | ${event.kind} | ${event.serviceId}`)
-      .text(event.description);
-  doc
-    .moveDown()
-    .fontSize(12)
-    .text('Request / Pedido')
-    .fontSize(10)
-    .text(report.request || 'Not specified / Não especificado');
-  doc.moveDown().fontSize(12).text('Evidence manifest / Manifesto de evidências');
-  for (const evidence of report.evidence)
-    doc
-      .moveDown(0.4)
-      .fontSize(9)
-      .text(`${evidence.id} | ${evidence.label} | ${evidence.bytes} bytes`)
-      .text(`SHA-256 ${evidence.sha256}`);
-  doc.moveDown().fontSize(9).text(report.limitations.join('\n'));
-  doc.end();
   return result;
 }
 export interface EvidenceBundle {

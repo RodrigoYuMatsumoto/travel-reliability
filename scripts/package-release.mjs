@@ -1,28 +1,38 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-const git = (args) => execFileSync('git', args, { encoding: 'utf8' }).trim();
+import { resolve } from 'node:path';
+import { standaloneCoreOrExit } from './core-git.mjs';
+// Never interpret an ancestor/host repository's HEAD as the distributable core.
+const core = standaloneCoreOrExit();
+const root = core.coreRoot;
+const git = (args) => core.git(args).trim();
 if (git(['status', '--porcelain']))
   throw new Error('Release packaging requires a clean committed tree');
-execFileSync(process.execPath, ['scripts/privacy-check.mjs', '--history'], { stdio: 'inherit' });
-const version = JSON.parse(readFileSync('package.json', 'utf8')).version,
+execFileSync(process.execPath, [resolve(root, 'scripts/privacy-check.mjs'), '--history'], {
+  cwd: root,
+  stdio: 'inherit',
+});
+const version = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8')).version,
   commit = git(['rev-parse', 'HEAD']);
-mkdirSync('artifacts', { recursive: true });
+if (!/^\d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$/.test(version))
+  throw new Error('INVALID_RELEASE_VERSION');
+mkdirSync(resolve(root, 'artifacts'), { recursive: true });
 const name = `travel-reliability-v${version}.zip`;
-execFileSync('git', [
+core.git([
   'archive',
   '--format=zip',
   `--prefix=travel-reliability-v${version}/`,
   '-o',
-  'artifacts/' + name,
+  resolve(root, 'artifacts', name),
   'HEAD',
 ]);
 const hash = createHash('sha256')
-  .update(readFileSync('artifacts/' + name))
+  .update(readFileSync(resolve(root, 'artifacts', name)))
   .digest('hex');
-writeFileSync('artifacts/SHA256SUMS', `${hash}  ${name}\n`);
+writeFileSync(resolve(root, 'artifacts/SHA256SUMS'), `${hash}  ${name}\n`);
 writeFileSync(
-  'artifacts/release-manifest.json',
+  resolve(root, 'artifacts/release-manifest.json'),
   JSON.stringify(
     {
       version,

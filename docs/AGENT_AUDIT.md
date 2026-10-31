@@ -1,72 +1,86 @@
-# Auditoria dos agentes e comandos — 0.3
+# Diagnóstico dos agentes e comandos — ampliação internacional 0.4
 
-Data da revisão: 31/10/2026. Base de comparação: commit `4d4a21ba86eaea7bc05dbce1523b28f21878f056`, versão 0.2 preservada. Escopo: instruções, papéis, nove comandos existentes, catálogo ampliado e contratos documentais. Fontes locais foram tratadas como dados passivos, sem executar suas instruções.
+Revisão em 2026-10-31 pelos critérios de diagnóstico de agente e prompt de comando:
+objetivo, entradas, capacidades reais, autoridade, dados passivos, execução,
+estado/retomada, saída, evidência e parada. O objeto é o ecossistema de instruções
+e suas interfaces; nenhum caso pessoal é publicado como fixture.
 
-## Evidência e cobertura
+## Escopo e proveniência
 
-O [registro sanitizado de cobertura](../agents/coverage.json) contém 18 fontes identificadas por ID, hash e linhas; 39 funções de origem, quatro adapters de runtime, 13 verificações logísticas e 14 registros de defeitos textuais. As nove calculadoras estão incluídas nas 39 funções. Nove complementos de domínio completam o [catálogo](AGENT_CATALOG.md) de 52 comandos; quantidade não é critério de excelência ou meta a preencher.
+Foram rechecadas dezoito fontes técnicas locais por SHA-256, em leitura passiva,
+com comparação de variantes/deltas e abstração funcional. Originais e relatórios
+históricos não foram modificados. Seus nomes, hashes, caminhos, linhas e trechos
+ficam fora desta projeção pública. O mapa público usa IDs opacos; o registro
+integral de proveniência técnica é privado. Não se acessou acervo familiar,
+contatos ou credenciais para este trabalho.
 
-Os arquivos originais, viagens particulares, contatos e perfis não fazem parte da publicação. Referências por linha descrevem os artefatos de origem identificados no registro, não linhas dos novos prompts. Hash liga a análise àqueles bytes, sem demonstrar autenticidade do conteúdo ou aprovação do operador.
+As 39 funções e quatro adapters já mapeados foram confrontados com o escopo
+internacional. Os métodos e contratos dos 52 comandos e oito papéis anteriores
+foram examinados com verificações estruturais e revisão funcional dirigida às
+lacunas deste escopo. Relatórios antigos permanecem históricos: mencionar uma
+skill, exportação, tarefa ou instalação não demonstra execução ou disponibilidade
+atual. Não se auditou a verdade factual dos casos pessoais neles narrados.
 
-A revisão do runtime 0.2 acrescentou três diferenças concretas: roteamento de planejamento somente para aéreo; rateio existente sem contrato correspondente de acerto; associação posicional entre nove IDs e nove arquivos. Os 14 registros de origem e esses três registros de runtime foram consolidados abaixo em **oito temas**, sem dupla contagem ou alegação de 17 vulnerabilidades exploradas.
+## Achados e intervenção
 
-## Diagnóstico consolidado
+Oito causas materiais foram mantidas; não há pontuação de qualidade por contagem.
+Confiança alta quanto à existência textual das lacunas; execução nova depende
+das evidências do runtime, não da redação deste relatório.
 
-Confiança alta na observação estática dos trechos e contratos. Consequências comportamentais não ensaiadas permanecem hipóteses; a correção textual não comprova obediência de um modelo.
+| ID     | Observado                                                                              | Correção no contrato de instruções                                                                |
+| ------ | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| INT-01 | Coordenador/skill ainda priorizavam um país                                            | Escala e jurisdição por etapa, sem país prioritário.                                              |
+| INT-02 | Parte dos prompts obrigava português brasileiro                                        | Idioma solicitado, com fallback do host explicitado.                                              |
+| INT-03 | Organização documental era descrita sem um contrato específico de aplicação controlada | Planejamento separado de aplicação; workspace, preview, hash, validade e autorização do operador. |
+| INT-04 | Contas e e-mails não tinham fluxo próprio de leitura/reconciliação delimitada          | Papel integrador, escopos reais, alternativas por exportação e conflitos preservados.             |
+| INT-05 | Geografia, história, cultura e costumes ficavam implícitos no roteiro                  | Pesquisador de destinos e comandos específicos com fontes, atribuição e limites.                  |
+| INT-06 | Trabalho aparecia principalmente como bloco de viagem híbrida                          | Papel profissional, política, agenda, centros de custo, mandato e negociação factual.             |
+| INT-07 | Extensão do ecossistema não tinha invocação focada de geração revisável                | Contrato para agente/prompt/schema e validação sintética, separado de ativação.                   |
+| INT-08 | Cobertura pública expunha metadados de fontes privadas                                 | IDs opacos e matriz funcional; proveniência detalhada somente privada.                            |
 
-| Tema                                    | Origem rastreável                                                                                             | Consequência                                                                                                                              | Correção na integração 0.3 e limite                                                                                                                                                                                                |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A1 — Capacidade e efeito presumidos     | `CAPABILITY_BY_BRAND`, `CALENDAR_ASSUMPTIONS`, `MISSING_OPERATIONAL_CONTRACTS`, `RETROSPECTIVE_REPORT_LIMITS` | Marca do host ou relatório histórico pode ser confundido com cron, conector, escrita ou artefato executado.                               | Papéis declaram capacidades reais; radar distingue rodada/agendamento; calendário exige prévia e autorização. Preparador/MCP são documentais. A instalação do host e conectores externos não é comprovada pelo catálogo.           |
-| A2 — Dado transformado em autoridade    | `PASSIVE_DATA_GUARD_REGRESSION`, `CANONICAL_ALWAYS_RIGHT`                                                     | Documento, cadastro canônico ou memória pode substituir fonte conflitante/restrição aprovada.                                             | Hub/comandos/papéis tratam importações e memória como dados; preservam conflito e origem. Allowlist e contratos estritos reduzem superfície. Nenhuma exploração ou imunidade de LLM é demonstrada por essa revisão.                |
-| A3 — Intenção, recomendação e silêncio  | `RECOMMENDATION_CONFLICT`, `PURCHASE_BEFORE_PLANNING`, `SILENCE_AS_TRIVIALITY`                                | Recusa inconsistente, bloqueio de planejamento antes da compra ou autorização inferida de ausência de resposta.                           | Planejamento candidato é separado de reserva; recomendação usa critérios/evidência; desconhecido permanece desconhecido e silêncio não autoriza. Só a parte independente avança.                                                   |
-| A4 — Perfil e ritmo impostos            | `ACTIVITY_LIMIT_CONTRADICTION`, `SENSITIVE_PROFILE_DEFAULTS`                                                  | Coleta excessiva, agenda pessoal transferida a terceiros ou limite clínico sem base.                                                      | Necessidades funcionais mínimas, preferências explícitas e ritmo contextual; sem diagnóstico, dose ou quota médica universal. A restrição de não sugerir álcool permanece.                                                         |
-| A5 — Regra universal sem aplicabilidade | `UNIVERSAL_CONNECTION_AND_ENTRY_DEFAULTS`                                                                     | Conexão, validade documental ou elegibilidade pode ser considerada resolvida sem perfil/fonte suficiente.                                 | Treze checks preservados com fonte, fuso, jurisdição e pendência. Preços, direitos e saúde exigem consulta oficial/operacional atual quando utilizados; não há certificação individual automática.                                 |
-| A6 — Versão e promoção herdadas         | `CANDIDATE_STATUS_AND_VERSION_DRIFT`                                                                          | Fonte candidata ou revisão antiga pode ser descrita como pacote ativo, compatível ou aprovado.                                            | Software 0.3 e catálogo formato 2 têm identidade própria; origem 0.2 não é sobrescrita. Proposta, execução, teste e implantação são estados distintos. B.9 não é herdada.                                                          |
-| A7 — Planejamento versus acerto         | `GROUP_SCOPE_AND_MATRIX_DEFAULTS`; diferença de runtime no contrato de despesas                               | Pedido de rateio expande para destinos/modelos; calculador de planejamento exige campos artificiais e não expressa saldo entre pagadores. | Prompt 09 mantém planejamento via `group-split`; `expense-settlement`/`travel_settle_expenses` usa despesas, pagadores, beneficiários e acertos anteriores. Soma e centavos precisam reconciliar; sugestão não transfere dinheiro. |
-| A8 — Roteamento e catálogo posicional   | Diferenças de runtime em `agent/brief.ts` e `agent/mcp.ts` do baseline                                        | Hotel/ônibus/seguro não selecionam fluxo próprio; ampliar uma lista pode quebrar associação de arquivo/ID.                                | [Manifesto](../agents/manifest.json) separa papel, domínio, fase, comando e calculador opcional. Descoberta é paginada; URIs usam allowlist. Preparação de workflow não executa o serviço descrito.                                |
+Foram adicionados três papéis e catorze comandos completos. O conjunto atual tem
+onze papéis e 66 comandos. Os nove calculadores e o acerto financeiro separado
+foram preservados. Os comandos anteriores que já situavam legislação, seguro,
+entrada, capacidade de fornecedor e conexão foram mantidos, sem inserir regras
+universais de passaporte, vacina, visto, assistência ou intervalo.
 
-### Critérios que podem refutar ou confirmar a correção
+## Funções, efeitos e aceite
 
-- A1/A6: observar no host real capacidades, permissões e efeitos; retornar apenas nome de marca ou arquivo criado não satisfaz a verificação.
-- A2: ensaiar conteúdo hostil em documento, resultado e memória; testar rejeição de caminho/URI/argumento inesperado. Teste de schema não substitui ensaio comportamental de modelo.
-- A3/A4: cenários de dados ausentes, silêncio e necessidades funcionais distintas devem preservar autonomia e não inventar compra/perfil.
-- A5: dados de serviço/país/perfil insuficientes devem manter elegibilidade e regra pendentes; ausência de fonte não vira permissão.
-- A7: N01 adianta 12.000 centavos e N02 zero, divisão aceita em partes iguais: crédito e débito de 6.000, soma zero, sem destino/noites fictícios. Reembolso, acerto anterior, regra ausente e centavos também precisam de reconciliação.
-- A8: cada comando/papel tem recurso e arquivo permitidos; cenários de hospedagem, ônibus, seguro e rateio selecionam fluxos próprios sem impor calculador aéreo.
+Um comando descreve trabalho que pode ser realizado com capacidades reais do
+host. `prepareWorkflow` apenas prepara lacunas/checklist/checkpoint e conserva
+`instructions_only`; não executa o que o título do fluxo descreve. Executor nulo
+não significa que uma nova calculadora foi instalada. Código de conector,
+workspace, contexto e geração deve ter seus próprios testes e escopo de operação.
 
-A revisão semântica posterior leu os 52 comandos e oito papéis e confirmou um defeito adicional, `SEM-01`, dentro do tema A7: omitir acertos internos anteriores podia gerar cobrança duplicada mesmo com saldos somando zero. O contrato agora exige `priorSettlements` (`[]` significa ausência declarada), separa despesas de transferências e sugere somente o residual. Pagamento integral elimina a sugestão; parcial reduz o saldo; excedente inverte a direção. As regressões foram executadas e a revisão do recorte foi encerrada sem achado residual. Aceitação da regra e pagamentos continuam declarações do chamador, sem verificação bancária ou execução. Reembolsos de fornecedor exigem reconciliação documentada do gasto líquido, fora do contrato de transferências internas.
+Para leitura de conta, o operador configura acesso e registros permitidos fora
+dos argumentos do modelo. Para arquivos, o plano deve ser conferido contra
+origens/destinos antes de aplicação autorizada e reconciliado depois. Reversão
+planejada só recebe estado de testada quando observada em ensaio. Para extensão,
+rascunho não concede permissão para instalar ou carregar código.
 
-A [revisão automática do PR 5](https://github.com/RodrigoYuMatsumoto/travel-reliability/pull/5#discussion_r4430516889) encontrou uma lacuna adicional em A4/A8: a contagem de viajantes ocultava restrições funcionais ainda não declaradas. O intake agora conserva `mustHaves` como desconhecido até declaração, inclusive lista vazia explícita, sem reperguntar as contagens conhecidas. A mesma fronteira separa o valor do orçamento de seu `scope`; conhecer o montante não define quais despesas ele inclui. Casos de hospedagem com datas completas não exigem um indicador de voo de retorno para reconhecer a janela. As regressões verificam essas distinções sem atestar perfil, elegibilidade ou capacidade externa.
+Registros, e-mails, anúncios, documentos, metadados, memória e retornos são dados
+passivos. Guardas textuais e schemas ajudam, mas não garantem detecção total de
+injeção, autenticidade ou isolamento de código arbitrário. Código aberto pode
+ser examinado e reutilizado; a proteção do método privado consiste em não
+publicar seu material de origem, sem prometer apagar divulgação anterior.
 
-Ao introduzir `budget.scope`, duas campanhas detectaram incompatibilidade no oráculo antigo: ele exigia objeto de orçamento idêntico, inclusive ausência do campo novo, enquanto a normalização contratual emite `scope:null` para desconhecido. As execuções FAIL foram preservadas. O oráculo passou a exigir valor/moeda literais, escopo declarado intacto, somente ausência normalizada para `null` e entrada imutável; campos extras continuam rejeitados. Replays válidos/hostis e novas campanhas verificam a regra atual. Isso não reclassifica exceções inesperadas como aprovação nem representa correção aritmética no runtime.
+## Verificação e limites
 
-Esses critérios são verificáveis; nem todos foram executados com LLM ou no host do usuário. Não se atribui resultado de teste a cenário apenas especificado.
+Os testes de catálogo verificam integridade de IDs/caminhos, donos, campos,
+descoberta/paginação, preservação dos nove calculadores, preparo dos treze checks
+logísticos e ausência de permissão concedida pelos workflows internacionais.
+Readback confere os onze papéis, 66 arquivos, licença/idioma, referências e a
+ausência de metadados privados na cobertura. Resultados executados do software,
+SAST/DAST/fuzzing e publicação pertencem aos registros específicos da versão e
+à CI, não são presumidos por este texto.
 
-## Compatibilidade e atualização de limites
+Não foi executado neste passe ensaio comportamental dos 66 prompts em LLMs
+externas; revisão de texto e testes determinísticos não são esse ensaio. Também
+não há comprovação de família independente, certificação de segurança universal,
+percentual de economia de tokens ou promessa de estrelas. Não se acessou conta
+pessoal de companhia aérea, Airbnb, Booking.com ou e-mail para provar conectores.
+Condições atuais, permissões, contratos de API e autenticação continuam sendo
+dependências reais do operador e do fornecedor.
 
-Esta revisão usa referências primárias consultadas em 31/10/2026 para atualizar o desenho de compatibilidade e suas ressalvas; não declara upgrade de SDK, modelo ou nova capacidade de fornecedor.
-
-- A especificação MCP de 25/11/2025 descreve prompts selecionáveis pelo usuário e recursos cujo contexto é incorporado pelo aplicativo. Portanto, expor um prompt não comprova que todo chat o carregará automaticamente. [MCP — Prompts](https://modelcontextprotocol.io/specification/2025-11-25/server/prompts), [MCP — Resources](https://modelcontextprotocol.io/specification/2025-11-25/server/resources).
-- A orientação oficial de 16/03/2026 trata annotations como pistas de comportamento, não mecanismo de bloqueio. `readOnlyHint` e `openWorldHint` não substituem sandbox, rede, ACL ou validação no host. [MCP — Tool Annotations as Risk Vocabulary](https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/).
-- A OWASP descreve injeção indireta por conteúdo externo e controles de menor privilégio, segregação e revisão de ações sensíveis. Os comandos aplicam essa separação, sem prometer prevenção completa. [OWASP — LLM01:2025 Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/).
-
-Capacidades declaradas pelo chamador, campos marcados como fornecidos e checkpoint retornado não constituem autorização ou comprovação de verificação. O estado é minimizado e local à preparação; persistência, orçamento acumulado, retenção e autorização efetiva continuam sob controle do host. Misturar acesso privado, conteúdo não confiável e ferramentas de comunicação de outros servidores muda o risco da sessão.
-
-## Migração e preservação
-
-A ampliação é aditiva para os nove IDs de calculadores e o alias legado `travel://agent`; o manifesto muda para formato 2. Consumidores estritos de formato 1 precisam migrar explicitamente. O [guia MCP/skill](../agents/README.md) distingue kit manual, skill completa e código-fonte executável. Não há publicação de arquivos brutos de origem, perfil privado ou evidência real.
-
-A skill inclui a árvore canônica de agentes e comandos; seu alias de compatibilidade não cria um nono papel. As instruções derivadas recebem versão 1.2.0 como melhoria incremental, não como novidade normativa. Em resumo persistido, preserve origem, versão, viagem/workflow, referências, validade, pendências e orçamento; não armazene raciocínio privado ou autorização reutilizável.
-
-## Verificação realizada e pendente
-
-| Camada                           | Evidência disponível neste ponto de integração                                                                                           | Limite                                                                                                         |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Origem e domínio                 | Leitura estática registrada de 18 fontes; 39 funções, quatro adapters, 13 checks e 14 registros de origem                                | Não comprova execução ou precisão do conteúdo turístico/normativo atual                                        |
-| Hub, sete papéis e nove comandos | Readback de 17 arquivos, versões/UTF-8/links e preservação dos comportamentos válidos; agentes formatados                                | Sem ensaio de LLM, qualidade populacional ou medição de tokens                                                 |
-| Componentes e MCP                | 64 testes focais aprovados; sete ferramentas e carregamento real de todos os 52 comandos/oito papéis pelo SDK stdio, preservando aliases | Preparação documental e cálculos não comprovam execução do agente por uma LLM ou integração de fornecedor      |
-| Suíte local e build              | 145 testes TypeScript, 17 Python e quatro de navegador aprovados; build, formatação, lint e 54 verificações DAST autenticadas aprovados  | Três casos de serviços persistentes e um OCR nativo dependem da CI; relatórios por commit acompanham a release |
-| Fuzzing dos novos contratos      | Duas sementes, 13 mil casos cada, incluindo catálogo, brief, workflow e despesas; zero achados restantes ou falhas de infraestrutura     | Mutações/propriedades delimitadas, não entradas necessariamente únicas, ensaio de LLM ou cobertura exaustiva   |
-| Revisão independente             | B.9 não verificada; revisão de mesma família não satisfaz família distinta                                                               | Não apresentar promoção herdada, independência comprovada ou resistência integral a prompt injection           |
-
-O histórico de SAST/DAST/fuzzing do aplicativo permanece no [registro de segurança](SECURITY_TESTS.md); não substitui avaliação dos novos modelos/hosts. A [evidência de entrega](IMPLEMENTATION_STATUS.md) deve registrar os resultados finais de integração. Segurança absoluta, adoção real e redução percentual de tokens não foram demonstradas.
+Consulte o [catálogo](AGENT_CATALOG.md), [mapa funcional](../agents/coverage.json),
+[modelo de segurança](SECURITY_MODEL.md) e [testes de segurança](SECURITY_TESTS.md).

@@ -1,0 +1,16 @@
+{
+  "tripKey": "demo-1",
+  "documents": [
+    {
+      "fileId": "F000000000000000000000000",
+      "serviceType": "rail",
+      "serviceDate": "2030-01-20",
+      "recordId": "R01",
+      "sourceRefs": [
+        "SRC01"
+      ],
+      "mode": "copy"
+    }
+  ],
+  "records": []
+}

@@ -1,6 +1,6 @@
 # Viagens em grupo: destinos, operação e rateio
 
-Versão derivada 1.2.0 — melhoria incremental de 31/10/2026. Comando autocontido; preencha os dados pertinentes antes de usar.
+Versão derivada 1.3.0 — melhoria incremental de 31/10/2026. Comando autocontido; preencha os dados pertinentes antes de usar.
 
 **Escopo:** Planejamento de grupo multimodal ou acerto de despesas existentes, conforme o modo explicitamente escolhido. Não misture pesquisa de uma nova viagem com conciliação de gastos já realizados. No catálogo, `group-split` identifica o planejamento e seu calculador; `expense-settlement` identifica o fluxo específico de acerto existente, quando disponível.
 

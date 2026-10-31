@@ -1,6 +1,20 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 — 2026-10-31
+
+### International travel ecosystem
+
+- Expanded the portable catalog to eleven roles and 66 commands for international, domestic, regional, intermunicipal and local travel, including geography, history/culture, customs, professional trips, source reconciliation, document operations and reviewable extensions.
+- Preserved the nine original calculator IDs and compatibility aliases; catalog format 3 exposes thirteen bounded MCP tools and 78 fixed resources/prompts. Workflow preparation remains distinct from execution.
+- Added BCP 47 language/locale validation, additional travel service kinds and deterministic global context with explicit unknowns, DST handling, currency separation and scoped official-source discovery.
+- Added booking reconciliation with unit-aware conflicts, whole-batch connector authorization, immutable request snapshots, bounded reads and redacted failures; no universal supplier account or live-fare API is implied.
+- Added an optional operator profile for fixed document roots and selected read-only Gmail messages, plus isolated literal MIME normalization through a preprepared absolute Python interpreter. Raw mail, booking references and credentials are not returned.
+- Added metadata inventory, digest-bound document plans and operator-only CLI copy/move/apply/rollback with journals and source/destination verification. MCP cannot apply or roll back file operations.
+- Added complete extension drafts with hashes and test plans, without writing, installing, executing or granting capabilities.
+- Added local PDF font configuration and complete rendered-text glyph preflight; missing coverage fails explicitly. JSON/calendar retain UTF-8; complex-script layout remains subject to visual review.
+- Adopted MIT for original v0.4 work, preserving earlier Apache-2.0 releases and third-party terms. Public provenance uses opaque source identifiers; raw origins and private case context remain excluded.
+- Hardened packaging against embedded/private-host Git roots and expanded strict manual-kit membership gates. Same-family review/regressions corrected connector scope mutation, invalid observation times, cross-currency agreement, interpreter selection, unknown registration status and cross-trip Gmail binding.
+- Local checks passed 361 TypeScript tests, 24 Python tests, four browser tests, twenty-two audit/package-gate regressions, 54 authenticated DAST assertions and bounded campaigns totaling 15,000 TypeScript plus 768 Python executions. Three service-backed tests and one native OCR test require CI. Remote v0.4 publication and exact-commit security checks remain separate gates at this local checkpoint.
 
 ## 0.3.0 — complete source-derived agent catalog
 

@@ -1,0 +1,38 @@
+{
+  "tripKey": "demo-global-1",
+  "language": "en-GB",
+  "locale": "en-GB",
+  "currencies": ["USD", "EUR"],
+  "baseCurrency": "USD",
+  "unitSystem": "metric",
+  "purposes": ["business", "leisure"],
+  "locations": [
+    {
+      "id": "L01",
+      "countryCode": "US",
+      "administrativeArea": "US-NY",
+      "municipalityKey": "CITY01",
+      "timeZone": "America/New_York"
+    },
+    {
+      "id": "L02",
+      "countryCode": "FR",
+      "administrativeArea": "FR-IDF",
+      "municipalityKey": "CITY02",
+      "timeZone": "Europe/Paris"
+    }
+  ],
+  "segments": [
+    {
+      "id": "S01",
+      "mode": "flight",
+      "from": "L01",
+      "to": "L02",
+      "departure": {"localDateTime": "2027-06-01T18:00:00", "utcOffset": "-04:00"},
+      "arrival": {"localDateTime": "2027-06-02T08:00:00", "utcOffset": "+02:00"},
+      "minimumConnectionMinutes": null
+    }
+  ],
+  "researchTopics": ["geography", "history", "culture", "customs", "business"],
+  "evidence": []
+}

@@ -1,6 +1,6 @@
 # Prompt 08 — Comparar preço e riscos de um itinerário com trecho descartado
 
-Versão derivada 1.2.0 — melhoria incremental de 31/10/2026. Comando autocontido; preencha os dados pertinentes antes de usar.
+Versão derivada 1.3.0 — melhoria incremental de 31/10/2026. Comando autocontido; preencha os dados pertinentes antes de usar.
 
 **Escopo:** Análise documental de uma alternativa aérea com trecho descartado já identificada. Não pesquisa táticas de ocultação nem presume que bilhetes separados sejam hidden-city.
 

@@ -15,6 +15,48 @@ Passing the automated suite is not an exhaustive security assessment or a produc
 
 ## Current executed evidence
 
+The local v0.4 candidate was checked on 2026-10-31: **361 TypeScript tests,
+24 Python tests, four browser tests, twenty-two audit/package-gate regressions and
+54 authenticated DAST assertions passed**. Three durable-service TypeScript
+cases and one native OCR Python case were skipped locally; CI must provision
+their real PostgreSQL/Redis/S3 and Tesseract dependencies. Production build,
+formatting, Python lint and current-source/history privacy checks passed. npm audit and
+the locked Python runtime pip-audit found zero known advisories at that time.
+
+The catalog now contains eleven roles, 66 commands, thirteen MCP tools and 78
+fixed resources/prompts. Runtime tests exercise the real stdio SDK, disabled
+optional capabilities, operator-profile binding, selected-message Gmail reads
+over synthetic HTTP transport, the actual isolated Python email parser, document
+plans/application/rollback in disposable directories and explicit PDF font
+coverage. No real account, personal evidence or live provider was used.
+
+The executed bounded campaigns comprised **13,000 legacy TypeScript, 2,000
+ecosystem TypeScript, 384 document-ingest and 384 MIME case executions**, with
+no findings or infrastructure failures. Counts are executions, not unique
+exploits or exhaustive coverage. The ecosystem campaign checks global context,
+reconciliation, registry scopes/budgets, draft generation and workspace dry-run
+invariants; MIME checks literals, hidden content, attachments and resource bounds.
+See [campaign scope and fingerprints](SECURITY_ECOSYSTEM.md).
+
+A same-family isolated-context review corrected mutable request scope expansion,
+non-finite observation timestamps, false agreement across currencies,
+working-directory interpreter selection and unknown supplier-registration
+classification. Additional regressions bind Gmail observations to both trip and
+record and prevent cross-line MIME label joining. The review excluded an
+independent filesystem-engine assessment and was not authorship-independent for
+the global-context and draft modules. It establishes neither B.9 independence
+nor behavioral compliance by every host LLM.
+
+At this local checkpoint the v0.4 exact-commit remote SAST/ZAP, service-backed CI,
+final archives and publication/download verification had not run. Their actual
+completed reports, not this planned configuration or older results below, must
+establish release readiness. The default MCP remains offline; optional connector
+code changes its network boundary only under the trusted operator profile.
+No MCP tool applies file changes, sends messages, purchases, cancels, installs
+drafts or accepts account credentials/arbitrary roots.
+
+## Historical v0.3 evidence
+
 Version 0.3 expands to eight roles, 52 commands and seven read-only MCP tools. The real SDK tests load every declared role/command and preserve legacy names. Local verification passed 145 TypeScript tests, 17 Python tests, four browser tests and the 54 authenticated DAST assertions. Three durable-service cases and one native OCR case require the CI services. The source-derived coverage and semantic-review limits are recorded in [agent audit](AGENT_AUDIT.md).
 
 The v0.3 TypeScript mutation campaign added catalog, domain-aware intake, checkpoint preparation and expense settlement to the nine existing families: 13,000 executions per seed, two seeds, zero remaining findings or infrastructure errors, stable source fingerprints. The oracle separately checks exact shares, prior internal payments, residual settlement and absence of external effects. These counts do not imply unique inputs, coverage-guided fuzzing or evaluation of a host LLM. The Python runtime is unchanged and remains exercised by recurring CI.

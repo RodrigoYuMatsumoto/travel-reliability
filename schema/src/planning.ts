@@ -1,4 +1,5 @@
 /** Pseudonymous, documentary planning inputs. No booking or messaging capabilities. */
+import { localeSchema } from './locale.js';
 export const toolIds = [
   'flex-dates',
   'airports',
@@ -123,7 +124,7 @@ export interface FareScenarioInput {
 export interface NegotiationInput {
   recipient: string;
   goal: string;
-  language: 'pt-BR' | 'en';
+  language: string;
   channel: 'message' | 'email' | 'form';
   comparison: ComparisonInput | null;
   constraints: string[];
@@ -341,7 +342,7 @@ export const planningSchemas: Record<ToolId, object> = {
   negotiation: object({
     recipient: text(200),
     goal: text(400),
-    language: values('pt-BR', 'en'),
+    language: localeSchema,
     channel: values('message', 'email', 'form'),
     comparison: nullable(comparison),
     constraints: list(text(200), 15),

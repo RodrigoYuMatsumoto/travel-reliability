@@ -23,7 +23,7 @@
       "const": "travel-reliability-agent-kit"
     },
     "formatVersion": {
-      "const": 2
+      "const": 3
     },
     "version": {
       "type": "string",
@@ -38,10 +38,10 @@
       "maxLength": 600
     },
     "defaultLanguage": {
-      "const": "pt-BR"
+      "const": "host"
     },
     "license": {
-      "const": "Apache-2.0"
+      "const": "MIT"
     },
     "contracts": {
       "type": "object",
@@ -52,7 +52,13 @@
         "trip",
         "catalog",
         "workflow",
-        "expenses"
+        "expenses",
+        "globalContext",
+        "connectorRequest",
+        "reconciliation",
+        "documentWorkspace",
+        "extensionDraft",
+        "operatorProfile"
       ],
       "properties": {
         "brief": {
@@ -76,6 +82,30 @@
           "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
         },
         "expenses": {
+          "type": "string",
+          "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
+        },
+        "globalContext": {
+          "type": "string",
+          "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
+        },
+        "connectorRequest": {
+          "type": "string",
+          "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
+        },
+        "reconciliation": {
+          "type": "string",
+          "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
+        },
+        "documentWorkspace": {
+          "type": "string",
+          "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
+        },
+        "extensionDraft": {
+          "type": "string",
+          "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
+        },
+        "operatorProfile": {
           "type": "string",
           "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
         }
@@ -177,7 +207,7 @@
           },
           "legacyNames": {
             "type": "array",
-            "minItems": 1,
+            "minItems": 0,
             "maxItems": 24,
             "uniqueItems": true,
             "items": {
@@ -259,6 +289,13 @@
                 "monitoring",
                 "operations",
                 "ecosystem",
+                "geography",
+                "culture",
+                "business",
+                "rail",
+                "water",
+                "entry",
+                "connectors",
                 "all"
               ]
             }
@@ -362,7 +399,10 @@
                 "notifications",
                 "background_schedule",
                 "code_execution",
-                "provider_status"
+                "provider_status",
+                "email_read",
+                "account_read",
+                "file_organize"
               ]
             }
           }

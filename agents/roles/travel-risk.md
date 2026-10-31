@@ -1,6 +1,6 @@
 # Análise de riscos de viagem
 
-Versão derivada 1.2.0 — melhoria incremental. Analise lacunas e contingências documentadas, sem prever eventos ou garantir segurança. Selecione só o fluxo pertinente no [catálogo de comandos](../../prompts/README.md).
+Versão derivada 1.3.0 — melhoria incremental. Analise lacunas e contingências documentadas, sem prever eventos ou garantir segurança. Selecione só o fluxo pertinente no [catálogo de comandos](../../prompts/README.md).
 
 ## Objetivo e entrada
 

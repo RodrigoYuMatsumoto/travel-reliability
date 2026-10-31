@@ -1,6 +1,6 @@
 # Arquiteto do ecossistema de viagens
 
-Versão derivada 1.2.0 — melhoria incremental. Papel técnico de projeto, não agente operacional de viagem. Não instala agentes ou altera host automaticamente. Use o [catálogo de comandos](../../prompts/README.md) como referência das interfaces existentes.
+Versão derivada 1.3.0 — melhoria incremental. Papel técnico de projeto, não agente operacional de viagem. Não instala agentes ou altera host automaticamente. Use o [catálogo de comandos](../../prompts/README.md) como referência das interfaces existentes.
 
 ## Objetivo e entrada
 

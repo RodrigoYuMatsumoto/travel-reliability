@@ -6,7 +6,7 @@ export interface TripContract {
   title: string;
   country: string;
   currency: string;
-  locale: "pt-BR" | "en";
+  locale: string;
   startDate: string;
   endDate: string;
   /**
@@ -289,7 +289,28 @@ export interface Traveler {
 }
 export interface Service {
   id: string;
-  kind: "flight" | "bus" | "hotel" | "rental_home" | "activity" | "car_rental" | "insurance" | "transfer";
+  kind:
+    | "flight"
+    | "bus"
+    | "hotel"
+    | "rental_home"
+    | "activity"
+    | "car_rental"
+    | "insurance"
+    | "transfer"
+    | "rail"
+    | "ferry"
+    | "cruise"
+    | "hostel"
+    | "camping"
+    | "homestay"
+    | "taxi"
+    | "rideshare"
+    | "bicycle"
+    | "walking"
+    | "campervan"
+    | "event"
+    | "coworking";
   title: string;
   country: string;
   regulatoryScope?: "br_air_transport" | "br_interstate_regular_bus" | "other" | "unknown";
@@ -305,7 +326,15 @@ export interface Service {
       | "guide"
       | "car_rental"
       | "insurer"
-      | "other";
+      | "other"
+      | "rail_operator"
+      | "ferry_operator"
+      | "cruise_operator"
+      | "campground"
+      | "hostel"
+      | "transfer_operator"
+      | "venue"
+      | "coworking";
     registration: {
       scheme: string | null;
       value: string | null;
@@ -313,7 +342,7 @@ export interface Service {
       sourceUrl: string | null;
       checkedAt: string | null;
     };
-    cadastur: {
+    cadastur?: {
       applicability: "required" | "optional" | "not_applicable" | "unknown";
       status: "unknown" | "active" | "inactive" | "not_applicable";
       sourceUrl: string | null;
@@ -354,6 +383,60 @@ export interface Service {
     code: string;
     status: "unknown" | "confirmed" | "unavailable";
   }[];
+  /**
+   * @maxItems 16
+   */
+  jurisdictions?:
+    | []
+    | [string]
+    | [string, string]
+    | [string, string, string]
+    | [string, string, string, string]
+    | [string, string, string, string, string]
+    | [string, string, string, string, string, string]
+    | [string, string, string, string, string, string, string]
+    | [string, string, string, string, string, string, string, string]
+    | [string, string, string, string, string, string, string, string, string]
+    | [string, string, string, string, string, string, string, string, string, string]
+    | [string, string, string, string, string, string, string, string, string, string, string]
+    | [string, string, string, string, string, string, string, string, string, string, string, string]
+    | [string, string, string, string, string, string, string, string, string, string, string, string, string]
+    | [string, string, string, string, string, string, string, string, string, string, string, string, string, string]
+    | [
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string
+      ]
+    | [
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string
+      ];
 }
 export interface Time {
   local: string;

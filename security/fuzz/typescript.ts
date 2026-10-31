@@ -286,6 +286,13 @@ const domainRoutes: Record<(typeof domainIds)[number], string | null> = {
   monitoring: 'monitor-trip',
   operations: 'task-board',
   ecosystem: 'ecosystem-setup',
+  geography: 'geography-route-check',
+  culture: 'history-culture-context',
+  business: 'professional-trip-plan',
+  rail: 'rail-ferry-cruise-plan',
+  water: 'rail-ferry-cruise-plan',
+  entry: 'border-entry-plan',
+  connectors: 'connect-account-sources',
   all: 'trip-intake',
 };
 

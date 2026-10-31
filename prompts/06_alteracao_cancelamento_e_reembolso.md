@@ -1,10 +1,10 @@
 # PROMPT 06 — ALTERAÇÃO, CANCELAMENTO E REEMBOLSO
 
-Versão derivada 1.2.0 — melhoria incremental de 31/10/2026. Comando autocontido; preencha os dados pertinentes antes de usar.
+Versão derivada 1.3.0 — melhoria incremental de 31/10/2026. Comando autocontido; preencha os dados pertinentes antes de usar.
 
 **Escopo:** Cenários contratuais de tarifas aéreas. Para ônibus, hospedagem, pacote, seguro ou outro serviço, use o fluxo específico disponível; não aplique multa, proteção ou prazo de voo automaticamente.
 
-Compare o desembolso normal e as consequências documentadas de alteração ou cancelamento das tarifas indicadas. Preserve a distinção entre dinheiro recuperável, crédito e perda. Responda em português brasileiro. Entregue apoio comparativo à decisão, sem atribuir probabilidade aos cenários nem emitir parecer sobre validade jurídica das cláusulas.
+Compare o desembolso normal e as consequências documentadas de alteração ou cancelamento das tarifas indicadas. Preserve a distinção entre dinheiro recuperável, crédito e perda. Responda no idioma solicitado pelo viajante; sem preferência, siga o idioma do host. Entregue apoio comparativo à decisão, sem atribuir probabilidade aos cenários nem emitir parecer sobre validade jurídica das cláusulas.
 
 ## Dados de entrada
 
