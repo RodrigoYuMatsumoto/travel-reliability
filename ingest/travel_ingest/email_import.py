@@ -10,6 +10,7 @@ import hmac
 import json
 import re
 import sys
+from collections.abc import Callable
 from datetime import date, datetime
 from email import policy
 from email.parser import BytesParser
@@ -77,10 +78,14 @@ def normalize_email(raw: bytes, *, record_key: str, source_ref: str,
     if len(text.encode("utf-8")) > MAX_BYTES:
         raise ValueError("EMAIL_TEXT_LIMIT")
 
-    def literal(label: str, value_pattern: str, field: str) -> str | None:
+    def literal(label: str, value_pattern: str, field: str,
+                canonicalize: Callable[[str], str] | None = None) -> str | None:
         # Horizontal whitespace only: labels must not span lines or rescan a
         # long whitespace suffix from every newline in a MIME body.
-        values = set(re.findall(rf"(?im)^[ \t]*(?:{label})[ \t]*:[ \t]*({value_pattern})[ \t]*\r?$", text))
+        matches = re.findall(rf"(?im)^[ \t]*(?:{label})[ \t]*:[ \t]*({value_pattern})[ \t]*\r?$", text)
+        # MIME alternatives can repeat the same literal with different casing.
+        # Apply only the field's existing canonical form before conflict checks.
+        values = {canonicalize(value) if canonicalize else value for value in matches}
         if len(values) > 1:
             warnings.add(f"CONFLICT_{field.upper()}")
         return next(iter(values)) if len(values) == 1 else None
@@ -95,17 +100,15 @@ def normalize_email(raw: bytes, *, record_key: str, source_ref: str,
                 return None
         return value
 
-    reference = literal(r"booking reference|reservation reference|localizador|c[oó]digo da reserva", r"[A-Za-z0-9][A-Za-z0-9-]{2,39}", "reference")
-    token = (hmac.new(reference_secret, (provider_key + "\0" + reference.upper()).encode(), hashlib.sha256).hexdigest()
+    reference = literal(r"booking reference|reservation reference|localizador|c[oó]digo da reserva", r"[A-Za-z0-9][A-Za-z0-9-]{2,39}", "reference", str.upper)
+    token = (hmac.new(reference_secret, (provider_key + "\0" + reference).encode(), hashlib.sha256).hexdigest()
              if reference is not None else None)
-    currency = literal(r"currency|moeda", r"[A-Z]{3}", "currency")
-    currency = currency.upper() if currency else None
+    currency = literal(r"currency|moeda", r"[A-Z]{3}", "currency", str.upper)
     minor = literal(r"total minor units|total em unidades menores", r"[0-9]{1,16}", "total_minor")
     total = int(minor) if minor is not None and int(minor) <= 9007199254740991 and currency else None
     if minor is not None and total is None:
         warnings.add("AMOUNT_REQUIRES_REVIEW")
-    status = literal(r"reservation status|status da reserva", r"quote|booked|cancelled|completed|unknown", "status") or "unknown"
-    status = status.lower()
+    status = literal(r"reservation status|status da reserva", r"quote|booked|cancelled|completed|unknown", "status", str.lower) or "unknown"
     observation = {
         "recordKey": record_key, "sourceRef": source_ref, "referenceToken": token,
         "startDate": day(r"start date|check-in|data inicial", "start_date"),

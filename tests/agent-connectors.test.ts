@@ -37,6 +37,48 @@ const policy = {
 };
 
 describe('connector security regressions', () => {
+  it.each(['within-response', 'across-responses'] as const)(
+    'isolates duplicate source references %s without accepting a partial response',
+    async (scenario) => {
+      const responses =
+        scenario === 'within-response'
+          ? [[observation(), observation()], [observation()], [observation({ sourceRef: 'SRC02' })]]
+          : [
+              [observation()],
+              [observation({ sourceRef: 'SRC02' }), observation()],
+              [observation({ sourceRef: 'SRC02' })],
+            ];
+      const adapters = ['email', 'provider', 'export'].map((id, index) => ({
+        id,
+        documentationUrl: `https://example.invalid/${id}`,
+        read: vi.fn(async () => responses[index]!),
+      }));
+      const registry = new TravelConnectorRegistry(adapters, {
+        approvedScopes: adapters.map(({ id }) => ({
+          tripKey: 'demo-1',
+          sourceId: id,
+          recordKeys: ['R01'],
+        })),
+        maxReads: 3,
+      });
+      const result = await registry.sync(
+        {
+          tripKey: 'demo-1',
+          requests: adapters.map(({ id }) => ({ sourceId: id, recordKeys: ['R01'] })),
+        },
+        now,
+      );
+      expect(result.reads.map(({ state }) => state)).toEqual(
+        scenario === 'within-response'
+          ? ['read_rejected', 'read_completed', 'read_completed']
+          : ['read_completed', 'read_rejected', 'read_completed'],
+      );
+      expect(result.observations.map(({ sourceRef }) => sourceRef)).toEqual(['SRC01', 'SRC02']);
+      expect(result.reconciliation.factsVerified).toBe(false);
+      expect(result.remainingReads).toBe(0);
+      for (const source of adapters) expect(source.read).toHaveBeenCalledTimes(1);
+    },
+  );
   it('snapshots all validated requests before awaiting any adapter', async () => {
     let release!: (value: unknown) => void;
     const first: TravelReadAdapter = {

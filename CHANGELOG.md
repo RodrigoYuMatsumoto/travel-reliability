@@ -14,7 +14,8 @@
 - Added local PDF font configuration and complete rendered-text glyph preflight; missing coverage fails explicitly. JSON/calendar retain UTF-8; complex-script layout remains subject to visual review.
 - Adopted MIT for original v0.4 work, preserving earlier Apache-2.0 releases and third-party terms. Public provenance uses opaque source identifiers; raw origins and private case context remain excluded.
 - Hardened packaging against embedded/private-host Git roots and expanded strict manual-kit membership gates. Same-family review/regressions corrected connector scope mutation, invalid observation times, cross-currency agreement, interpreter selection, unknown registration status and cross-trip Gmail binding.
-- Local checks passed 361 TypeScript tests, 24 Python tests, four browser tests, twenty-two audit/package-gate regressions, 54 authenticated DAST assertions and bounded campaigns totaling 15,000 TypeScript plus 768 Python executions. Three service-backed tests and one native OCR test require CI. Remote v0.4 publication and exact-commit security checks remain separate gates at this local checkpoint.
+- Local checks passed 363 TypeScript tests, 28 Python tests, four browser tests, twenty-two audit/package-gate regressions, 54 authenticated DAST assertions and bounded campaigns totaling 15,000 TypeScript plus 768 Python executions. Three service-backed tests and one native OCR test require CI. Remote v0.4 publication and exact-commit security checks remain separate gates at this local checkpoint.
+- Corrected equivalent MIME-field casing before conflict detection and rejected duplicate source references within each adapter read, preserving successful reads without partial-response acceptance.
 
 ## 0.3.0 — complete source-derived agent catalog
 

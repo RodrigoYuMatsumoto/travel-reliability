@@ -35,6 +35,35 @@ def test_unknown_is_not_zero_and_conflicting_dates_are_not_chosen():
     assert "CONFLICT_START_DATE" in result["warnings"]
 
 
+@pytest.mark.parametrize("multipart", [False, True])
+def test_equivalent_case_variants_are_deduplicated_before_conflict_checks(multipart):
+    first = "Booking reference: DEMOREF\nCurrency: USD\nReservation status: booked\nTotal minor units: 1500"
+    repeated = "Booking reference: demoref\nCurrency: usd\nReservation status: BOOKED\nTotal minor units: 1500"
+    msg = message(first if multipart else first + "\n" + repeated)
+    if multipart:
+        msg.add_alternative("".join(f"<p>{line}</p>" for line in repeated.splitlines()), subtype="html")
+    result = normalize(msg.as_bytes())
+    assert result["observation"] == normalize(message(first).as_bytes())["observation"]
+    assert not {"CONFLICT_REFERENCE", "CONFLICT_CURRENCY", "CONFLICT_STATUS"}.intersection(result["warnings"])
+    assert "DEMOREF" not in str(result) and "demoref" not in str(result)
+
+
+@pytest.mark.parametrize("multipart", [False, True])
+def test_distinct_literals_remain_conflicts_after_case_normalization(multipart):
+    first = "Booking reference: DEMOREF\nCurrency: USD\nReservation status: booked\nTotal minor units: 1500"
+    different = "Booking reference: otherref\nCurrency: eur\nReservation status: CANCELLED\nTotal minor units: 1500"
+    msg = message(first if multipart else first + "\n" + different)
+    if multipart:
+        msg.add_alternative("".join(f"<p>{line}</p>" for line in different.splitlines()), subtype="html")
+    result = normalize(msg.as_bytes())
+    assert {"CONFLICT_REFERENCE", "CONFLICT_CURRENCY", "CONFLICT_STATUS"}.issubset(result["warnings"])
+    assert result["observation"]["referenceToken"] is None
+    assert result["observation"]["currency"] is None
+    assert result["observation"]["totalMinor"] is None
+    assert result["observation"]["status"] == "unknown"
+    assert "DEMOREF" not in str(result) and "otherref" not in str(result)
+
+
 def test_literal_labels_are_single_line_and_crlf_is_supported():
     raw = b"Subject: synthetic\r\n\r\nCurrency\r\n : EUR\r\nStart date: 2030-01-10\r\nReservation status: BOOKED\r\n"
     result = normalize(raw)

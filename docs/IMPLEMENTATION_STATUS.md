@@ -34,8 +34,8 @@ commit/asset verification.
 | Executed local check                   | Result and scope                                                                                       |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | Strict TypeScript and production build | PASS                                                                                                   |
-| TypeScript tests                       | 361 passed; three PostgreSQL/Redis/S3 cases skipped locally and reserved for provisioned CI services   |
-| Python ingest tests                    | 24 passed; one native OCR case skipped locally and reserved for CI with Tesseract                      |
+| TypeScript tests                       | 363 passed; three PostgreSQL/Redis/S3 cases skipped locally and reserved for provisioned CI services   |
+| Python ingest tests                    | 28 passed; one native OCR case skipped locally and reserved for CI with Tesseract                      |
 | Desktop/mobile Playwright              | Four passed on an isolated test port                                                                   |
 | Audit and package report gates         | Twenty-two standard-library unittest regressions passed                                                |
 | Authenticated DAST                     | 54 assertions passed against a new synthetic loopback target                                           |
@@ -56,6 +56,8 @@ The same-family runtime review confirmed and replayed corrections for mutable
 connector requests, non-finite observation dates, currency-conflicting amounts,
 working-directory interpreter selection and unknown supplier-registration
 status. A separate regression binds Gmail records to both trip and record IDs.
+GitHub review also corrected canonicalization before MIME-field deduplication
+and isolated duplicate source references to the rejecting adapter read.
 These reviews do not establish model-family independence, B.9 verification,
 behavioral compliance of every host LLM or universal prompt-injection immunity.
 All fixtures are synthetic; no real account or personal travel archive was used

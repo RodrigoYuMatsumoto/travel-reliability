@@ -15,8 +15,8 @@ Passing the automated suite is not an exhaustive security assessment or a produc
 
 ## Current executed evidence
 
-The local v0.4 candidate was checked on 2026-10-31: **361 TypeScript tests,
-24 Python tests, four browser tests, twenty-two audit/package-gate regressions and
+The local v0.4 candidate was checked on 2026-10-31: **363 TypeScript tests,
+28 Python tests, four browser tests, twenty-two audit/package-gate regressions and
 54 authenticated DAST assertions passed**. Three durable-service TypeScript
 cases and one native OCR Python case were skipped locally; CI must provision
 their real PostgreSQL/Redis/S3 and Tesseract dependencies. Production build,

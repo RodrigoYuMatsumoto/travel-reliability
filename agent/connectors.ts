@@ -247,6 +247,7 @@ export class TravelConnectorRegistry {
     if (request.requests.length > this.remaining) reject('CONNECTOR_READ_BUDGET');
     this.remaining -= request.requests.length; // Atomic before the first await, including concurrent callers.
     const observations: BookingObservation[] = [];
+    const acceptedSourceRefs = new Set<string>();
     const reads: Array<{ sourceId: string; state: string }> = [];
     for (const row of request.requests) {
       const controller = new AbortController();
@@ -267,10 +268,17 @@ export class TravelConnectorRegistry {
           deadline,
         ]);
         const checked = validateBookingObservations(raw, now);
+        const returnedSourceRefs = new Set(checked.map((item) => item.sourceRef));
+        if (
+          returnedSourceRefs.size !== checked.length ||
+          checked.some((item) => acceptedSourceRefs.has(item.sourceRef))
+        )
+          reject('DUPLICATE_SOURCE_REFERENCE');
         if (checked.some((item) => !row.recordKeys.includes(item.recordKey)))
           reject('CONNECTOR_RESPONSE_SCOPE_DENIED');
         if (observations.length + checked.length > 80) reject('CONNECTOR_RESPONSE_LIMIT');
         observations.push(...checked);
+        for (const sourceRef of returnedSourceRefs) acceptedSourceRefs.add(sourceRef);
         reads.push({
           sourceId: row.sourceId,
           state: checked.length ? 'read_completed' : 'no_matching_record',
