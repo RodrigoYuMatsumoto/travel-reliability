@@ -38,6 +38,8 @@ A revisão semântica posterior leu os 52 comandos e oito papéis e confirmou um
 
 A [revisão automática do PR 5](https://github.com/RodrigoYuMatsumoto/travel-reliability/pull/5#discussion_r4430516889) encontrou uma lacuna adicional em A4/A8: a contagem de viajantes ocultava restrições funcionais ainda não declaradas. O intake agora conserva `mustHaves` como desconhecido até declaração, inclusive lista vazia explícita, sem reperguntar as contagens conhecidas. A mesma fronteira separa o valor do orçamento de seu `scope`; conhecer o montante não define quais despesas ele inclui. Casos de hospedagem com datas completas não exigem um indicador de voo de retorno para reconhecer a janela. As regressões verificam essas distinções sem atestar perfil, elegibilidade ou capacidade externa.
 
+Ao introduzir `budget.scope`, duas campanhas detectaram incompatibilidade no oráculo antigo: ele exigia objeto de orçamento idêntico, inclusive ausência do campo novo, enquanto a normalização contratual emite `scope:null` para desconhecido. As execuções FAIL foram preservadas. O oráculo passou a exigir valor/moeda literais, escopo declarado intacto, somente ausência normalizada para `null` e entrada imutável; campos extras continuam rejeitados. Replays válidos/hostis e novas campanhas verificam a regra atual. Isso não reclassifica exceções inesperadas como aprovação nem representa correção aritmética no runtime.
+
 Esses critérios são verificáveis; nem todos foram executados com LLM ou no host do usuário. Não se atribui resultado de teste a cenário apenas especificado.
 
 ## Compatibilidade e atualização de limites

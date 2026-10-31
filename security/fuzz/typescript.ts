@@ -3,6 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
 import { resolve, dirname, relative } from 'node:path';
 import http from 'node:http';
 import https from 'node:https';
@@ -288,9 +289,34 @@ const domainRoutes: Record<(typeof domainIds)[number], string | null> = {
   all: 'trip-intake',
 };
 
+function checkedBrief(input: unknown) {
+  const snapshot = structuredClone(input);
+  try {
+    return prepareBrief(input);
+  } finally {
+    ensure(isDeepStrictEqual(input, snapshot), 'BRIEF_INPUT_MUTATED');
+  }
+}
+
 function exerciseBrief(item: Case): Outcome {
   const variant = item.variant % 32;
   const base = { tripKey: 'SRC01', request: 'plan', language: item.variant % 2 ? 'pt-BR' : 'en' };
+  if (variant >= 16 && variant <= 19) {
+    const invalidScopes: unknown[] = [
+      [false, 0, []][item.seed % 3],
+      item.seed % 2 ? '' : 'S'.repeat(121),
+      { syntheticUnknown: nested(25) },
+      JSON.parse('{"__proto__":{"fuzz_canary":"SRC01"}}'),
+    ];
+    return rejected(
+      () =>
+        checkedBrief({
+          ...base,
+          budget: { minorUnits: 0, currency: 'BRL', scope: invalidScopes[variant - 16] },
+        }),
+      ['INVALID_AGENT_BRIEF'],
+    );
+  }
   if (variant >= 20) {
     let input: unknown = base;
     if (variant < 28) input = invalidShape(base, variant - 20, 'tripKey');
@@ -302,7 +328,7 @@ function exerciseBrief(item: Case): Outcome {
     if (variant === 31)
       input = { ...base, departureDate: '2030-01-02', returnDate: '2030-01-01', returnTrip: true };
     return rejected(
-      () => prepareBrief(input),
+      () => checkedBrief(input),
       [variant === 31 ? 'CONFLICTING_TRIP_DATES' : 'INVALID_AGENT_BRIEF'],
     );
   }
@@ -345,8 +371,18 @@ function exerciseBrief(item: Case): Outcome {
         scheduledAt: null,
       },
     };
-  const result = prepareBrief(input);
-  ensure(same(result, prepareBrief(input)), 'BRIEF_NONDETERMINISM');
+  if (variant >= 11 && variant <= 15)
+    input.budget = {
+      minorUnits: variant === 14 ? 0 : variant === 15 ? 9000000000000 : item.seed % 1000001,
+      currency: 'BRL',
+      ...(variant === 11 || variant === 14 || variant === 15
+        ? { scope: variant === 15 ? 'SRC04 SRC05' : 'SRC04' }
+        : variant === 12
+          ? { scope: null }
+          : {}),
+    };
+  const result = checkedBrief(input);
+  ensure(same(result, checkedBrief(input)), 'BRIEF_NONDETERMINISM');
   ensure(
     result.questions.length <= 5 && new Set(result.unknowns).size === result.unknowns.length,
     'BRIEF_QUESTION_BOUND',
@@ -368,12 +404,29 @@ function exerciseBrief(item: Case): Outcome {
     !('declaredCapabilitiesVerified' in result) || result.declaredCapabilitiesVerified === false,
     'BRIEF_VERIFIED_CLAIM',
   );
-  ensure(
-    result.brief.budget === null || same(result.brief.budget, input.budget),
-    'BRIEF_BUDGET_INVENTED',
-  );
-  if (input.budget === null || input.budget === undefined)
+  if (input.budget === null || input.budget === undefined) {
     ensure(result.brief.budget === null, 'BRIEF_UNKNOWN_BUDGET_COERCED');
+  } else {
+    const suppliedBudget = input.budget as {
+      minorUnits: number;
+      currency: string;
+      scope?: string | null;
+    };
+    ensure(
+      result.brief.budget !== null &&
+        result.brief.budget.minorUnits === suppliedBudget.minorUnits &&
+        result.brief.budget.currency === suppliedBudget.currency,
+      'BRIEF_BUDGET_INVENTED',
+    );
+    ensure(
+      result.brief.budget.scope === (suppliedBudget.scope ?? null),
+      'BRIEF_BUDGET_SCOPE_INVENTED',
+    );
+    ensure(
+      same(Object.keys(result.brief.budget).sort(), ['currency', 'minorUnits', 'scope']),
+      'BRIEF_BUDGET_SHAPE',
+    );
+  }
   if (variant === 0) ensure(result.unknowns.includes('domain'), 'BRIEF_MISSING_DOMAIN');
   if (variant === 1)
     ensure(
