@@ -15,7 +15,7 @@ Passing the automated suite is not an exhaustive security assessment or a produc
 
 ## Current executed evidence
 
-Version 0.3 expands to eight roles, 52 commands and seven read-only MCP tools. The real SDK tests load every declared role/command and preserve legacy names. Local verification passed 143 TypeScript tests, 17 Python tests, four browser tests and the 54 authenticated DAST assertions. Three durable-service cases and one native OCR case require the CI services. The source-derived coverage and semantic-review limits are recorded in [agent audit](AGENT_AUDIT.md).
+Version 0.3 expands to eight roles, 52 commands and seven read-only MCP tools. The real SDK tests load every declared role/command and preserve legacy names. Local verification passed 145 TypeScript tests, 17 Python tests, four browser tests and the 54 authenticated DAST assertions. Three durable-service cases and one native OCR case require the CI services. The source-derived coverage and semantic-review limits are recorded in [agent audit](AGENT_AUDIT.md).
 
 The v0.3 TypeScript mutation campaign added catalog, domain-aware intake, checkpoint preparation and expense settlement to the nine existing families: 13,000 executions per seed, two seeds, zero remaining findings or infrastructure errors, stable source fingerprints. The oracle separately checks exact shares, prior internal payments, residual settlement and absence of external effects. These counts do not imply unique inputs, coverage-guided fuzzing or evaluation of a host LLM. The Python runtime is unchanged and remains exercised by recurring CI.
 

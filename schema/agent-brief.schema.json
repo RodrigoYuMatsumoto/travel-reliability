@@ -310,6 +310,14 @@
             "currency": {
               "type": "string",
               "pattern": "^[A-Z]{3}$"
+            },
+            "scope": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1,
+              "maxLength": 120
             }
           }
         }

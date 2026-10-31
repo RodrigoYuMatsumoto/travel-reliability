@@ -193,3 +193,44 @@ it('reuses a supplied incident context instead of asking the same rights intake 
   expect(result.unknowns).toEqual(['supplier_terms', 'evidence_refs']);
   expect(result.brief.incident.ongoing).toBe(false);
 });
+
+it('preserves undeclared functional constraints after party counts are supplied', () => {
+  const input = {
+    tripKey: 'lodge-1',
+    request: 'compare',
+    language: 'pt-BR',
+    domain: 'lodging',
+    destination: 'BBB',
+    departureDate: '2030-03-01',
+    returnDate: '2030-03-05',
+    party: { adults: 1, children: 0, infants: 0 },
+  };
+  const unknown = prepareBrief(input);
+  expect(unknown.unknowns).toContain('mustHaves');
+  expect(unknown.unknowns).not.toContain('date_window');
+  expect(unknown.questions.some((question) => question.fields.includes('mustHaves'))).toBe(true);
+  const explicitEmpty = prepareBrief({ ...input, mustHaves: [] });
+  expect(explicitEmpty.unknowns).not.toContain('mustHaves');
+  expect(explicitEmpty.unknowns).not.toContain('party_profile');
+  const declared = prepareBrief({ ...input, mustHaves: ['step_free'] });
+  expect(declared.brief.mustHaves).toEqual(['step_free']);
+});
+
+it('distinguishes a budget amount from its declared expense scope', () => {
+  const input = {
+    tripKey: 'budget-1',
+    request: 'compare',
+    language: 'en',
+    domain: 'budget',
+    budget: { minorUnits: 0, currency: 'BRL' },
+  };
+  const unknown = prepareBrief(input);
+  expect(unknown.brief.budget?.minorUnits).toBe(0);
+  expect(unknown.brief.budget?.scope).toBeNull();
+  expect(unknown.unknowns).toContain('budget.scope');
+  const declared = prepareBrief({
+    ...input,
+    budget: { ...input.budget, scope: 'Entire declared trip' },
+  });
+  expect(declared.unknowns).not.toContain('budget.scope');
+});

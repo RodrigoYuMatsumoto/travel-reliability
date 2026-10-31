@@ -101,6 +101,7 @@ export const briefSchema = {
           properties: {
             minorUnits: { type: 'integer', minimum: 0, maximum: 9000000000000 },
             currency: { type: 'string', pattern: '^[A-Z]{3}$' },
+            scope: nullableText,
           },
         },
       ],
@@ -157,7 +158,7 @@ interface Brief {
     infants: number | null;
     households: number | null;
   };
-  budget: { minorUnits: number; currency: string } | null;
+  budget: { minorUnits: number; currency: string; scope: string | null } | null;
   mustHaves: string[] | null;
 }
 const ajv = new Ajv2020({ strict: true, allErrors: false });
@@ -179,7 +180,7 @@ export function prepareBrief(input: unknown) {
     departureDate: supplied.departureDate ?? null,
     returnTrip: supplied.returnTrip ?? null,
     returnDate: supplied.returnDate ?? null,
-    budget: supplied.budget ?? null,
+    budget: supplied.budget ? { ...supplied.budget, scope: supplied.budget.scope ?? null } : null,
     mustHaves: supplied.mustHaves ?? null,
     groupMode: supplied.groupMode ?? null,
     party: {
@@ -408,18 +409,14 @@ export function prepareBrief(input: unknown) {
     const known = new Set<string>(['trip_scope']);
     if (brief.destination && (!selected.domains.includes('flight') || brief.origin))
       known.add('travel_area');
-    if (
-      brief.departureDate &&
-      (brief.returnTrip === false || (brief.returnTrip === true && brief.returnDate))
-    )
+    if (brief.departureDate && (brief.returnTrip === false || brief.returnDate))
       known.add('date_window');
-    if (
-      [brief.party.adults, brief.party.children, brief.party.infants].every(
-        (value) => value !== null,
-      )
-    )
-      known.add('party_profile');
-    if (brief.budget !== null) known.add('budget_scope');
+    const partyCountsKnown = [brief.party.adults, brief.party.children, brief.party.infants].every(
+      (value) => value !== null,
+    );
+    if (partyCountsKnown && brief.mustHaves !== null) known.add('party_profile');
+    if (brief.budget?.scope !== null && brief.budget?.scope !== undefined)
+      known.add('budget_scope');
     if (brief.mustHaves !== null) known.add('functional_needs');
     if (
       ['serviceKind', 'country', 'kind', 'ongoing', 'occurredAt'].every(
@@ -443,8 +440,25 @@ export function prepareBrief(input: unknown) {
         'O foco é voo, transporte terrestre, hospedagem, roteiro ou outro serviço?',
         'Is the focus a flight, ground transport, lodging, an itinerary or another service?',
       );
-    for (const question of workflow.questions)
-      add([question.field], question.question, question.question);
+    for (const question of workflow.questions) {
+      if (question.field === 'party_profile' && partyCountsKnown && brief.mustHaves === null)
+        add(
+          ['mustHaves'],
+          'Quais restrições funcionais devem ser consideradas: acessibilidade, bagagem ou cuidado com dependentes? Informe uma lista vazia somente se nenhuma foi declarada.',
+          'Which functional constraints must be considered: accessibility, baggage or dependent care? Supply an empty list only when none were declared.',
+        );
+      else if (
+        question.field === 'budget_scope' &&
+        brief.budget !== null &&
+        brief.budget.scope === null
+      )
+        add(
+          ['budget.scope'],
+          'Quais despesas estão incluídas no orçamento já informado?',
+          'Which expenses are included in the budget already supplied?',
+        );
+      else add([question.field], question.question, question.question);
+    }
     return {
       ...result(
         questions.length ? 'needs_critical_information' : workflow.state,
