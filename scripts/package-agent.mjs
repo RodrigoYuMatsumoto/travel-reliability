@@ -54,8 +54,22 @@ function assertWorkspaceCopy(path) {
     rel = relative(trustedRoot, target);
   if (isAbsolute(rel) || rel === '..' || rel.startsWith('..' + sep))
     throw new Error('Workspace source escapes root');
-  if (hash(readFileSync(file)) !== hash(read(path)))
-    throw new Error('Workspace and committed source differ');
+  const actual = readFileSync(file),
+    expected = read(path);
+  if (!actual.equals(expected)) {
+    // Git's text=auto/eol=lf policy permits a clean Windows checkout to retain
+    // CRLF in the worktree. Normalize that representation only, never content,
+    // Unicode, BOMs or invalid UTF-8. Archive bytes always come from HEAD.
+    const decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
+    let normalized;
+    try {
+      if (actual.includes(0) || expected.includes(0)) throw new Error('Binary source');
+      normalized = Buffer.from(decoder.decode(actual).replace(/\r\n/g, '\n'), 'utf8');
+    } catch {
+      throw new Error('Workspace source encoding differs from committed source');
+    }
+    if (!normalized.equals(expected)) throw new Error('Workspace and committed source differ');
+  }
 }
 for (const path of [
   'scripts/catalog-export.ts',
