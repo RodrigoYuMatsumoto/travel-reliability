@@ -421,6 +421,12 @@ export function prepareBrief(input: unknown) {
       known.add('party_profile');
     if (brief.budget !== null) known.add('budget_scope');
     if (brief.mustHaves !== null) known.add('functional_needs');
+    if (
+      ['serviceKind', 'country', 'kind', 'ongoing', 'occurredAt'].every(
+        (field) => brief.incident[field as keyof Brief['incident']] !== null,
+      )
+    )
+      known.add('incident_context');
     const workflow = prepareWorkflow({
       tripKey: brief.tripKey,
       workflowId: selected.id,

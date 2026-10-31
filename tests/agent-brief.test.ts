@@ -174,3 +174,22 @@ it('keeps disruption triage ahead of a conflicting workflow selection', () => {
   expect(result.recommendedWorkflows).toContain('consumer-rights');
   expect(result.recommendedWorkflows).not.toContain('build-itinerary');
 });
+
+it('reuses a supplied incident context instead of asking the same rights intake again', () => {
+  const result = prepareBrief({
+    tripKey: 'rights-1',
+    request: 'rights',
+    language: 'pt-BR',
+    incident: {
+      serviceKind: 'bus',
+      country: 'BR',
+      kind: 'cancellation',
+      ongoing: false,
+      occurredAt: '2030-01-01T12:00:00Z',
+    },
+  });
+  expect(result.recommendedWorkflows).toEqual(['consumer-rights']);
+  expect(result.unknowns).not.toContain('incident_context');
+  expect(result.unknowns).toEqual(['supplier_terms', 'evidence_refs']);
+  expect(result.brief.incident.ongoing).toBe(false);
+});

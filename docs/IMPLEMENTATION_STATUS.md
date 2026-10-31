@@ -35,7 +35,7 @@ are included. No personal travel records or reference-repository code is bundled
 | Check                                | Result                                                                                                                                        |
 | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | Strict TypeScript / production build | PASS                                                                                                                                          |
-| Vitest                               | 142 passed locally; 3 durable-service cases require PostgreSQL/Redis/S3 in CI. Includes seven real MCP stdio tests and all catalog resources  |
+| Vitest                               | 143 passed locally; 3 durable-service cases require PostgreSQL/Redis/S3 in CI. Includes seven real MCP stdio tests and all catalog resources  |
 | Python                               | 17 passed locally; 1 native OCR case requires Tesseract in CI. Includes four MIME/UTF-8 fuzz regressions                                      |
 | Desktop/mobile Playwright            | 4 passed: synthetic workflow, group-allocation UI, documents/dossier/language, viewport, automated WCAG checks and private-cache exclusion    |
 | Formatting / Python lint             | PASS                                                                                                                                          |
