@@ -16,19 +16,20 @@ def source_path(value: str) -> str:
 def summarize(kind: str, raw: dict) -> dict:
     if kind == "semgrep":
         scanned = raw.get("paths", {}).get("scanned", [])
-        errors = raw.get("errors", [])
-        results = raw.get("results", [])
+        errors = raw.get("errors")
+        results = raw.get("results")
         if not isinstance(scanned, list) or not scanned or not isinstance(errors, list) or not isinstance(results, list):
             raise ValueError("INVALID_SEMGREP_REPORT")
         findings = [{"ruleId": str(item["check_id"])[:500], "severity": str(item.get("extra", {}).get("severity", "unknown"))[:20], "path": source_path(item["path"]), "line": int(item.get("start", {}).get("line", 0))} for item in results]
         return {"status": "FAIL" if findings or errors else "PASS", "tool": "Semgrep CE", "version": str(raw.get("version", "unknown"))[:40], "files": len(scanned), "parserOrToolErrors": len(errors), "findings": findings, "rulesets": ["p/security-audit", "p/owasp-top-ten"], "privacy": "Local scan, metrics disabled; no source snippets or raw diagnostics in this summary."}
     if kind == "bandit":
         metrics = raw.get("metrics", {}).get("_totals", {})
-        results = raw.get("results", [])
-        if not metrics or not isinstance(results, list):
+        results = raw.get("results")
+        errors = raw.get("errors")
+        if not metrics or not isinstance(results, list) or not isinstance(errors, list):
             raise ValueError("INVALID_BANDIT_REPORT")
         findings = [{"ruleId": str(item["test_id"])[:80], "severity": str(item.get("issue_severity", "unknown"))[:20], "confidence": str(item.get("issue_confidence", "unknown"))[:20], "path": source_path(item["filename"]), "line": int(item.get("line_number", 0))} for item in results]
-        return {"status": "FAIL" if findings or raw.get("errors") else "PASS", "tool": "Bandit", "version": "1.9.4", "lines": metrics.get("loc", 0), "parserOrToolErrors": len(raw.get("errors", [])), "findings": findings, "inlineTriage": "The HOME-only sandbox hint has one narrowly scoped B108 suppression, reviewed with rationale in source; no general rule exclusions.", "privacy": "Only rule metadata, relative source paths and counters."}
+        return {"status": "FAIL" if findings or errors else "PASS", "tool": "Bandit", "version": "1.9.4", "lines": metrics.get("loc", 0), "parserOrToolErrors": len(errors), "findings": findings, "inlineTriage": "The HOME-only sandbox hint has one narrowly scoped B108 suppression, reviewed with rationale in source; no general rule exclusions.", "privacy": "Only rule metadata, relative source paths and counters."}
     raise ValueError("UNKNOWN_SCANNER")
 
 

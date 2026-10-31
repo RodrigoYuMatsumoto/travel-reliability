@@ -10,6 +10,7 @@
 - Executed Semgrep/Bandit SAST, synthetic authenticated HTTP/browser DAST and reproducible mutation fuzzing; recurring isolated audit workflow includes a bounded ZAP active scan.
 - Fixed attachment-subtree contamination and silent text truncation in email ingestion; added MIME structure/text limits and reduced schema diagnostic amplification.
 - Explicit 16-byte GCM tag lengths; privacy-preserving security reports and documented assessment limits.
+- Corrected a ZAP-confirmed inherited CSP font wildcard and added a header regression; scanner reports fail closed on missing fields, tool errors and missing active traffic.
 
 - Added a self-locating Windows demo launcher and explicit clone/directory steps in both quick starts.
 - Clarified local server lifetime, interface/API ports and wrong-directory npm errors.

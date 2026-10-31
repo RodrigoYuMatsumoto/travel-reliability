@@ -45,6 +45,15 @@ export const briefSchema = {
     party: {
       type: ['object', 'null'],
       additionalProperties: false,
+      not: {
+        type: 'object',
+        required: ['adults', 'children', 'infants'],
+        properties: {
+          adults: { const: 0 },
+          children: { const: 0 },
+          infants: { const: 0 },
+        },
+      },
       properties: {
         adults: nullableCount,
         children: nullableCount,

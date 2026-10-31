@@ -83,6 +83,16 @@ it('represents a declared unaccompanied minor without assuming eligibility or an
   );
 });
 
+it('rejects a fully declared empty party while retaining partially unknown composition', () => {
+  expect(() => prepareBrief({ ...draft(), party: { adults: 0, children: 0, infants: 0 } })).toThrow(
+    'INVALID_AGENT_BRIEF',
+  );
+  expect(
+    prepareBrief({ ...draft(), party: { adults: 0, children: null, infants: 0 } }).brief.party
+      .children,
+  ).toBeNull();
+});
+
 it('asks the group scope before expanding an ambiguous request into new travel research', () => {
   const result = prepareBrief({ tripKey: 'group-1', request: 'group', language: 'en' });
   expect(result.state).toBe('needs_group_mode');

@@ -190,9 +190,14 @@ try {
     });
   cases.push({
     name: 'restrictive CSP',
-    status: pageResponse.headers.get('content-security-policy')?.includes("object-src 'none'")
-      ? 'PASS'
-      : 'FAIL',
+    status:
+      pageResponse.headers.get('content-security-policy')?.includes("object-src 'none'") &&
+      pageResponse.headers
+        .get('content-security-policy')
+        ?.split(';')
+        .some((directive) => directive.trim() === "font-src 'self'")
+        ? 'PASS'
+        : 'FAIL',
   });
   const browser = await chromium.launch({ headless: true });
   try {

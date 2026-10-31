@@ -4,6 +4,21 @@ import { input } from '../api/src/input-schemas.js';
 import { plan } from '../api/src/planning.js';
 import { demoTrip } from '../api/src/demo.js';
 import { AppError } from '../api/src/errors.js';
+import { buildApp } from '../api/src/app.js';
+import { loadConfig } from '../api/src/config.js';
+
+it('restricts fonts to the application origin instead of inheriting a wildcard HTTPS source', async () => {
+  const { app } = await buildApp(loadConfig({ APP_MODE: 'demo' }));
+  try {
+    const response = await app.inject('/health');
+    const directives = String(response.headers['content-security-policy'])
+      .split(';')
+      .map((part) => part.trim());
+    expect(directives.find((part) => part.startsWith('font-src '))).toBe("font-src 'self'");
+  } finally {
+    await app.close();
+  }
+});
 
 it('bounds validation diagnostics instead of amplifying thousands of invalid fields', () => {
   const extras = Object.fromEntries(
