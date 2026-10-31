@@ -6,7 +6,7 @@ import { Temporal } from '@js-temporal/polyfill';
 import { AppError, requireCondition } from './errors.js';
 
 const ajv = new Ajv2020({
-  allErrors: true,
+  allErrors: false,
   strict: true,
   coerceTypes: false,
   removeAdditional: false,
@@ -27,7 +27,9 @@ export function validateTrip(input: unknown): TripContract {
     throw new AppError(
       'INVALID_CONTRACT',
       422,
-      check.errors?.map((e) => ({ path: e.instancePath, keyword: e.keyword })),
+      check.errors
+        ?.slice(0, 20)
+        .map((e) => ({ path: e.instancePath.slice(0, 300), keyword: e.keyword })),
     );
   const trip = input as unknown as TripContract;
   requireCondition(trip.endDate >= trip.startDate, 'END_BEFORE_START', 422);

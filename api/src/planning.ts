@@ -14,7 +14,7 @@ import {
 } from '../../schema/src/planning.js';
 import { AppError, requireCondition } from './errors.js';
 
-const ajv = new Ajv2020({ strict: true, allErrors: true });
+const ajv = new Ajv2020({ strict: true, allErrors: false });
 (addFormats as unknown as (a: Ajv2020) => void)(ajv);
 const validators = Object.fromEntries(
   Object.entries(planningSchemas).map(([id, schema]) => [id, ajv.compile(schema)]),
@@ -707,7 +707,9 @@ export function plan(tool: string, value: unknown) {
     throw new AppError(
       'INVALID_PLANNING_INPUT',
       422,
-      check.errors?.map((e) => ({ path: e.instancePath, keyword: e.keyword })),
+      check.errors
+        ?.slice(0, 20)
+        .map((e) => ({ path: e.instancePath.slice(0, 300), keyword: e.keyword })),
     );
   const timeKeys = new Set([
     'observedAt',

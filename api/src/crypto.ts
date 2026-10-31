@@ -28,7 +28,9 @@ export class Vault {
   open(scope: string, sealed: Buffer): Buffer {
     try {
       if (sealed.length < 32 || sealed.subarray(0, 4).toString() !== 'TRL1') throw new Error();
-      const decipher = createDecipheriv('aes-256-gcm', this.key(scope), sealed.subarray(4, 16));
+      const decipher = createDecipheriv('aes-256-gcm', this.key(scope), sealed.subarray(4, 16), {
+        authTagLength: 16,
+      });
       decipher.setAAD(Buffer.from(scope));
       decipher.setAuthTag(sealed.subarray(16, 32));
       return Buffer.concat([decipher.update(sealed.subarray(32)), decipher.final()]);

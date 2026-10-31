@@ -1,5 +1,23 @@
 # Architecture
 
+## Agent first
+
+The primary user experience is an agent attached to the traveler's own LLM host. The portable agent and nine selected commands require no application installation. A self-contained skill ZIP supports hosts that discover `SKILL.md`; other hosts use the same instructions manually. Host tools supply authorized browsing, current supplier information and private evidence storage. None of those capabilities are invented by a prompt.
+
+The optional MCP stdio runtime exposes four bounded, stateless tools: `travel_prepare_brief`, `travel_schema`, `travel_plan` and `travel_check_trip`. Schemas and individual reviewed workflows are loaded on demand. It makes no model/provider/network calls, accepts no arbitrary file path and executes no booking, payment or messaging action. The host retains its permissions and user consent boundary. A brief separates trips, groups, explicit constraints and unknowns; checklists anticipate connections, deadlines, coverage gaps and contingency needs without claiming to predict events.
+
+```mermaid
+flowchart LR
+  T[Traveler] --> HOST[User-controlled LLM host]
+  PACK[Portable agent / selected prompts / skill] --> HOST
+  HOST -->|Host permissions| RESEARCH[Current authorized sources]
+  HOST -->|Local stdio / bounded JSON| MCP[Four MCP tools]
+  MCP --> CORE[Brief / schemas / deterministic calculators / checks]
+  HOST -->|Explicit choice| SUPPORT[Optional evidence web workbench]
+```
+
+The web workbench below is an optional evidence and operations layer. Its separately configured model-assisted extraction is optional and does not replace the user's LLM host. Research claims, prices and confirmations still require fresh evidence and appropriate authorization.
+
 ## Decisions
 
 | Decision                     | Reason and consequence                                                                                                                               |
@@ -29,7 +47,7 @@ flowchart LR
 
 ## Modules
 
-`schema/`: canonical closed contracts and generated types. `api/`: authentication,
+`agents/` and `prompts/`: portable agent/workflows. `skills/`: skill entrypoint whose references are assembled from canonical files. `agent/`: bounded MCP/brief runtime. `security/`: reproducible SAST/DAST/fuzzing support. `schema/`: canonical closed contracts and generated types. `api/`: authentication,
 records, evidence lifecycle, assessment, planning, exports and moderation.
 `web/`: responsive app, offline verifier and static-only service worker. `mobile/`:
 PWA installation contract. `ingest/`: bounded extraction subprocesses and HTTP

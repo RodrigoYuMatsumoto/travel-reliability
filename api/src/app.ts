@@ -46,6 +46,7 @@ import { LLMExtractor, policyPrivacyReview } from './llm.js';
 import { plan } from './planning.js';
 import { summarizeComparisons } from './review-comparison.js';
 import { planningSchemas } from '../../schema/src/planning.js';
+import { APP_VERSION } from './version.js';
 
 export interface Dependencies {
   records?: RecordStore;
@@ -233,7 +234,7 @@ export async function buildApp(config = loadConfig(), dependencies: Dependencies
   };
   app.get('/health', async () => ({
     status: 'ok',
-    version: '0.1.0',
+    version: APP_VERSION,
     mode: config.mode,
     persistence: config.databaseUrl ? 'postgresql' : 'ephemeral',
     llmEnabled: config.llmEnabled,

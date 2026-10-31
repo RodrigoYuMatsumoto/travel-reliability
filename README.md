@@ -1,18 +1,35 @@
 # Travel Reliability
 
-**Open travel contracts, evidence and recovery workflows. Brazil first, usable worldwide.**
+**Make your own AI a travel agent with traceable sources, explicit costs and verifiable evidence. Brazil first, usable worldwide.**
 
-[Português](README.pt-BR.md) · [Quick start](#try-it-locally) · [Nine planning tools](docs/PLANNING.md) · [Security](SECURITY.md) · [Architecture](docs/ARCHITECTURE.md) · [Delivery evidence](docs/IMPLEMENTATION_STATUS.md)
+[Português](README.pt-BR.md) · [Use your AI](#use-your-ai-no-installation) · [Nine commands](prompts/README.md) · [Optional local app](#optional-local-app) · [Security](SECURITY.md) · [Architecture](docs/ARCHITECTURE.md) · [Delivery evidence](docs/IMPLEMENTATION_STATUS.md)
 
-Travel plans fail at the boundaries: an undisclosed fee, an unconfirmed booking, a missed connection, an inaccessible room, a refund with no trace. Travel Reliability makes those boundaries explicit, preserving what was offered, what was confirmed and what remains unknown.
+Travel Reliability starts with a **portable agent instruction kit** you give to your own LLM. Nine commands guide research, comparisons, group allocation and disruption/evidence workflows. Optional validated local tools handle calculations and contracts; a self-hosted app supports private evidence organization.
 
-This is a self-hosted v0.1 application and a public data contract. It does not sell tickets, invent inventory, file complaints or determine legal liability.
+The agent distinguishes quoted facts, verified conditions and unknowns. It does not acquire browsing or provider access merely by reading a prompt, and the documentary tools never invent inventory or submit a transaction. Purchases, cancellations and messages require specific traveler authorization and a real authorized execution capability.
 
-## Try it locally
+## Use your AI: no installation
 
-Prerequisite: Node.js 24. No API key, database, Python or AI subscription is needed for the text-document demo.
+1. Open [the agent instructions](agents/TRAVEL_AGENT.md), click **Raw**, and copy the content into your AI host's project instructions or a new conversation.
+2. Load only the [command](prompts/README.md) needed for the task. Do not attach all nine workflows on every turn.
+3. Describe the trip with pseudonyms and the minimum necessary constraints. Tell the host which capabilities it actually has, such as authorized browsing or local tools.
 
-First clone the repository and enter its directory. Run the commands below in the same terminal:
+```text
+Use the Travel Reliability agent and command 09 for group allocation.
+Work with fictional households N01 and N02, five nights and currency BRL.
+First identify the constraints needed to compare complete group costs.
+Do not invent prices, availability or accepted allocation rules.
+```
+
+Markdown instructions require no Node.js, npm, Git, Docker or local web server. The LLM runs in the host you choose under its own permissions and data policy. [Agent setup, the optional skill ZIP and MCP connection](agents/README.md) explain the boundaries. The public [agent-kit manifest](agents/manifest.json) is a package index, not a universal plugin installer. A compatible skills host can use the packaged `travel-agent` folder; other interfaces use explicit copy/paste.
+
+For executable local tools in a compatible stdio MCP host, install the full repository's Node.js dependencies and configure the host to run `node` with the absolute path to `scripts/agent-mcp.mjs`. This is optional; it is not a live fare-search connector or automatic compatibility with every chat interface.
+
+## Optional local app
+
+For the evidence app on Windows, install **Node.js 24**, choose **Code → Download ZIP** on GitHub, extract the full source ZIP, and double-click **`start-demo.cmd`**. The first start installs locked dependencies; later starts reuse a matching installation. The browser opens only after the synthetic demo is ready. Git, Python, Docker and a model API key are not required for this text-document demo. Keep its window open while using the app.
+
+For developers using an existing terminal:
 
 ```sh
 git clone https://github.com/RodrigoYuMatsumoto/travel-reliability.git
@@ -23,9 +40,7 @@ npm run demo
 
 Open **http://127.0.0.1:5173** and choose **Explore demo**. The sample is fictional. Demo data is encrypted in memory and disappears on restart. Do not use the ephemeral demo as your only evidence archive.
 
-**Windows / PowerShell 5.1:** after cloning, double-click `start-demo.cmd` inside the repository, or run `& "FULL-PATH-TO-REPOSITORY\start-demo.cmd"`. The launcher enters its own directory, checks Node.js 24 and installs missing demo dependencies. Keep its window open while using the app.
-
-`Missing script` means npm is reading a different project's `package.json`; check your directory. `ERR_CONNECTION_REFUSED` means no server accepted the connection at that address. These are local addresses on the computer running the terminal, not hosted GitHub websites. During `npm run demo`, port 5173 serves the interface and port 4310 serves the API (`/health`); the built-server workflow below serves both on 4310. Starting the server is required before opening either address.
+`Missing script` means npm is reading a different project's package.json. `ERR_CONNECTION_REFUSED` means the local server is not accepting connections. During the demo, port 5173 serves the interface and port 4310 serves the API (`/health`); these are addresses on the computer running the launcher, not hosted GitHub websites. See [installation and diagnostics](docs/INSTALLATION.md).
 
 For a single built server:
 

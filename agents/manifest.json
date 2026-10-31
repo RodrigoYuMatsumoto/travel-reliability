@@ -1,0 +1,40 @@
+{
+  "format": "travel-reliability-agent-kit",
+  "formatVersion": 1,
+  "version": "0.2.0",
+  "entrypoint": "agents/TRAVEL_AGENT.md",
+  "purpose": "Portable project instructions and command workflows for a user-controlled LLM host",
+  "defaultLanguage": "pt-BR",
+  "license": "Apache-2.0",
+  "contracts": {
+    "brief": "schema/agent-brief.schema.json",
+    "planning": "schema/planning.schema.json",
+    "trip": "schema/trip-contract.schema.json"
+  },
+  "execution": "Host capabilities and permissions are required; this manifest installs no plugin and grants no tools",
+  "workflow": [
+    "structured_brief",
+    "authorized_research",
+    "cost_and_source_comparison",
+    "checks_and_contingencies",
+    "traveler_review"
+  ],
+  "optionalRuntime": {
+    "transport": "stdio",
+    "entrypoint": "scripts/agent-mcp.mjs",
+    "requires": "Full source repository, Node.js 24, installed dependencies and a compatible host",
+    "includedInManualKit": false,
+    "tools": ["travel_prepare_brief", "travel_schema", "travel_plan", "travel_check_trip"]
+  },
+  "commands": [
+    { "id": "flex-dates", "path": "prompts/01_datas_flexiveis.md" },
+    { "id": "airports", "path": "prompts/02_aeroportos_e_companhias.md" },
+    { "id": "connections", "path": "prompts/03_rotas_e_conexoes.md" },
+    { "id": "promotions", "path": "prompts/04_descontos_e_promocoes.md" },
+    { "id": "total-cost", "path": "prompts/05_custo_total_da_passagem.md" },
+    { "id": "fare-scenarios", "path": "prompts/06_alteracao_cancelamento_e_reembolso.md" },
+    { "id": "negotiation", "path": "prompts/07_negociacao_comercial.md" },
+    { "id": "hidden-city", "path": "prompts/08_riscos_de_hidden_city.md" },
+    { "id": "group-split", "path": "prompts/09_viagens_em_grupo_e_rateio.md" }
+  ]
+}

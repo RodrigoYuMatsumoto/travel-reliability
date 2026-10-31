@@ -135,7 +135,7 @@ export const inputSchemas = {
   dossier: object({ request: text() }),
   consent: object({ consent: { const: true } }),
 };
-const ajv = new Ajv2020({ strict: true, allErrors: true });
+const ajv = new Ajv2020({ strict: true, allErrors: false });
 (addFormats as unknown as (instance: Ajv2020) => void)(ajv);
 const validators = Object.fromEntries(
   Object.entries(inputSchemas).map(([key, schema]) => [key, ajv.compile(schema)]),
@@ -146,7 +146,9 @@ export function input<T>(name: keyof typeof inputSchemas, value: unknown): T {
     throw new AppError(
       'INVALID_INPUT',
       422,
-      check.errors?.map((e) => ({ path: e.instancePath, keyword: e.keyword })),
+      check.errors
+        ?.slice(0, 20)
+        .map((e) => ({ path: e.instancePath.slice(0, 300), keyword: e.keyword })),
     );
   return value as T;
 }

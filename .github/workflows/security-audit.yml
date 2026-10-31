@@ -1,0 +1,122 @@
+name: Security audit
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  sast:
+    name: SAST (Semgrep and Bandit)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with: { persist-credentials: false }
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with: { version: 0.11.32, python-version: '3.12' }
+      - name: Local Semgrep scan without source upload or metrics
+        env:
+          SEMGREP_SEND_METRICS: 'off'
+          SEMGREP_ENABLE_VERSION_CHECK: '0'
+          SEMGREP_APP_TOKEN: ''
+        run: |
+          mkdir -p .local/security-audit/sast
+          uvx --from semgrep==1.183.0 semgrep scan --config p/security-audit --config p/owasp-top-ten --metrics off --no-git-ignore --json --output .local/security-audit/sast/semgrep-raw.json api/src agent web/src ingest/travel_ingest scripts
+      - name: Gate Semgrep and emit sanitized summary
+        if: always()
+        run: python security/sast/summarize.py semgrep .local/security-audit/sast/semgrep-raw.json .local/security-audit/sast/semgrep-summary.json
+      - name: Bandit production Python scan
+        if: always()
+        run: uvx bandit==1.9.4 --recursive ingest/travel_ingest --format json --output .local/security-audit/sast/bandit-raw.json
+      - name: Gate Bandit and emit sanitized summary
+        if: always()
+        run: python security/sast/summarize.py bandit .local/security-audit/sast/bandit-raw.json .local/security-audit/sast/bandit-summary.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: sast-summary
+          path: .local/security-audit/sast/*-summary.json
+          include-hidden-files: true
+          retention-days: 7
+
+  fuzz:
+    name: Fuzzing (bounded mutation)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with: { node-version: 24, cache: npm }
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with: { version: 0.11.32, python-version: '3.12' }
+      - run: npm ci
+      - run: uv sync --project ingest --locked
+      - run: node --import tsx security/fuzz/typescript.ts --seed 20261030 --cases 9000 --seconds 120 --output .local/security-audit/fuzz/typescript-ci.json
+      - run: uv run --project ingest python security/fuzz/ingest.py --seed 20261030 --cases 384 --seconds 120 --output .local/security-audit/fuzz/ingest-ci.json
+      # Harnesses contain only generated-case metadata, counters, source hashes and
+      # failure codes. Raw payloads/reduced recipes live elsewhere and are excluded.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: fuzz-metadata
+          path: .local/security-audit/fuzz/*-ci.json
+          include-hidden-files: true
+          retention-days: 7
+
+  dast:
+    name: DAST (isolated HTTP and ZAP)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npm run build
+      - run: npx --no playwright install --with-deps chromium
+      - name: Authenticated synthetic HTTP and browser matrix
+        run: npm run security:dast
+      - name: Start disposable public-surface target
+        run: |
+          mkdir -p .local/security-audit/zap
+          node --import tsx security/dast/target.ts > .local/security-audit/zap/target.log 2>&1 &
+          echo "AUDIT_TARGET_PID=$!" >> "$GITHUB_ENV"
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail --max-time 2 --output /dev/null http://127.0.0.1:4399/health; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - name: Bounded ZAP active scan of loopback only
+        id: zap
+        run: |
+          cp security/dast/zap.yaml .local/security-audit/zap/zap.yaml
+          set +e
+          timeout --kill-after=15s 10m docker run --rm --name travel-security-zap --network host --memory 2g --cpus 2 --pids-limit 512 --cap-drop ALL --security-opt no-new-privileges --user "$(id -u):$(id -g)" -e HOME=/zap/wrk -v "$PWD/.local/security-audit/zap:/zap/wrk:rw" ghcr.io/zaproxy/zaproxy@sha256:030d3df57735dacbb83464854758e674dd9ad01d79d12a129a8e58b1fd384238 zap.sh -Xmx1024m -dir /zap/wrk/zap-home -cmd -host 127.0.0.1 -port 8090 -autorun /zap/wrk/zap.yaml > .local/security-audit/zap/zap.log 2>&1
+          zap_exit=$?
+          set -e
+          echo "exit_code=$zap_exit" >> "$GITHUB_OUTPUT"
+          curl --silent --fail --max-time 3 http://127.0.0.1:4399/__audit_stats > .local/security-audit/zap/stats.json
+      - name: Gate findings and emit payload-free ZAP report
+        if: always() && steps.zap.outputs.exit_code != ''
+        run: python security/dast/summarize-zap.py --raw .local/security-audit/zap/zap-raw.json --stats .local/security-audit/zap/stats.json --log .local/security-audit/zap/zap.log --tool-exit '${{ steps.zap.outputs.exit_code }}' --output .local/security-audit/zap/zap-summary.json
+      - name: Stop only this job's target
+        if: always()
+        run: |
+          if [ -n "${AUDIT_TARGET_PID:-}" ]; then kill "$AUDIT_TARGET_PID" 2>/dev/null || true; fi
+          docker rm -f travel-security-zap >/dev/null 2>&1 || true
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: dast-summary
+          path: |
+            .local/security-audit/dast/authenticated.json
+            .local/security-audit/zap/zap-summary.json
+          include-hidden-files: true
+          retention-days: 7

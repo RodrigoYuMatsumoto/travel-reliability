@@ -8,6 +8,7 @@ package-lock.json
 api/openapi.json
 schema/trip-contract.schema.json
 schema/planning.schema.json
+schema/agent-brief.schema.json
 schema/src/trip-contract.ts
 examples/*.json
 prompts/*.md

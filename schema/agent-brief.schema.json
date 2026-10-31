@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pseudonymous travel agent intake",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "tripKey",
+    "request",
+    "language"
+  ],
+  "properties": {
+    "tripKey": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,40}$"
+    },
+    "request": {
+      "enum": [
+        "plan",
+        "compare",
+        "group",
+        "change",
+        "cancel",
+        "disruption",
+        "corporate"
+      ]
+    },
+    "language": {
+      "enum": [
+        "pt-BR",
+        "en"
+      ]
+    },
+    "groupMode": {
+      "enum": [
+        "planning",
+        "expenses_only",
+        null
+      ]
+    },
+    "incident": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "serviceKind": {
+          "enum": [
+            "flight",
+            "bus",
+            "lodging",
+            "tour",
+            "rental",
+            "other",
+            null
+          ]
+        },
+        "kind": {
+          "enum": [
+            "delay",
+            "cancellation",
+            "denied_boarding",
+            "baggage",
+            "service_issue",
+            "refund",
+            "other",
+            null
+          ]
+        },
+        "country": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[A-Z]{2}$"
+        },
+        "occurredAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "scheduledAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "ongoing": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "origin": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "destination": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "departureDate": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date"
+    },
+    "returnTrip": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "returnDate": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date"
+    },
+    "party": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "adults": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "children": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "infants": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "households": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 100
+        }
+      }
+    },
+    "budget": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "minorUnits",
+            "currency"
+          ],
+          "properties": {
+            "minorUnits": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9000000000000
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$"
+            }
+          }
+        }
+      ]
+    },
+    "mustHaves": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "maxItems": 12,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "step_free",
+          "stroller",
+          "checked_bag",
+          "car_seat",
+          "flexible_cancellation",
+          "stable_internet",
+          "no_separate_tickets"
+        ]
+      }
+    }
+  }
+}

@@ -16,6 +16,8 @@
   },
   "include": [
     "api/**/*.ts",
+    "agent/**/*.ts",
+    "security/**/*.ts",
     "schema/**/*.ts",
     "web/**/*.ts",
     "web/**/*.tsx",

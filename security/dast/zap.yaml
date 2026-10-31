@@ -1,0 +1,68 @@
+# Only the disposable local demo is in scope. This is not an authenticated ZAP scan.
+env:
+  contexts:
+    - name: synthetic-loopback
+      urls:
+        - http://127.0.0.1:4399
+      includePaths:
+        - 'http://127\.0\.0\.1:4399(?:/.*)?'
+      excludePaths:
+        - 'http://127\.0\.0\.1:4399/__audit_stats(?:\?.*)?'
+  parameters:
+    failOnError: true
+    failOnWarning: false
+    progressToStdout: true
+jobs:
+  - type: requestor
+    requests:
+      - url: http://127.0.0.1:4399/
+        responseCode: 200
+      - url: http://127.0.0.1:4399/health
+        responseCode: 200
+      - url: http://127.0.0.1:4399/schema/trip-contract.json
+        responseCode: 200
+      - url: http://127.0.0.1:4399/schema/planning.json
+        responseCode: 200
+      - url: http://127.0.0.1:4399/rules/br
+        responseCode: 200
+      - url: http://127.0.0.1:4399/auth/session
+        responseCode: 401
+      - url: http://127.0.0.1:4399/v1/trips
+        responseCode: 401
+  - type: spider
+    parameters:
+      context: synthetic-loopback
+      maxDuration: 1
+      maxDepth: 3
+      maxChildren: 10
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 2
+  - type: activeScan
+    name: bounded-active-scan
+    parameters:
+      context: synthetic-loopback
+      maxRuleDurationInMins: 1
+      maxScanDurationInMins: 4
+      addQueryParam: true
+      delayInMs: 500
+      threadPerHost: 2
+      injectPluginIdInHeader: true
+      scanHeadersAllRequests: true
+      maxAlertsPerRule: 10
+    policyDefinition:
+      defaultStrength: Medium
+      defaultThreshold: Medium
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 2
+  - type: report
+    parameters:
+      template: traditional-json
+      reportDir: /zap/wrk
+      reportFile: zap-raw
+      reportTitle: Synthetic loopback security audit
+      reportDescription: Bounded unauthenticated public-surface active scan. Authenticated tests run separately.
+      displayReport: false
+    sites:
+      - http://127.0.0.1:4399

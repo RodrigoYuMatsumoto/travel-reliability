@@ -38,7 +38,8 @@ async def extraction(request: Request):
             child_env = {
                 key: os.environ[key] for key in ("PATH", "SYSTEMROOT", "WINDIR") if key in os.environ
             }
-            child_env.update({"PYTHONIOENCODING": "utf-8", "PYTHONDONTWRITEBYTECODE": "1", "HOME": "/tmp"})
+            # HOME is only a sandbox hint, not an opened or predictable file.
+            child_env.update({"PYTHONIOENCODING": "utf-8", "PYTHONDONTWRITEBYTECODE": "1", "HOME": "/tmp"})  # nosec B108
             process = await asyncio.create_subprocess_exec(
                 sys.executable,
                 "-m",

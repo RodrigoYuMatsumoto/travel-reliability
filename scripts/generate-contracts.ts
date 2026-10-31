@@ -6,8 +6,15 @@ import { buildApp } from '../api/src/app.js';
 import { loadConfig } from '../api/src/config.js';
 import { demoTrip } from '../api/src/demo.js';
 import trip from '../schema/trip-contract.schema.json' with { type: 'json' };
+import { briefSchema } from '../agent/brief.js';
+import { APP_VERSION } from '../api/src/version.js';
 const json = async (path: string, value: unknown) =>
   writeFile(path, JSON.stringify(value, null, 2) + '\n');
+await json('schema/agent-brief.schema.json', {
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  title: 'Pseudonymous travel agent intake',
+  ...briefSchema,
+});
 await mkdir('examples', { recursive: true });
 for (const tool of toolIds) await json(`examples/${tool}.json`, planningExamples[tool]);
 const synthetic = demoTrip();
@@ -154,7 +161,7 @@ await json('api/openapi.json', {
   jsonSchemaDialect: 'https://json-schema.org/draft/2020-12/schema',
   info: {
     title: 'Travel Reliability API',
-    version: '0.1.0',
+    version: APP_VERSION,
     description:
       'Documentary travel contracts and evidence. Never sends a booking or complaint. Response domain types: schema/src/domain.ts. Regenerate from registered routes with npm run contracts:generate.',
   },

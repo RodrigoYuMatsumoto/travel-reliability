@@ -3,6 +3,8 @@
 Stars are an external outcome, not a deliverable or a guaranteed growth metric.
 The engineering priority is a useful, portable workflow people can verify.
 
+Version 0.2 makes the portable agent the primary entry point: manual instructions with no installation, a self-contained skill, and optional local MCP tools under the user's own LLM. Measure correct workflow selection, separation of trips, unknown-value preservation, evidence freshness, tokens per useful decision and explicit authorization for external commitments. The browser app remains optional support, not a prerequisite for using the agent.
+
 | Stage                           | Exit evidence                                                                                                              | Measure                                                                                                               |
 | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | 0.1 — Evidence before departure | Reproducible synthetic demo, contracts, offline bundle, nine documentary tools, regressions and documented limits          | Completion rate, unknown critical fields, export/decryption success, extraction correctness, zero default model calls |

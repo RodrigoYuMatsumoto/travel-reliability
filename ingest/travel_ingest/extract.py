@@ -8,6 +8,7 @@ import re
 import warnings
 import zipfile
 from email import policy
+from email.message import EmailMessage
 from email.parser import BytesParser
 from html import unescape
 from typing import Any
@@ -22,6 +23,8 @@ from travel_ingest.literal_facts import literal_facts
 MAX_BYTES = 20 * 1024 * 1024
 MAX_PAGES = 50
 MAX_TEXT = 150_000
+MAX_MIME_PARTS = 256
+MAX_MIME_DEPTH = 32
 Image.MAX_IMAGE_PIXELS = 25_000_000
 warnings.simplefilter("error", Image.DecompressionBombWarning)
 INJECTION_MARKERS = re.compile(
@@ -123,14 +126,41 @@ def _text_pages(data: bytes, media_type: str, warnings: list[str]) -> list[tuple
                 raise ExtractionError("TEXT_LIMIT")
             return [(1, text[:MAX_TEXT], "text")]
     if media_type == "message/rfc822":
-        message = BytesParser(policy=policy.default).parsebytes(data)
+        created = 0
+
+        def bounded_message(*args, **kwargs):
+            nonlocal created
+            created += 1
+            if created > MAX_MIME_PARTS:
+                raise ExtractionError("MIME_PART_LIMIT")
+            return EmailMessage(*args, **kwargs)
+
+        message = BytesParser(_class=bounded_message, policy=policy.default).parsebytes(data)
         texts: list[str] = []
-        for part in message.walk():
-            if part.get_content_disposition() == "attachment":
+        stack = [(message, 0)]
+        text_size = 0
+        while stack:
+            part, depth = stack.pop()
+            if depth > MAX_MIME_DEPTH:
+                raise ExtractionError("MIME_DEPTH_LIMIT")
+            # Prune the whole subtree: message.walk() would still visit an
+            # attached message's children after skipping its container.
+            if part.get_content_disposition() == "attachment" or part.get_filename() is not None:
+                warnings.append("EMAIL_ATTACHMENTS_SKIPPED")
+                continue
+            if part.is_multipart():
+                children = part.get_payload()
+                if not isinstance(children, list):
+                    raise ExtractionError("INVALID_EMAIL")
+                stack.extend((child, depth + 1) for child in reversed(children))
                 continue
             if part.get_content_type() == "text/plain":
-                texts.append(str(part.get_content()))
-        return [(1, "\n".join(texts)[:MAX_TEXT], "text")]
+                body = str(part.get_content())
+                text_size += len(body) + (1 if texts else 0)
+                if text_size > MAX_TEXT:
+                    raise ExtractionError("TEXT_LIMIT")
+                texts.append(body)
+        return [(1, "\n".join(texts), "text")]
     text = data.decode("utf-8", errors="strict")
     if len(text) > MAX_TEXT:
         raise ExtractionError("TEXT_LIMIT")

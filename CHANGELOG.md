@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.2.0 — agent-first
+
+- Portable agent instructions, self-contained skill packaging and four optional bounded MCP stdio tools for the user's own LLM host.
+- Pseudonymous intake with phase-aware disruption/refund/group-expense routing, canonical command IDs, explicit unknowns and anticipatory checks.
+- Optional Windows bootstrap supports extracted ZIPs, anchored directories, locked installation, readiness checks and safe browser opening.
+- Executed Semgrep/Bandit SAST, synthetic authenticated HTTP/browser DAST and reproducible mutation fuzzing; recurring isolated audit workflow includes a bounded ZAP active scan.
+- Fixed attachment-subtree contamination and silent text truncation in email ingestion; added MIME structure/text limits and reduced schema diagnostic amplification.
+- Explicit 16-byte GCM tag lengths; privacy-preserving security reports and documented assessment limits.
+
 - Added a self-locating Windows demo launcher and explicit clone/directory steps in both quick starts.
 - Clarified local server lifetime, interface/API ports and wrong-directory npm errors.
 - Fixed the privacy-history false positive on validated temporary GitHub PR merge metadata; source blobs and actual authored history remain checked, with regression coverage.

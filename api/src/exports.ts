@@ -199,7 +199,9 @@ export function decryptBundle(data: Buffer, passphrase: string): EvidenceBundle 
     N: 32768,
     maxmem: 64 * 1024 * 1024,
   });
-  const decipher = createDecipheriv('aes-256-gcm', key, data.subarray(20, 32));
+  const decipher = createDecipheriv('aes-256-gcm', key, data.subarray(20, 32), {
+    authTagLength: 16,
+  });
   decipher.setAAD(Buffer.from('TRB1'));
   decipher.setAuthTag(data.subarray(32, 48));
   const bundle = JSON.parse(

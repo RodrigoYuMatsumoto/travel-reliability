@@ -1,14 +1,35 @@
 # Travel Reliability
 
-**Contratos de viagem abertos, provas organizadas e recuperação rastreável. Brasil primeiro, arquitetura global.**
+**Use sua própria IA como agente de viagens, com fontes rastreáveis, custos explícitos e provas verificáveis. Brasil primeiro, arquitetura global.**
 
-[English](README.md) · [Planejamento e rateio](docs/PLANNING.md) · [Segurança](SECURITY.md) · [Cobertura dos testes de segurança](docs/SECURITY_TESTS.md) · [Evidências de entrega](docs/IMPLEMENTATION_STATUS.md)
+[English](README.md) · [Agente sem instalação](#use-na-sua-ia-sem-instalação) · [Nove comandos](prompts/README.md) · [Aplicativo opcional](#aplicativo-local-opcional) · [Segurança](SECURITY.md) · [Cobertura dos testes de segurança](docs/SECURITY_TESTS.md) · [Evidências de entrega](docs/IMPLEMENTATION_STATUS.md)
 
-Organize reservas, condições, conexões, comprovantes, ocorrências e pedidos de reembolso. O sistema distingue informação declarada, extraída e confirmada; valores ausentes continuam desconhecidos. Nenhuma compra, reclamação ou mensagem é enviada automaticamente.
+O ponto de entrada é um **pacote portátil de instruções para a sua própria LLM**. Nove comandos orientam pesquisa, comparação, rateio e resposta a problemas. Ferramentas locais opcionais validam contratos e cálculos; o aplicativo apoia a organização privada de provas.
 
-## Executar
+O agente distingue fatos cotados, condições verificadas e lacunas. Um prompt não fornece acesso à internet ou ao inventário de fornecedores. As ferramentas documentais não inventam disponibilidade nem enviam transações. Compras, cancelamentos e mensagens exigem autorização específica do viajante e capacidade real de execução no host.
 
-Instale Node.js 24. Para baixar o projeto e entrar na pasta correta, execute os comandos na mesma janela:
+## Use na sua IA, sem instalação
+
+1. Abra [as instruções do agente](agents/TRAVEL_AGENT.md), clique em **Raw** e copie o conteúdo para as instruções de projeto da sua IA ou para uma conversa nova.
+2. Carregue apenas o [comando](prompts/README.md) necessário. Não precisa anexar os nove fluxos a cada interação.
+3. Descreva a viagem com pseudônimos e as restrições indispensáveis. Informe as capacidades reais do host: por exemplo, pesquisa autorizada na web ou ferramentas locais.
+
+```text
+Use o agente Travel Reliability e o comando 09 para rateio em grupo.
+Trabalhe com núcleos fictícios N01 e N02, cinco noites e moeda BRL.
+Primeiro identifique as restrições necessárias para comparar o custo completo.
+Não invente preços, disponibilidade ou regras de rateio aceitas.
+```
+
+As instruções Markdown não exigem Node.js, npm, Git, Docker ou servidor local. A LLM funciona no host escolhido por você, sob as permissões e a política de dados dele. Veja a [configuração do agente, o ZIP opcional de skill e a conexão MCP](agents/README.md). O [manifesto do pacote](agents/manifest.json) é um índice próprio, não um instalador universal de plugins. Hosts compatíveis com skills podem usar a pasta `travel-agent` empacotada; nas demais interfaces, use copiar/colar explicitamente.
+
+Para ferramentas executáveis em um host compatível com MCP por stdio, instale as dependências Node.js do repositório completo e configure o host para executar `node` com o caminho absoluto de `scripts/agent-mcp.mjs`. Esse modo é opcional; não fornece pesquisa de passagens em tempo real nem funciona automaticamente em toda interface de chat.
+
+## Aplicativo local opcional
+
+No Windows, instale **Node.js 24**, escolha **Code → Download ZIP** no GitHub, extraia o ZIP do código-fonte completo e dê dois cliques em **`start-demo.cmd`**. O primeiro início instala as dependências fixadas; os seguintes reutilizam uma instalação compatível. O navegador abre somente depois de a demonstração sintética estar pronta. A demonstração com documentos de texto dispensa Git, Python, Docker e chave de API de modelo. Mantenha a janela aberta enquanto usar o aplicativo.
+
+Para desenvolvedores que preferem o terminal, execute na mesma janela:
 
 ```sh
 git clone https://github.com/RodrigoYuMatsumoto/travel-reliability.git
@@ -19,9 +40,7 @@ npm run demo
 
 Abra **http://127.0.0.1:5173** e selecione **Explorar demonstração**. Os dados são fictícios, efêmeros e não acionam IA. Para o servidor compilado, use `npm run build` e `npm start`, em **http://127.0.0.1:4310**.
 
-**Windows / PowerShell 5.1:** depois de baixar o repositório, dê dois cliques em `start-demo.cmd` dentro dele, ou execute `& "CAMINHO-COMPLETO-DO-REPOSITORIO\start-demo.cmd"`. O iniciador entra na própria pasta, confere o Node.js 24 e instala as dependências ausentes da demonstração. Mantenha a janela aberta enquanto usar o aplicativo.
-
-Se o repositório já está no computador, entre na pasta que contém seu `package.json`; não precisa cloná-lo novamente. `Missing script` indica que o npm está lendo outro projeto. `ERR_CONNECTION_REFUSED` indica que nenhum servidor aceitou a conexão naquele endereço. Os endereços `127.0.0.1` pertencem ao computador que executa o terminal; não são sites hospedados pelo GitHub. Durante `npm run demo`, a interface usa a porta 5173 e a API usa 4310 (`/health`); no modo compilado, ambas usam 4310. Inicie o servidor antes de abrir o endereço.
+`Missing script` indica que o npm está lendo o package.json de outro projeto. `ERR_CONNECTION_REFUSED` indica que o servidor local não está aceitando conexões. Durante a demonstração, a interface usa a porta 5173 e a API usa 4310 (`/health`); esses endereços pertencem ao computador que executa o iniciador, não são sites hospedados pelo GitHub. Veja [instalação e diagnóstico](docs/INSTALLATION.md).
 
 ## Funcionalidades
 
