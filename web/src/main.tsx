@@ -91,9 +91,13 @@ const labels: Record<string, [string, string]> = {
     'Verificar informações atualizadas sobre ocorrência, alternativas e assistência, com data e horário nos canais digitais.',
     'Check updated disruption, alternatives and assistance information, with timestamps on digital channels.',
   ],
+  AIR_INFORMATION_LEGACY: [
+    'Regra de informação anterior a 25/11/2026: aviso imediato do atraso ou cancelamento, atualização da previsão e motivo por escrito quando solicitado.',
+    'Information rule before 2026-11-25: immediate delay or cancellation notice, updated departure forecast and a written reason on request.',
+  ],
   BUS_ALTERNATIVES: [
-    'Verificar as alternativas do art. 179 para atraso da partida superior a uma hora em serviço regular interestadual.',
-    'Check article 179 alternatives for departure delays over one hour on regular interstate service.',
+    'Verificar as alternativas do art. 179 para atraso da partida superior a uma hora ou cancelamento em serviço regular interestadual.',
+    'Check article 179 alternatives for departure delays over one hour or cancellations on regular interstate service.',
   ],
   BUS_CONTINUITY: [
     'Verificar continuidade, alimentação, hospedagem e eventual restituição conforme a escolha do passageiro e as exceções dos arts. 181–182.',

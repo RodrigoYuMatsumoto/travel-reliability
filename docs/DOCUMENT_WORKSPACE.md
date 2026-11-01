@@ -118,6 +118,7 @@ retry automático: a operação informa `needs_reconciliation`, e o rollback rec
 apagar alvos sem registro ou modificados. Isso preserva evidência para revisão,
 sem afirmar recuperação automática de toda falha possível.
 
-Testes usam somente pastas TEMP sintéticas e executam cópia, movimento, rollback,
+Testes usam somente pastas TEMP sintéticas, fora de qualquer checkout Git ancestral
+(caso contrário a própria guarda as rejeita), e executam cópia, movimento, rollback,
 replay, CLI, adulteração, expiração, colisões e ataques de caminho. Nenhuma pasta
 pessoal, conta de fornecedor ou reserva real foi acessada na validação.

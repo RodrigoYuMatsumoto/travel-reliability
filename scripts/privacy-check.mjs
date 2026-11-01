@@ -39,9 +39,16 @@ function main() {
   const extraTerms = (process.env.PRIVACY_DENY_TERMS ?? '')
     .split('|')
     .filter((term) => term.length >= 3);
+  // The local account name is an implicit heuristic, not an operator choice. Match it
+  // only as a standalone word so a short account name cannot collide with longer
+  // public names, such as the repository owner in attribution URLs. Explicit
+  // PRIVACY_DENY_TERMS keep substring matching.
   const username = process.env.USERNAME;
-  if (username && !['runner', 'root', 'node', 'parser'].includes(username.toLowerCase()))
-    extraTerms.push(username);
+  const escapedUsername = username?.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const accountName =
+    username && !['runner', 'root', 'node', 'parser'].includes(username.toLowerCase())
+      ? new RegExp(`(?<!\\p{L})${escapedUsername}(?!\\p{L})`, 'iu')
+      : null;
   const forbiddenPaths =
     /(?:^|\/)(?:\.env(?!\.example$)|\.local|\.venv|node_modules|test-results|playwright-report|credentials|private)(?:\/|$)|\.(?:trb|pdf|docx|eml|vcf|pem|key|p12|pfx)$/i;
   const rules = [
@@ -63,7 +70,10 @@ function main() {
   function scan(text, label) {
     for (const [name, pattern] of rules)
       if (pattern.test(text)) failures.push({ file: label, rule: name });
-    if (extraTerms.some((term) => text.toLocaleLowerCase().includes(term.toLocaleLowerCase())))
+    if (
+      extraTerms.some((term) => text.toLocaleLowerCase().includes(term.toLocaleLowerCase())) ||
+      accountName?.test(text)
+    )
       failures.push({ file: label, rule: 'operator-deny-term' });
   }
   for (const file of new Set(files)) {

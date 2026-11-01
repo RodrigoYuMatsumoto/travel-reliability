@@ -1,7 +1,7 @@
 {
   "format": "travel-reliability-agent-kit",
   "formatVersion": 3,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "entrypoint": "agents/TRAVEL_AGENT.md",
   "purpose": "An international travel agency ecosystem for the traveler chosen LLM: multimodal leisure and professional journeys, evidence, documents, provider reconciliation and explicit human authorization.",
   "defaultLanguage": "host",
@@ -201,6 +201,11 @@
           "en": "Known dates, duration and flexibility"
         },
         {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e restrições funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional constraints"
+        },
+        {
           "id": "quotes",
           "pt": "Ofertas comparáveis e fontes datadas, ou lacuna explícita",
           "en": "Comparable offers and dated sources, or explicit gaps"
@@ -228,6 +233,16 @@
           "id": "route_context",
           "pt": "Trajetos, modais, datas e restrições operacionais",
           "en": "Legs, modes, dates and operational constraints"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e restrições funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional constraints"
+        },
+        {
+          "id": "budget_scope",
+          "pt": "Moedas, escopo de despesas e limites declarados",
+          "en": "Currencies, expense scope and declared limits"
         },
         {
           "id": "supplier_terms",
@@ -259,6 +274,11 @@
           "en": "Comparable offers and dated sources, or explicit gaps"
         },
         {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e restrições funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional constraints"
+        },
+        {
           "id": "supplier_terms",
           "pt": "Condições contratuais e fonte/vigência",
           "en": "Contract terms and applicable source/date"
@@ -288,6 +308,11 @@
           "en": "Comparable offers and dated sources, or explicit gaps"
         },
         {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e restrições funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional constraints"
+        },
+        {
           "id": "budget_scope",
           "pt": "Moedas, escopo de despesas e limites declarados",
           "en": "Currencies, expense scope and declared limits"
@@ -315,6 +340,11 @@
           "id": "quotes",
           "pt": "Ofertas comparáveis e fontes datadas, ou lacuna explícita",
           "en": "Comparable offers and dated sources, or explicit gaps"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e restrições funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional constraints"
         },
         {
           "id": "supplier_terms",
@@ -383,6 +413,11 @@
           "id": "route_context",
           "pt": "Trajetos, modais, datas e restrições operacionais",
           "en": "Legs, modes, dates and operational constraints"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima e restrições funcionais mínimas",
+          "en": "Pseudonymous party and minimal functional constraints"
         },
         {
           "id": "supplier_terms",

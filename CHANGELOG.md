@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.0 - 2026-11-01
+
+### Corrections from the v0.4 audit
+
+- Group split: card holds now count toward same-instant exposure and `cashWithinLimit`; households report `peakExposureMinor`. Deposit returns and refunds must match prior deposits and payments respectively (`CASH_RETURN_WITHOUT_EXPOSURE`). Fixed amounts from declared, indicative or historical sources are `unconfirmed_amount`, not `documented`. Sources observed after `evaluatedAt` and households absent from every cost line (`hasCostLines: false`) keep a scenario `conditional`. `groupKnownCost` includes sourced amounts whose split rule is still undecided; final costs stay null.
+- Workflow catalog: `party_profile` is required for airports, connections, promotions, total cost, fare scenarios and hidden-city analysis, and `budget_scope` for connections, matching the mandatory inputs their prompts already declared. Requests that omitted them now report missing information instead of readiness.
+- Fare scenarios reject duplicate option IDs (`DUPLICATE_OPTION`). Hidden-city results add `differenceReason` when no nominal difference can be shown.
+- Brazilian pack 2026.11.01: original ANAC food (over two hours) and lodging (over four hours) entries for events from 2017-03-14 to 2026-10-25, and the original article 20 information duty until 2026-11-24; ANTT article 179 alternatives for interstate bus cancellations (article 178, III); the national-territory limit of the 2026 article 27 wording is cited; source links point to reachable official pages. Reviewed on 2026-11-01, review due 2026-12-01.
+- Privacy scan: the implicit Windows account name matches only as a standalone word; explicit `PRIVACY_DENY_TERMS` keep substring matching. Previously a short account name inside the repository owner in attribution URLs failed `privacy:history`, packaging and five Git-boundary tests.
+- Documentation: catalog format corrected to 3, contribution license aligned with MIT, and workspace test isolation requirements stated. Regressions cover each correction.
+
 ## 0.4.0 — 2026-10-31
 
 ### International travel ecosystem

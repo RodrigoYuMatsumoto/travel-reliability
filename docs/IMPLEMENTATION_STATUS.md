@@ -1,6 +1,58 @@
-# Delivery evidence — 0.4.0 candidate
+# Delivery evidence - 0.5.0 candidate
 
-## Current local checkpoint — 2026-10-31
+## Current local checkpoint - 2026-11-01
+
+Version 0.5.0 corrects defects found while auditing the published v0.4.0 on a
+second Windows workstation. Contract-visible behavior changes are listed in the
+[changelog](../CHANGELOG.md):
+
+- Group split counts card holds in same-instant exposure against cash limits,
+  keeps deposits and payments separate, labels fixed amounts from non-observed
+  sources as unconfirmed, keeps scenarios conditional for future-dated sources or
+  households without cost lines, and reports sourced amounts in the known group
+  cost before the split rule is accepted.
+- Six of the nine original workflows now require the passenger configuration
+  (and the route workflow the group budget) that their prompts already declared
+  mandatory. Fare scenarios reject duplicate option IDs; hidden-city analysis
+  states why a nominal difference is unavailable.
+- The Brazilian pack restores original food, lodging and information entries for
+  earlier events, adds interstate bus cancellations to article 179, notes the
+  national-territory limit of the 2026 assistance wording and cites reachable
+  official pages.
+- The privacy scan matches the implicit local account name only as a standalone
+  word, so attribution URLs no longer fail on accounts whose name prefixes the
+  repository owner. Explicit deny terms keep substring matching.
+
+| Executed local check (Windows 11, Node 24.14.0, Python 3.12 via uv) | Result and scope                                                                                                                                                                                                                                  |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Strict TypeScript and production build                              | PASS                                                                                                                                                                                                                                              |
+| TypeScript tests                                                    | 377 passed; three PostgreSQL/Redis/S3 cases skipped locally and reserved for provisioned CI services                                                                                                                                              |
+| Python ingest tests                                                 | 29 passed, including native OCR with a local Tesseract installation                                                                                                                                                                               |
+| Desktop/mobile Playwright                                           | Four passed on an isolated test port                                                                                                                                                                                                              |
+| Audit and package report gates                                      | Twenty-two standard-library unittest regressions passed                                                                                                                                                                                           |
+| Authenticated DAST                                                  | 54 assertions passed against a new synthetic loopback target                                                                                                                                                                                      |
+| Mutation campaigns                                                  | 13,000 TypeScript, 384 document-ingest, 2,000 ecosystem and 384 MIME executions; no findings                                                                                                                                                      |
+| MCP stdio protocol client                                           | 13 tools, 78 resources, 78 prompts; nine workflows accepted synthetic examples; invalid or unknown calls rejected; started from another working directory                                                                                         |
+| Formatting, Python lint, npm audit                                  | PASS; npm audit reported zero known vulnerabilities at verification time                                                                                                                                                                          |
+| Bandit                                                              | PASS, no findings                                                                                                                                                                                                                                 |
+| Semgrep on Windows                                                  | One `detect-child-process` result for the operator-configured, absolute-path interpreter started with `shell: false` and fixed arguments; triaged as not reachable from MCP or HTTP input. The Linux CI gate on the exact commit is authoritative |
+| Current-source and history privacy                                  | PASS; heuristic scan plus manual review, not proof of complete anonymization                                                                                                                                                                      |
+
+Workspace tests require a temporary directory without a Git checkout among its
+ancestors (see [contributing](../CONTRIBUTING.md)). Remote CI, ZAP, archive
+verification, independent B.9 review and release checks for this candidate are
+recorded in its pull request and release notes, outside this file, so that the
+reviewed bytes do not change after review.
+
+## v0.4.0 publication record
+
+v0.4.0 was published on 2026-10-31 from commit `f9cc2d9`. The
+[verification](https://github.com/RodrigoYuMatsumoto/travel-reliability/actions/workflows/ci.yml)
+and [security](https://github.com/RodrigoYuMatsumoto/travel-reliability/actions/workflows/security-audit.yml)
+workflows completed successfully for that commit, closing the remote gates that
+the historical checkpoint below still listed as pending.
+
+## Historical v0.4 local checkpoint - 2026-10-31
 
 The international catalog contains **eleven roles, 66 commands, thirteen MCP
 tools and 78 fixed resources/prompts**, including compatibility aliases. The

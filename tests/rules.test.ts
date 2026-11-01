@@ -30,7 +30,11 @@ describe('dated Brazil rules', () => {
   it('does not apply revoked one-hour communication rule after 2026-10-26', () => {
     const trip = demoTrip();
     trip.services[0]!.regulatoryScope = 'br_air_transport';
-    expect(rightsFor(trip, event({ waitingMinutes: 61 }), verifiedDate)).toHaveLength(0);
+    expect(
+      rightsFor(trip, event({ waitingMinutes: 61 }), verifiedDate).some((r) =>
+        r.ruleId.includes('COMMUNICATION'),
+      ),
+    ).toBe(false);
     expect(
       rightsFor(
         trip,
@@ -42,8 +46,14 @@ describe('dated Brazil rules', () => {
   it('tests strict greater-than food and lodging boundaries', () => {
     const trip = demoTrip();
     trip.services[0]!.regulatoryScope = 'br_air_transport';
-    expect(rightsFor(trip, event({ waitingMinutes: 120 }), verifiedDate)).toHaveLength(0);
-    expect(rightsFor(trip, event(), verifiedDate)[0]!.status).toBe('applicable');
+    expect(
+      rightsFor(trip, event({ waitingMinutes: 120 }), verifiedDate).some((r) =>
+        r.ruleId.includes('FOOD'),
+      ),
+    ).toBe(false);
+    expect(
+      rightsFor(trip, event(), verifiedDate).find((r) => r.ruleId === 'BR-AIR-FOOD-2026')!.status,
+    ).toBe('applicable');
     expect(
       rightsFor(trip, event({ waitingMinutes: 240, overnight: true }), verifiedDate).some((r) =>
         r.ruleId.includes('LODGING'),
@@ -64,13 +74,62 @@ describe('dated Brazil rules', () => {
   it('does not apply the future information wording before its effective date', () => {
     const trip = demoTrip();
     trip.services[0]!.regulatoryScope = 'br_air_transport';
+    const before = rightsFor(trip, event(), verifiedDate).map((r) => r.ruleId);
+    expect(before).toContain('BR-AIR-INFORMATION-LEGACY');
+    expect(before).not.toContain('BR-AIR-INFORMATION-20261125');
+    const after = rightsFor(trip, event({ occurredAt: '2026-11-25T12:00:00Z' }), verifiedDate).map(
+      (r) => r.ruleId,
+    );
+    expect(after).toContain('BR-AIR-INFORMATION-20261125');
+    expect(after).not.toContain('BR-AIR-INFORMATION-LEGACY');
+  });
+  it('keeps food and lodging assistance for events before the 2026 wording', () => {
+    const trip = demoTrip();
+    trip.services[0]!.regulatoryScope = 'br_air_transport';
+    const at = (occurredAt: string, waitingMinutes: number) =>
+      rightsFor(trip, event({ occurredAt, waitingMinutes, overnight: true }), verifiedDate).map(
+        (r) => r.ruleId,
+      );
+    expect(at('2026-10-25T12:00:00Z', 241)).toEqual(
+      expect.arrayContaining([
+        'BR-AIR-COMMUNICATION-LEGACY',
+        'BR-AIR-FOOD-LEGACY',
+        'BR-AIR-LODGING-LEGACY',
+      ]),
+    );
+    expect(at('2026-10-25T12:00:00Z', 241)).not.toContain('BR-AIR-FOOD-2026');
+    expect(at('2026-10-26T12:00:00Z', 241)).toEqual(
+      expect.arrayContaining(['BR-AIR-FOOD-2026', 'BR-AIR-LODGING-2026']),
+    );
     expect(
-      rightsFor(trip, event(), verifiedDate).some((r) => r.ruleId.includes('INFORMATION')),
-    ).toBe(false);
-    expect(
-      rightsFor(trip, event({ occurredAt: '2026-11-25T12:00:00Z' }), verifiedDate).some((r) =>
-        r.ruleId.includes('INFORMATION'),
+      at('2026-10-26T12:00:00Z', 241).some(
+        (id) => id.endsWith('-LEGACY') && !id.includes('INFORMATION'),
       ),
+    ).toBe(false);
+    expect(at('2017-03-13T12:00:00Z', 241)).toHaveLength(0);
+  });
+  it('offers article 179 alternatives for interstate bus cancellations without a delay threshold', () => {
+    const trip = demoTrip();
+    trip.services[0]!.kind = 'bus';
+    trip.services[0]!.regulatoryScope = 'br_interstate_regular_bus';
+    const cancelled = rightsFor(
+      trip,
+      event({ kind: 'cancellation', waitingMinutes: null }),
+      verifiedDate,
+    ).map((r) => r.ruleId);
+    expect(cancelled).toContain('BR-BUS-ALTERNATIVES-CANCELLATION');
+    expect(
+      rightsFor(trip, event({ waitingMinutes: 61 }), verifiedDate).map((r) => r.ruleId),
+    ).not.toContain('BR-BUS-ALTERNATIVES-CANCELLATION');
+  });
+  it('cites the reachable official source pages', () => {
+    const trip = demoTrip();
+    trip.services[0]!.regulatoryScope = 'br_air_transport';
+    const urls = rightsFor(trip, event({ occurredAt: '2026-10-25T12:00:00Z' }), verifiedDate).map(
+      (r) => r.sourceUrl,
+    );
+    expect(
+      urls.every((url) => !url.includes('/resolucoes/2016/') && !url.includes('datalegis.net')),
     ).toBe(true);
   });
   it('requires review for unknown exceptions or stale rule packs', () => {

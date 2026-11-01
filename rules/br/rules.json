@@ -1,8 +1,8 @@
 {
   "country": "BR",
-  "version": "2026.10.29",
-  "verifiedAt": "2026-10-29",
-  "reviewAfter": "2026-11-28",
+  "version": "2026.11.01",
+  "verifiedAt": "2026-11-01",
+  "reviewAfter": "2026-12-01",
   "rules": [
     {
       "id": "BR-AIR-COMMUNICATION-LEGACY",
@@ -12,9 +12,50 @@
       "validFrom": "2017-03-14",
       "validTo": "2026-10-26",
       "article": "Resolução ANAC nº 400/2016, art. 27, I (revogado pela Resolução nº 813/2026)",
-      "sourceUrl": "https://www.anac.gov.br/assuntos/legislacao/legislacao-1/resolucoes/2016/resolucao-no-400-13-12-2016",
+      "sourceUrl": "https://www.anac.gov.br/assuntos/legislacao/legislacao-1/resolucoes/resolucoes-2016/resolucao-no-400-13-12-2016",
       "messageKey": "AIR_COMMUNICATION_LEGACY",
       "evidenceCodes": ["DELAY_RECORD", "SUPPORT_PROTOCOL"]
+    },
+    {
+      "id": "BR-AIR-FOOD-LEGACY",
+      "scope": "br_air_transport",
+      "kinds": ["delay", "cancellation", "denied_boarding"],
+      "waitingMinutesGt": 120,
+      "validFrom": "2017-03-14",
+      "validTo": "2026-10-26",
+      "article": "Resolução ANAC nº 400/2016, art. 27, II (redação anterior à Resolução nº 813/2026)",
+      "sourceUrl": "https://www.anac.gov.br/assuntos/legislacao/legislacao-1/resolucoes/resolucoes-2016/resolucao-no-400-13-12-2016",
+      "messageKey": "AIR_FOOD",
+      "evidenceCodes": ["DELAY_RECORD", "SUPPORT_PROTOCOL", "NECESSARY_EXPENSE_RECEIPTS"]
+    },
+    {
+      "id": "BR-AIR-LODGING-LEGACY",
+      "scope": "br_air_transport",
+      "kinds": ["delay", "cancellation", "denied_boarding"],
+      "waitingMinutesGt": 240,
+      "overnightOrAssistance": true,
+      "validFrom": "2017-03-14",
+      "validTo": "2026-10-26",
+      "article": "Resolução ANAC nº 400/2016, art. 27, III e §§ 1º-2º (redação anterior à Resolução nº 813/2026)",
+      "sourceUrl": "https://www.anac.gov.br/assuntos/legislacao/legislacao-1/resolucoes/resolucoes-2016/resolucao-no-400-13-12-2016",
+      "messageKey": "AIR_LODGING",
+      "evidenceCodes": [
+        "DELAY_RECORD",
+        "OVERNIGHT_NEED",
+        "SUPPORT_PROTOCOL",
+        "NECESSARY_EXPENSE_RECEIPTS"
+      ]
+    },
+    {
+      "id": "BR-AIR-INFORMATION-LEGACY",
+      "scope": "br_air_transport",
+      "kinds": ["delay", "cancellation", "denied_boarding"],
+      "validFrom": "2017-03-14",
+      "validTo": "2026-11-25",
+      "article": "Resolução ANAC nº 400/2016, art. 20, I-II e §§ 1º-2º (redação anterior à vigência da Resolução nº 813/2026 para o art. 20)",
+      "sourceUrl": "https://www.anac.gov.br/assuntos/legislacao/legislacao-1/resolucoes/resolucoes-2016/resolucao-no-400-13-12-2016",
+      "messageKey": "AIR_INFORMATION_LEGACY",
+      "evidenceCodes": ["STATUS_SCREENSHOT_WITH_TIMESTAMP", "SUPPORT_PROTOCOL"]
     },
     {
       "id": "BR-AIR-FOOD-2026",
@@ -23,7 +64,7 @@
       "waitingMinutesGt": 120,
       "validFrom": "2026-10-26",
       "validTo": null,
-      "article": "Resolução ANAC nº 400/2016, arts. 26, 27, II, e 27-A/27-B; redação da Resolução nº 813/2026",
+      "article": "Resolução ANAC nº 400/2016, arts. 26, 27, caput (assistência no território nacional) e II, e 27-A/27-B; redação da Resolução nº 813/2026",
       "sourceUrl": "https://www.anac.gov.br/assuntos/legislacao/legislacao-1/resolucoes/2026/resolucao-813",
       "messageKey": "AIR_FOOD",
       "evidenceCodes": ["DELAY_RECORD", "SUPPORT_PROTOCOL", "NECESSARY_EXPENSE_RECEIPTS"]
@@ -36,7 +77,7 @@
       "overnightOrAssistance": true,
       "validFrom": "2026-10-26",
       "validTo": null,
-      "article": "Resolução ANAC nº 400/2016, art. 27, III e §§ 1º-2º; arts. 27-A/27-B; redação da Resolução nº 813/2026",
+      "article": "Resolução ANAC nº 400/2016, art. 27, caput (assistência no território nacional), III e §§ 1º-2º; arts. 27-A/27-B; redação da Resolução nº 813/2026",
       "sourceUrl": "https://www.anac.gov.br/assuntos/legislacao/legislacao-1/resolucoes/2026/resolucao-813",
       "messageKey": "AIR_LODGING",
       "evidenceCodes": [
@@ -53,7 +94,7 @@
       "validFrom": "2026-11-25",
       "validTo": null,
       "article": "Resolução ANAC nº 400/2016, art. 20, redação da Resolução nº 813/2026; vigência da Resolução nº 819/2026",
-      "sourceUrl": "https://www.anac.gov.br/assuntos/legislacao/legislacao-1/resolucoes/2026/resolucao-819",
+      "sourceUrl": "https://www.anac.gov.br/assuntos/legislacao/legislacao-1/resolucoes/2026/resolucao-813",
       "messageKey": "AIR_INFORMATION",
       "evidenceCodes": ["STATUS_SCREENSHOT_WITH_TIMESTAMP", "SUPPORT_PROTOCOL"]
     },
@@ -66,9 +107,20 @@
       "validFrom": "2024-02-01",
       "validTo": null,
       "article": "Resolução ANTT nº 6.033/2023, art. 179",
-      "sourceUrl": "https://anttlegis.datalegis.net/action/ActionDatalegis.php?acao=abrirTextoAto&numeroAto=00006033&tipo=RES&valorAno=2023&orgao=DG/ANTT/MT&seqAto=000",
+      "sourceUrl": "https://anttlegis.antt.gov.br/action/ActionDatalegis.php?acao=abrirTextoAto&link=S&tipo=RES&numeroAto=00006033&seqAto=000&valorAno=2023&orgao=DG%2FANTT%2FMT&cod_modulo=420&cod_menu=7734",
       "messageKey": "BUS_ALTERNATIVES",
       "evidenceCodes": ["TICKET", "DELAY_RECORD", "SUPPORT_PROTOCOL"]
+    },
+    {
+      "id": "BR-BUS-ALTERNATIVES-CANCELLATION",
+      "scope": "br_interstate_regular_bus",
+      "kinds": ["cancellation"],
+      "validFrom": "2024-02-01",
+      "validTo": null,
+      "article": "Resolução ANTT nº 6.033/2023, art. 179, caput, nos casos do art. 178, III",
+      "sourceUrl": "https://anttlegis.antt.gov.br/action/ActionDatalegis.php?acao=abrirTextoAto&link=S&tipo=RES&numeroAto=00006033&seqAto=000&valorAno=2023&orgao=DG%2FANTT%2FMT&cod_modulo=420&cod_menu=7734",
+      "messageKey": "BUS_ALTERNATIVES",
+      "evidenceCodes": ["TICKET", "SUPPORT_PROTOCOL"]
     },
     {
       "id": "BR-BUS-CONTINUITY",
@@ -78,7 +130,7 @@
       "validFrom": "2024-02-01",
       "validTo": null,
       "article": "Resolução ANTT nº 6.033/2023, art. 181, §§ 1º-6º, e art. 182",
-      "sourceUrl": "https://anttlegis.datalegis.net/action/ActionDatalegis.php?acao=abrirTextoAto&numeroAto=00006033&tipo=RES&valorAno=2023&orgao=DG/ANTT/MT&seqAto=000",
+      "sourceUrl": "https://anttlegis.antt.gov.br/action/ActionDatalegis.php?acao=abrirTextoAto&link=S&tipo=RES&numeroAto=00006033&seqAto=000&valorAno=2023&orgao=DG%2FANTT%2FMT&cod_modulo=420&cod_menu=7734",
       "messageKey": "BUS_CONTINUITY",
       "evidenceCodes": ["TICKET", "DELAY_RECORD", "SUPPORT_PROTOCOL", "NECESSARY_EXPENSE_RECEIPTS"]
     }

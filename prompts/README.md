@@ -1,6 +1,6 @@
 # Catálogo internacional de comandos
 
-Catálogo 0.4, formato 2: **66 comandos e onze papéis**, com as nove calculadoras
+Catálogo 0.5, formato 3: **66 comandos e onze papéis**, com as nove calculadoras
 documentais preservadas. A ampliação cobre contexto internacional, geografia,
 história/cultura/costumes, viagens profissionais, negociação, fontes de contas,
 reconciliação, organização local e geração de extensões revisáveis.

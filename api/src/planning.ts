@@ -354,6 +354,10 @@ function promotions(input: PromotionInput) {
   });
 }
 function scenarios(input: FareScenarioInput) {
+  unique(
+    input.options.map((o) => o.id),
+    'DUPLICATE_OPTION',
+  );
   return input.options.map((o) => {
     const entries = [
       o.changeFeeMinor,
@@ -470,6 +474,7 @@ function hiddenCity(input: HiddenCityInput) {
     standard,
     alternative,
     nominalDifferenceMinor,
+    differenceReason: delta.reason,
     currency: currencies.length === 1 ? currencies[0] : null,
     netSavingsGuaranteed: false,
     risks: [
@@ -561,7 +566,9 @@ function groupSplit(input: GroupInput) {
         boundHigh = { ...low },
         unknown = new Set<string>();
       let groupLow = 0,
-        groupHigh = 0;
+        groupHigh = 0,
+        knownGroupLow = 0,
+        knownGroupHigh = 0;
       const ledger = s.costs.map((c) => {
         unique(
           c.shares.map((p) => p.householdId),
@@ -577,6 +584,11 @@ function groupSplit(input: GroupInput) {
           'INVALID_COST_INTERVAL',
           422,
         );
+        // A sourced amount is known for the group even before its split rule is accepted.
+        if (c.lowMinor !== null && c.highMinor !== null && c.source) {
+          knownGroupLow = sum([knownGroupLow, c.lowMinor]);
+          knownGroupHigh = sum([knownGroupHigh, c.highMinor]);
+        }
         if (c.lowMinor === null || c.highMinor === null || !c.source || !c.acceptedRule) {
           c.shares.forEach((p) => unknown.add(p.householdId));
           return { ...c, allocations: null, status: 'conditional' };
@@ -603,35 +615,50 @@ function groupSplit(input: GroupInput) {
         return {
           ...c,
           allocations: { low: a, high: b },
-          status: c.lowMinor === c.highMinor ? 'documented' : 'estimated_interval',
+          status:
+            c.lowMinor !== c.highMinor
+              ? 'estimated_interval'
+              : c.source.status === 'observed'
+                ? 'documented'
+                : 'unconfirmed_amount',
         };
       });
       const households = input.households.map((h) => {
-        const cash = new Map<number, { cash: number; hold: number }>();
+        // Payments and deposits are tracked separately so a refund cannot consume a
+        // deposit (or a deposit return a payment) that never existed.
+        const cash = new Map<number, { paid: number; deposit: number; hold: number }>();
         for (const f of s.cashFlows) {
           requireCondition(ids.has(f.householdId), 'HOUSEHOLD_NOT_FOUND', 422);
           if (f.householdId !== h.id) continue;
           const at = Date.parse(f.at),
-            point = cash.get(at) ?? { cash: 0, hold: 0 };
+            point = cash.get(at) ?? { paid: 0, deposit: 0, hold: 0 };
           if (f.kind === 'card_hold' || f.kind === 'card_release')
             point.hold = sum([point.hold, (f.kind === 'card_hold' ? 1 : -1) * f.amountMinor]);
-          else
-            point.cash = sum([
-              point.cash,
-              (['payment', 'deposit'].includes(f.kind) ? 1 : -1) * f.amountMinor,
-            ]);
+          else if (f.kind === 'deposit' || f.kind === 'deposit_return')
+            point.deposit = sum([point.deposit, (f.kind === 'deposit' ? 1 : -1) * f.amountMinor]);
+          else point.paid = sum([point.paid, (f.kind === 'payment' ? 1 : -1) * f.amountMinor]);
           cash.set(at, point);
         }
-        let balance = 0,
+        let paid = 0,
+          deposit = 0,
           hold = 0,
           peakCashMinor = 0,
-          peakCardHoldMinor = 0;
+          peakCardHoldMinor = 0,
+          peakExposureMinor = 0;
         for (const [, p] of [...cash].sort(([a], [b]) => a - b)) {
-          balance = sum([balance, p.cash]);
+          paid = sum([paid, p.paid]);
+          deposit = sum([deposit, p.deposit]);
           hold = sum([hold, p.hold]);
-          requireCondition(balance >= 0 && hold >= 0, 'CASH_RETURN_WITHOUT_EXPOSURE', 422);
+          requireCondition(
+            paid >= 0 && deposit >= 0 && hold >= 0,
+            'CASH_RETURN_WITHOUT_EXPOSURE',
+            422,
+          );
+          const balance = sum([paid, deposit]);
           peakCashMinor = Math.max(peakCashMinor, balance);
           peakCardHoldMinor = Math.max(peakCardHoldMinor, hold);
+          // A card hold reduces available limit at the same instant as cash paid.
+          peakExposureMinor = Math.max(peakExposureMinor, sum([balance, hold]));
         }
         const indeterminate = unknown.has(h.id) || h.ceilingMinor === null;
         const deficit = indeterminate
@@ -653,8 +680,10 @@ function groupSplit(input: GroupInput) {
             h.ceilingMinor === null ? null : Math.max(0, boundLow[h.id]! - h.ceilingMinor),
           peakCashMinor: cash.size ? peakCashMinor : null,
           peakCardHoldMinor: cash.size ? peakCardHoldMinor : null,
+          peakExposureMinor: cash.size ? peakExposureMinor : null,
           cashWithinLimit:
-            cash.size && h.cashLimitMinor !== null ? peakCashMinor <= h.cashLimitMinor : null,
+            cash.size && h.cashLimitMinor !== null ? peakExposureMinor <= h.cashLimitMinor : null,
+          hasCostLines: s.costs.some((c) => c.shares.some((p) => p.householdId === h.id)),
         };
       });
       requireCondition(
@@ -675,8 +704,11 @@ function groupSplit(input: GroupInput) {
         s.capacityConfirmed !== true ||
         !s.validUntil ||
         s.costs.some((c) => c.lowMinor !== c.highMinor || c.source?.status !== 'observed') ||
+        s.costs.some(
+          (c) => c.source && Date.parse(c.source.observedAt) > Date.parse(input.evaluatedAt),
+        ) ||
         input.households.some((h) => h.cashLimitMinor !== null) ||
-        households.some((h) => !h.deficit || h.deficit.highMinor > 0);
+        households.some((h) => !h.hasCostLines || !h.deficit || h.deficit.highMinor > 0);
       return {
         id: s.id,
         destination: s.destination,
@@ -685,7 +717,7 @@ function groupSplit(input: GroupInput) {
         nights: s.nights,
         ledger,
         households,
-        groupKnownCost: { lowMinor: groupLow, highMinor: groupHigh },
+        groupKnownCost: { lowMinor: knownGroupLow, highMinor: knownGroupHigh },
         groupFinalCost: unknown.size ? null : { lowMinor: groupLow, highMinor: groupHigh },
         status:
           expired || exceeds || s.constraintsConfirmed === false || s.capacityConfirmed === false
