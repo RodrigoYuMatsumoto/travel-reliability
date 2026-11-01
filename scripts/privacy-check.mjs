@@ -40,8 +40,9 @@ function main() {
     .split('|')
     .filter((term) => term.length >= 3);
   // The local account name is an implicit heuristic, not an operator choice. Match it
-  // only as a standalone word so a short account name cannot collide with longer
-  // public names, such as the repository owner in attribution URLs. Explicit
+  // only where no letter touches either side, so a short account name cannot collide
+  // with longer public names, such as the repository owner in attribution URLs.
+  // Adjacent digits, underscores or punctuation still match. Explicit
   // PRIVACY_DENY_TERMS keep substring matching.
   const username = process.env.USERNAME;
   const escapedUsername = username?.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

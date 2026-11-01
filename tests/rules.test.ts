@@ -52,7 +52,9 @@ describe('dated Brazil rules', () => {
       ),
     ).toBe(false);
     expect(
-      rightsFor(trip, event(), verifiedDate).find((r) => r.ruleId === 'BR-AIR-FOOD-2026')!.status,
+      rightsFor(trip, event({ occurredAt: '2026-10-25T12:00:00Z' }), verifiedDate).find(
+        (r) => r.ruleId === 'BR-AIR-FOOD-LEGACY',
+      )!.status,
     ).toBe('applicable');
     expect(
       rightsFor(trip, event({ waitingMinutes: 240, overnight: true }), verifiedDate).some((r) =>
@@ -107,6 +109,14 @@ describe('dated Brazil rules', () => {
       ),
     ).toBe(false);
     expect(at('2017-03-13T12:00:00Z', 241)).toHaveLength(0);
+  });
+  it('keeps the national-territory limit of the 2026 air assistance open for review', () => {
+    const trip = demoTrip();
+    trip.services[0]!.regulatoryScope = 'br_air_transport';
+    const advice = rightsFor(trip, event({ waitingMinutes: 241, overnight: true }), verifiedDate);
+    for (const id of ['BR-AIR-FOOD-2026', 'BR-AIR-LODGING-2026'])
+      expect(advice.find((r) => r.ruleId === id)!.status).toBe('needs_review');
+    expect(advice.find((r) => r.ruleId === 'BR-AIR-INFORMATION-LEGACY')!.status).toBe('applicable');
   });
   it('offers article 179 alternatives for interstate bus cancellations without a delay threshold', () => {
     const trip = demoTrip();

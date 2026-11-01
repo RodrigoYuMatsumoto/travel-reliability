@@ -8,6 +8,7 @@ interface Rule {
   waitingMinutesGt?: number;
   departureOnly?: boolean;
   overnightOrAssistance?: boolean;
+  nationalTerritoryOnly?: boolean;
   validFrom: string;
   validTo: string | null;
   article: string;
@@ -52,6 +53,8 @@ export function rightsFor(
       event.exceptionalConditions !== 'none' ||
       (rule.departureOnly && event.phase === 'unknown') ||
       (rule.overnightOrAssistance && event.residentAtOrigin !== false) ||
+      // The contract does not record where a wait happened; a territorial limit stays open.
+      rule.nationalTerritoryOnly === true ||
       (service.kind === 'bus' && event.phase === 'unknown');
     result.push({
       ruleId: rule.id,

@@ -11,7 +11,7 @@ complete legal opinion, compensation calculator or determination of civil liabil
 - Events before 2026-10-26 keep the original food (over two hours) and lodging (over four hours)
   entries; the original article 20 information duty applies until 2026-11-25.
 - From 2026-10-26 the article 27 caput limits material assistance to Brazilian national territory.
-  The pack does not know where a wait happened: review a wait outside Brazil manually.
+  The contract does not record where a wait happened, so these entries return `needs_review`.
 - ANTT 6033/2023 applies here only to explicitly identified regular interstate bus service. Article
   179 alternatives cover departure delays over one hour and cancellations (article 178, III).
 - New country packs require primary sources, applicability, exceptions, effective dates and boundary tests.

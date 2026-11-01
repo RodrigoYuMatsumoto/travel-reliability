@@ -126,7 +126,7 @@ it('excludes only validated temporary PR metadata and still rejects private file
   }
 }, 30000);
 
-it('matches the local account name as a standalone word, not inside longer public names', () => {
+it('matches the local account name unless a letter touches it, not inside longer public names', () => {
   const repo = fixture();
   try {
     // The committed fixture and author contain "Synthetic"; a substring match would fail here.
@@ -138,6 +138,9 @@ it('matches the local account name as a standalone word, not inside longer publi
       file: 'fixture.txt',
       rule: 'operator-deny-term',
     });
+    // Adjacent digits or underscores do not hide the account name.
+    writeFileSync(join(repo.dir, 'fixture.txt'), 'Backup folder: synth_2026\n');
+    expect(repo.scan({ USERNAME: 'synth' }).status).toBe(1);
     writeFileSync(join(repo.dir, 'fixture.txt'), 'Synthetic fixture only.\n');
     // Explicit operator terms keep substring matching.
     expect(repo.scan({ USERNAME: 'synth', PRIVACY_DENY_TERMS: 'synthet' }).status).toBe(1);

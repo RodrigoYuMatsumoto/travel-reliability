@@ -16,11 +16,11 @@ second Windows workstation. Contract-visible behavior changes are listed in the
   mandatory. Fare scenarios reject duplicate option IDs; hidden-city analysis
   states why a nominal difference is unavailable.
 - The Brazilian pack restores original food, lodging and information entries for
-  earlier events, adds interstate bus cancellations to article 179, notes the
-  national-territory limit of the 2026 assistance wording and cites reachable
-  official pages.
-- The privacy scan matches the implicit local account name only as a standalone
-  word, so attribution URLs no longer fail on accounts whose name prefixes the
+  earlier events, adds interstate bus cancellations to article 179, keeps the
+  2026 food and lodging entries in `needs_review` because their national-territory
+  limit cannot be checked from the contract, and cites reachable official pages.
+- The privacy scan matches the implicit local account name only where no letter
+  touches either side, so attribution URLs no longer fail on accounts whose name prefixes the
   repository owner. Explicit deny terms keep substring matching.
 
 | Executed local check (Windows 11, Node 24.14.0, Python 3.12 via uv) | Result and scope                                                                                                                                                                                                                                  |
