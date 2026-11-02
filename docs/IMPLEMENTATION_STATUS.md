@@ -1,6 +1,40 @@
-# Delivery evidence - 0.5.0 candidate
+# Delivery evidence - 0.6.0 candidate
 
-## Current local checkpoint - 2026-11-01
+## Current local checkpoint - 2026-11-02
+
+Version 0.6.0 closes items left open in the 0.5.0 release. Contract-visible
+changes are listed in the [changelog](../CHANGELOG.md):
+
+- Airport comparisons accept `groundCostIds` for the cost lines that reach each
+  airport and withhold the door-to-door saving while those lines are omitted or
+  left out of the total. Other comparison tools are unchanged.
+- The ANTT entries cover provider-caused disruptions in transit (article 178, V),
+  keep article 179 alternatives independent of the refund choice, separate
+  lodging with the origin-resident exception (article 181, paragraph 4) and
+  explain the article 182 refund exclusion.
+- The email normalizer always runs the project's prepared interpreter; the unused
+  `interpreterPath` option is removed.
+
+| Executed local check (Windows 11, Node 24.14.0, Python 3.12 via uv) | Result and scope                                                                                      |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Strict TypeScript and production build                              | PASS                                                                                                  |
+| TypeScript tests                                                    | 386 passed; three PostgreSQL/Redis/S3 cases skipped locally and reserved for provisioned CI services  |
+| Python ingest tests                                                 | 29 passed                                                                                             |
+| Desktop/mobile Playwright                                           | Four passed on an isolated test port                                                                  |
+| Formatting and Python lint                                          | PASS                                                                                                  |
+| Semgrep 1.183.0 with the CI rulesets on Windows                     | No findings (71 files, no parser errors); the `detect-child-process` result of 0.5.0 no longer occurs |
+| Current-source privacy                                              | PASS; heuristic scan plus manual review, not proof of complete anonymization                          |
+
+Remote CI, ZAP, archive verification, independent B.9 review and release checks
+for this candidate are recorded in its pull request and release notes.
+
+## v0.5.0 publication record
+
+v0.5.0 was published on 2026-11-02 from commit `9a5e2a1`, after the
+verification and security workflows completed successfully for that commit on
+`main`.
+
+## Historical v0.5 local checkpoint - 2026-11-01
 
 Version 0.5.0 corrects defects found while auditing the published v0.4.0 on a
 second Windows workstation. Contract-visible behavior changes are listed in the

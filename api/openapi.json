@@ -3,7 +3,7 @@
   "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
   "info": {
     "title": "Travel Reliability API",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "description": "Documentary travel contracts and evidence. Never sends a booking or complaint. Response domain types: schema/src/domain.ts. Regenerate from registered routes with npm run contracts:generate."
   },
   "servers": [
@@ -4924,6 +4924,16 @@
                   },
                   "minItems": 0,
                   "maxItems": 10
+                },
+                "groundCostIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "minItems": 0,
+                  "maxItems": 20
                 }
               }
             },
@@ -5505,6 +5515,16 @@
                   },
                   "minItems": 0,
                   "maxItems": 10
+                },
+                "groundCostIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "minItems": 0,
+                  "maxItems": 20
                 }
               }
             },
@@ -6086,6 +6106,16 @@
                   },
                   "minItems": 0,
                   "maxItems": 10
+                },
+                "groundCostIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "minItems": 0,
+                  "maxItems": 20
                 }
               }
             },
@@ -6667,6 +6697,16 @@
                   },
                   "minItems": 0,
                   "maxItems": 10
+                },
+                "groundCostIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "minItems": 0,
+                  "maxItems": 20
                 }
               }
             },
@@ -7256,6 +7296,16 @@
                       },
                       "minItems": 0,
                       "maxItems": 10
+                    },
+                    "groundCostIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "minItems": 0,
+                      "maxItems": 20
                     }
                   }
                 },
@@ -8236,6 +8286,16 @@
                           },
                           "minItems": 0,
                           "maxItems": 10
+                        },
+                        "groundCostIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80
+                          },
+                          "minItems": 0,
+                          "maxItems": 20
                         }
                       }
                     },
@@ -8821,6 +8881,16 @@
                 },
                 "minItems": 0,
                 "maxItems": 10
+              },
+              "groundCostIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "minItems": 0,
+                "maxItems": 20
               }
             }
           },
@@ -9227,6 +9297,16 @@
                 },
                 "minItems": 0,
                 "maxItems": 10
+              },
+              "groundCostIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "minItems": 0,
+                "maxItems": 20
               }
             }
           },

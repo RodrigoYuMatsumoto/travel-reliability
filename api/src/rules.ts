@@ -9,6 +9,15 @@ interface Rule {
   departureOnly?: boolean;
   overnightOrAssistance?: boolean;
   nationalTerritoryOnly?: boolean;
+  /** Event phases the rule covers; absent means every phase. */
+  phases?: string[];
+  /** Applies only when the provider caused the event; unknown responsibility stays under review. */
+  providerResponsibilityRequired?: boolean;
+  overnightRequired?: boolean;
+  /** A resident at the origin may receive transfers instead of lodging. */
+  residentAtOriginException?: boolean;
+  /** Refund is one of the alternatives, so the passenger's choice does not affect the entry. */
+  refundChoiceIrrelevant?: boolean;
   validFrom: string;
   validTo: string | null;
   article: string;
@@ -43,16 +52,21 @@ export function rightsFor(
     )
       continue;
     if (rule.departureOnly && !['departure', 'unknown'].includes(event.phase)) continue;
+    if (rule.phases && !rule.phases.includes(event.phase)) continue;
+    if (rule.providerResponsibilityRequired && event.providerResponsibility === 'no') continue;
     if (rule.overnightOrAssistance && !event.overnight && !event.specialAssistance) continue;
+    if (rule.overnightRequired && !event.overnight) continue;
     const uncertain =
       scope === 'unknown' ||
       now.toISOString().slice(0, 10) > country.reviewAfter ||
       date > country.reviewAfter ||
       (rule.waitingMinutesGt !== undefined && event.waitingMinutes === null) ||
-      event.refundChoice !== 'continue' ||
+      (!rule.refundChoiceIrrelevant && event.refundChoice !== 'continue') ||
       event.exceptionalConditions !== 'none' ||
       (rule.departureOnly && event.phase === 'unknown') ||
+      (rule.providerResponsibilityRequired && event.providerResponsibility !== 'yes') ||
       (rule.overnightOrAssistance && event.residentAtOrigin !== false) ||
+      (rule.residentAtOriginException && event.residentAtOrigin !== false) ||
       // The contract does not record where a wait happened; a territorial limit stays open.
       rule.nationalTerritoryOnly === true ||
       (service.kind === 'bus' && event.phase === 'unknown');

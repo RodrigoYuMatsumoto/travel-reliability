@@ -96,6 +96,15 @@ export function costOf(offer: Offer) {
     finalTotals: unknown.length ? null : totals,
   };
 }
+// Door-to-door airport comparison needs each offer's ground access lines, or an explicit empty list.
+function groundCostGap(offer: Offer) {
+  if (offer.groundCostIds === undefined) return 'GROUND_COST_UNCONFIRMED';
+  unique(offer.groundCostIds, 'DUPLICATE_GROUND_COST');
+  const counted = new Map(costOf(offer).items.map((c) => [c.id, c.counted]));
+  for (const id of offer.groundCostIds)
+    requireCondition(counted.has(id), 'GROUND_COST_NOT_FOUND', 422);
+  return offer.groundCostIds.every((id) => counted.get(id)) ? null : 'GROUND_COST_NOT_COUNTED';
+}
 function difference(
   base: Offer | undefined,
   candidate: Offer,
@@ -226,7 +235,11 @@ function evaluateOffers(input: ComparisonInput, tool: ToolId) {
           if (actual === null) pending.push(code + '_UNKNOWN');
           else if (actual > limit) failures.push(code + '_EXCEEDED');
         }
+      const gap = groundCostGap(offer);
+      if (gap) pending.push(gap);
     }
+    const groundGap =
+      tool === 'airports' ? (groundCostGap(offer) ?? (base ? groundCostGap(base) : null)) : null;
     if (tool === 'connections' || tool === 'airports') {
       if (offer.overnight && !input.overnightAllowed) failures.push('OVERNIGHT_NOT_ALLOWED');
       if (offer.ticketStructure === 'separate' && !input.separateTicketsAllowed)
@@ -287,7 +300,9 @@ function evaluateOffers(input: ComparisonInput, tool: ToolId) {
       cost,
       difference: failures.length
         ? { savingsMinor: null, reason: 'INELIGIBLE_OFFER' }
-        : difference(base, offer, input.evaluatedAt, tool !== 'flex-dates'),
+        : groundGap
+          ? { savingsMinor: null, reason: groundGap }
+          : difference(base, offer, input.evaluatedAt, tool !== 'flex-dates'),
       status: failures.length ? 'ineligible' : pending.length ? 'conditional' : 'documented',
       failures: [...new Set(failures)],
       pending: [...new Set(pending)],

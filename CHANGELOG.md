@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.6.0 - 2026-11-02
+
+### Residual items from the 0.5.0 release
+
+- Airports: offers accept an optional `groundCostIds` list naming the cost lines for getting to and from the airport (an empty list states that none applies). The airports tool reports `GROUND_COST_UNCONFIRMED` when the list is omitted and `GROUND_COST_NOT_COUNTED` when a listed line is left out of the total, and withholds the door-to-door saving in both cases. Unknown or repeated ids are rejected (`GROUND_COST_NOT_FOUND`, `DUPLICATE_GROUND_COST`). Other comparison tools are unchanged. Prompt 02 names the field.
+- Brazilian pack 2026.11.02, ANTT Resolution 6,033/2023: article 179 alternatives also cover in-transit disruptions caused by the provider (article 178, V; `BR-BUS-ALTERNATIVES-RESPONSIBILITY`, with unknown responsibility under review) and no longer turn to review when the passenger chooses a refund, which is one of those alternatives. Lodging is a separate entry (`BR-BUS-LODGING`) that requires the trip to be unable to continue the same day and keeps a resident of the origin, or an unknown residence, under review because article 181, paragraph 4 allows round-trip transfers instead. `BR-BUS-CONTINUITY` keeps continuity, meals, transfers and refund. Messages explain article 182: after a full refund, assistance is not owed except for incidents, accidents or robberies, which the contract does not record, so the assistance entries stay under review.
+- Email normalizer: the unused `interpreterPath` option is removed. The parser always runs the project's prepared virtual environment, which clears the Semgrep `detect-child-process` result reported on Windows.
+- Contributing: rotating disks under concurrent load can bring a workspace or Git-boundary test close to the 15-second limit; an SSD is recommended.
+
+### Compatibility
+
+- Airport comparisons that omit `groundCostIds` now stay `conditional` and show no saving. Supply the ground cost lines, or an empty list, to restore the comparison.
+- Bus disruptions with overnight need now return `BR-BUS-LODGING` in addition to `BR-BUS-CONTINUITY`; article 179 entries return `applicable` instead of `needs_review` when the refund choice is `refund` or `unknown`, other conditions unchanged.
+
 ## 0.5.0 - 2026-11-01
 
 ### Corrections from the v0.4 audit

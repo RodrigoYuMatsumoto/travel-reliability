@@ -10,8 +10,6 @@ export function createLocalEmailNormalizer(options: {
   providerKey: string;
   referenceSecret: Uint8Array;
   timeoutMs?: number;
-  /** Trusted operator configuration only. Never a document or MCP argument. */
-  interpreterPath?: string;
 }) {
   if (
     !/^[a-z][a-z0-9-]{1,39}$/.test(options.providerKey) ||
@@ -25,16 +23,15 @@ export function createLocalEmailNormalizer(options: {
   if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 30000)
     throw new AppError('INVALID_EMAIL_NORMALIZER_CONFIG', 422);
   const directory = fileURLToPath(new URL('../ingest/', import.meta.url));
-  const configuredInterpreter =
-    options.interpreterPath ??
-    fileURLToPath(
-      new URL(
-        process.platform === 'win32'
-          ? '../ingest/.venv/Scripts/python.exe'
-          : '../ingest/.venv/bin/python',
-        import.meta.url,
-      ),
-    );
+  // Only the project's prepared virtual environment; no caller can redirect the executable.
+  const configuredInterpreter = fileURLToPath(
+    new URL(
+      process.platform === 'win32'
+        ? '../ingest/.venv/Scripts/python.exe'
+        : '../ingest/.venv/bin/python',
+      import.meta.url,
+    ),
+  );
   let interpreter: string;
   try {
     if (

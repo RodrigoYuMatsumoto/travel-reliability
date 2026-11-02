@@ -96,12 +96,16 @@ const labels: Record<string, [string, string]> = {
     'Information rule before 2026-11-25: immediate delay or cancellation notice, updated departure forecast and a written reason on request.',
   ],
   BUS_ALTERNATIVES: [
-    'Verificar as alternativas do art. 179 para atraso da partida superior a uma hora ou cancelamento em serviço regular interestadual.',
-    'Check article 179 alternatives for departure delays over one hour or cancellations on regular interstate service.',
+    'Verificar as alternativas do art. 179, à escolha do passageiro (novo bilhete em até três horas, devolução proporcional ou restituição integral), para atraso da partida superior a uma hora, cancelamento ou outro motivo de responsabilidade da autorizatária em serviço regular interestadual.',
+    'Check the article 179 alternatives chosen by the passenger (replacement within three hours, partial refund or full refund) for departure delays over one hour, cancellations or other provider-caused disruptions on regular interstate service.',
   ],
   BUS_CONTINUITY: [
-    'Verificar continuidade, alimentação, hospedagem e eventual restituição conforme a escolha do passageiro e as exceções dos arts. 181–182.',
-    'Check continuity, meals, lodging and possible refund according to passenger choice and articles 181–182 exceptions.',
+    'Verificar a continuidade em até três horas; sem ela, alimentação e traslado às custas da autorizatária e, se o passageiro desistir, restituição integral (art. 181). Quem opta pela restituição integral não recebe a assistência, salvo incidente, acidente ou assalto (art. 182).',
+    'Check continuity within three hours; otherwise meals and transfers at the provider’s expense and, if the passenger gives up, a full refund (article 181). Choosing a full refund removes assistance except for incidents, accidents or robberies (article 182).',
+  ],
+  BUS_LODGING: [
+    'Verificar hospedagem e traslado quando a viagem não puder continuar no mesmo dia (art. 181, §§ 1º a 3º). Para quem reside na localidade de origem, a autorizatária pode trocar a hospedagem pelo traslado de ida e volta (§ 4º); com restituição integral, vale o art. 182.',
+    'Check lodging and transfers when the trip cannot continue the same day (article 181, paragraphs 1 to 3). For residents of the origin, the provider may replace lodging with round-trip transfers (paragraph 4); a full refund follows article 182.',
   ],
   flight: ['Voo', 'Flight'],
   bus: ['Ônibus', 'Bus'],

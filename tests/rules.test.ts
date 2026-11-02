@@ -132,6 +132,82 @@ describe('dated Brazil rules', () => {
       rightsFor(trip, event({ waitingMinutes: 61 }), verifiedDate).map((r) => r.ruleId),
     ).not.toContain('BR-BUS-ALTERNATIVES-CANCELLATION');
   });
+  const busTrip = () => {
+    const trip = demoTrip();
+    trip.services[0]!.kind = 'bus';
+    trip.services[0]!.regulatoryScope = 'br_interstate_regular_bus';
+    return trip;
+  };
+  const statusOf = (advice: ReturnType<typeof rightsFor>, id: string) =>
+    advice.find((r) => r.ruleId === id)?.status;
+  it('keeps article 179 alternatives when the bus passenger chooses a refund (art. 179, IV)', () => {
+    const advice = rightsFor(
+      busTrip(),
+      event({ waitingMinutes: 181, refundChoice: 'refund' }),
+      verifiedDate,
+    );
+    expect(statusOf(advice, 'BR-BUS-ALTERNATIVES')).toBe('applicable');
+    // Article 182: no assistance after a full refund unless an incident, accident or robbery.
+    expect(statusOf(advice, 'BR-BUS-CONTINUITY')).toBe('needs_review');
+    expect(
+      statusOf(
+        rightsFor(
+          busTrip(),
+          event({ kind: 'cancellation', waitingMinutes: null, refundChoice: 'unknown' }),
+          verifiedDate,
+        ),
+        'BR-BUS-ALTERNATIVES-CANCELLATION',
+      ),
+    ).toBe('applicable');
+  });
+  it('offers article 179 alternatives for provider-caused bus disruptions in transit (art. 178, V)', () => {
+    const inTransit = (providerResponsibility: DisruptionEvent['providerResponsibility']) =>
+      rightsFor(
+        busTrip(),
+        event({ phase: 'in_transit', waitingMinutes: 30, providerResponsibility }),
+        verifiedDate,
+      );
+    expect(statusOf(inTransit('yes'), 'BR-BUS-ALTERNATIVES-RESPONSIBILITY')).toBe('applicable');
+    expect(statusOf(inTransit('unknown'), 'BR-BUS-ALTERNATIVES-RESPONSIBILITY')).toBe(
+      'needs_review',
+    );
+    expect(statusOf(inTransit('no'), 'BR-BUS-ALTERNATIVES-RESPONSIBILITY')).toBeUndefined();
+    expect(inTransit('yes').map((r) => r.ruleId)).not.toContain('BR-BUS-ALTERNATIVES');
+    expect(
+      statusOf(
+        rightsFor(
+          busTrip(),
+          event({ waitingMinutes: 30, providerResponsibility: 'yes' }),
+          verifiedDate,
+        ),
+        'BR-BUS-ALTERNATIVES-RESPONSIBILITY',
+      ),
+    ).toBeUndefined();
+  });
+  it('separates bus lodging and applies the origin-resident exception (art. 181, §§ 2º and 4º)', () => {
+    const at = (patch: Partial<DisruptionEvent>) =>
+      rightsFor(busTrip(), event({ waitingMinutes: 181, ...patch }), verifiedDate);
+    expect(statusOf(at({}), 'BR-BUS-CONTINUITY')).toBe('applicable');
+    expect(statusOf(at({}), 'BR-BUS-LODGING')).toBeUndefined();
+    expect(statusOf(at({ overnight: true }), 'BR-BUS-LODGING')).toBe('applicable');
+    expect(statusOf(at({ overnight: true, residentAtOrigin: true }), 'BR-BUS-LODGING')).toBe(
+      'needs_review',
+    );
+    expect(statusOf(at({ overnight: true, residentAtOrigin: null }), 'BR-BUS-LODGING')).toBe(
+      'needs_review',
+    );
+    expect(statusOf(at({ overnight: true, residentAtOrigin: true }), 'BR-BUS-CONTINUITY')).toBe(
+      'applicable',
+    );
+    expect(statusOf(at({ overnight: true, refundChoice: 'refund' }), 'BR-BUS-LODGING')).toBe(
+      'needs_review',
+    );
+    expect(
+      at({ waitingMinutes: 180, overnight: true }).some((r) =>
+        r.ruleId.startsWith('BR-BUS-LODGING'),
+      ),
+    ).toBe(false);
+  });
   it('cites the reachable official source pages', () => {
     const trip = demoTrip();
     trip.services[0]!.regulatoryScope = 'br_air_transport';

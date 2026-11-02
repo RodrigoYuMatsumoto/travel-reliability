@@ -430,6 +430,16 @@
                 },
                 "minItems": 0,
                 "maxItems": 10
+              },
+              "groundCostIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "minItems": 0,
+                "maxItems": 20
               }
             }
           },
@@ -1011,6 +1021,16 @@
                 },
                 "minItems": 0,
                 "maxItems": 10
+              },
+              "groundCostIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "minItems": 0,
+                "maxItems": 20
               }
             }
           },
@@ -1592,6 +1612,16 @@
                 },
                 "minItems": 0,
                 "maxItems": 10
+              },
+              "groundCostIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "minItems": 0,
+                "maxItems": 20
               }
             }
           },
@@ -2173,6 +2203,16 @@
                 },
                 "minItems": 0,
                 "maxItems": 10
+              },
+              "groundCostIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "minItems": 0,
+                "maxItems": 20
               }
             }
           },
@@ -2762,6 +2802,16 @@
                     },
                     "minItems": 0,
                     "maxItems": 10
+                  },
+                  "groundCostIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "minItems": 0,
+                    "maxItems": 20
                   }
                 }
               },
@@ -3742,6 +3792,16 @@
                         },
                         "minItems": 0,
                         "maxItems": 10
+                      },
+                      "groundCostIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80
+                        },
+                        "minItems": 0,
+                        "maxItems": 20
                       }
                     }
                   },
@@ -4327,6 +4387,16 @@
               },
               "minItems": 0,
               "maxItems": 10
+            },
+            "groundCostIds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "minItems": 0,
+              "maxItems": 20
             }
           }
         },
@@ -4733,6 +4803,16 @@
               },
               "minItems": 0,
               "maxItems": 10
+            },
+            "groundCostIds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "minItems": 0,
+              "maxItems": 20
             }
           }
         },

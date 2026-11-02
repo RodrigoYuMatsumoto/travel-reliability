@@ -1,6 +1,6 @@
 {
   "country": "BR",
-  "version": "2026.11.01",
+  "version": "2026.11.02",
   "verifiedAt": "2026-11-01",
   "reviewAfter": "2026-12-01",
   "rules": [
@@ -106,9 +106,10 @@
       "kinds": ["delay"],
       "waitingMinutesGt": 60,
       "departureOnly": true,
+      "refundChoiceIrrelevant": true,
       "validFrom": "2024-02-01",
       "validTo": null,
-      "article": "Resolução ANTT nº 6.033/2023, art. 179",
+      "article": "Resolução ANTT nº 6.033/2023, art. 179, caput e I-IV",
       "sourceUrl": "https://anttlegis.antt.gov.br/action/ActionDatalegis.php?acao=abrirTextoAto&link=S&tipo=RES&numeroAto=00006033&seqAto=000&valorAno=2023&orgao=DG%2FANTT%2FMT&cod_modulo=420&cod_menu=7734",
       "messageKey": "BUS_ALTERNATIVES",
       "evidenceCodes": ["TICKET", "DELAY_RECORD", "SUPPORT_PROTOCOL"]
@@ -117,12 +118,27 @@
       "id": "BR-BUS-ALTERNATIVES-CANCELLATION",
       "scope": "br_interstate_regular_bus",
       "kinds": ["cancellation"],
+      "refundChoiceIrrelevant": true,
       "validFrom": "2024-02-01",
       "validTo": null,
-      "article": "Resolução ANTT nº 6.033/2023, art. 179, caput, nos casos do art. 178, III",
+      "article": "Resolução ANTT nº 6.033/2023, art. 179, caput e I-IV, nos casos do art. 178, III",
       "sourceUrl": "https://anttlegis.antt.gov.br/action/ActionDatalegis.php?acao=abrirTextoAto&link=S&tipo=RES&numeroAto=00006033&seqAto=000&valorAno=2023&orgao=DG%2FANTT%2FMT&cod_modulo=420&cod_menu=7734",
       "messageKey": "BUS_ALTERNATIVES",
       "evidenceCodes": ["TICKET", "SUPPORT_PROTOCOL"]
+    },
+    {
+      "id": "BR-BUS-ALTERNATIVES-RESPONSIBILITY",
+      "scope": "br_interstate_regular_bus",
+      "kinds": ["delay"],
+      "phases": ["in_transit", "unknown"],
+      "providerResponsibilityRequired": true,
+      "refundChoiceIrrelevant": true,
+      "validFrom": "2024-02-01",
+      "validTo": null,
+      "article": "Resolução ANTT nº 6.033/2023, art. 179, caput e I-IV, nos casos do art. 178, V",
+      "sourceUrl": "https://anttlegis.antt.gov.br/action/ActionDatalegis.php?acao=abrirTextoAto&link=S&tipo=RES&numeroAto=00006033&seqAto=000&valorAno=2023&orgao=DG%2FANTT%2FMT&cod_modulo=420&cod_menu=7734",
+      "messageKey": "BUS_ALTERNATIVES",
+      "evidenceCodes": ["TICKET", "DELAY_RECORD", "SUPPORT_PROTOCOL"]
     },
     {
       "id": "BR-BUS-CONTINUITY",
@@ -131,10 +147,30 @@
       "waitingMinutesGt": 180,
       "validFrom": "2024-02-01",
       "validTo": null,
-      "article": "Resolução ANTT nº 6.033/2023, art. 181, §§ 1º-6º, e art. 182",
+      "article": "Resolução ANTT nº 6.033/2023, art. 181, caput e §§ 1º, 5º e 6º, e art. 182",
       "sourceUrl": "https://anttlegis.antt.gov.br/action/ActionDatalegis.php?acao=abrirTextoAto&link=S&tipo=RES&numeroAto=00006033&seqAto=000&valorAno=2023&orgao=DG%2FANTT%2FMT&cod_modulo=420&cod_menu=7734",
       "messageKey": "BUS_CONTINUITY",
       "evidenceCodes": ["TICKET", "DELAY_RECORD", "SUPPORT_PROTOCOL", "NECESSARY_EXPENSE_RECEIPTS"]
+    },
+    {
+      "id": "BR-BUS-LODGING",
+      "scope": "br_interstate_regular_bus",
+      "kinds": ["delay", "cancellation"],
+      "waitingMinutesGt": 180,
+      "overnightRequired": true,
+      "residentAtOriginException": true,
+      "validFrom": "2024-02-01",
+      "validTo": null,
+      "article": "Resolução ANTT nº 6.033/2023, art. 181, §§ 1º a 4º, e art. 182",
+      "sourceUrl": "https://anttlegis.antt.gov.br/action/ActionDatalegis.php?acao=abrirTextoAto&link=S&tipo=RES&numeroAto=00006033&seqAto=000&valorAno=2023&orgao=DG%2FANTT%2FMT&cod_modulo=420&cod_menu=7734",
+      "messageKey": "BUS_LODGING",
+      "evidenceCodes": [
+        "TICKET",
+        "DELAY_RECORD",
+        "OVERNIGHT_NEED",
+        "SUPPORT_PROTOCOL",
+        "NECESSARY_EXPENSE_RECEIPTS"
+      ]
     }
   ]
 }

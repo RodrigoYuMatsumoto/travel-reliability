@@ -53,6 +53,11 @@ export interface Offer {
   airport: string;
   groundDistanceKm: number | null;
   groundMinutes: number | null;
+  /**
+   * Cost lines covering travel to and from this airport (transfer, taxi, parking, tolls).
+   * An empty list states that none applies; omitted leaves door-to-door cost unconfirmed.
+   */
+  groundCostIds?: string[];
   overnight: boolean;
   ticketStructure: 'single' | 'separate' | 'unknown';
   connectionProtectionSourceId: string | null;
@@ -201,11 +206,11 @@ const list = (items: object, maxItems = 100, minItems = 0) => ({
   minItems,
   maxItems,
 });
-const object = (properties: Record<string, object>) => ({
+const object = (properties: Record<string, object>, optional: Record<string, object> = {}) => ({
   type: 'object',
   additionalProperties: false,
   required: Object.keys(properties),
-  properties,
+  properties: { ...properties, ...optional },
 });
 const values = (...items: string[]) => ({ enum: items });
 const source = object({
@@ -215,60 +220,63 @@ const source = object({
   status: values('observed', 'indicative', 'historical', 'declared'),
   note: text(1000),
 });
-const offer = object({
-  id: text(80),
-  seller: text(200),
-  operator: text(200),
-  origin: text(120),
-  destination: text(120),
-  departure: time,
-  arrival: time,
-  returnDeparture: nullable(time),
-  destinationArrivalDate: date,
-  destinationDepartureDate: nullable(date),
-  passengers: text(300),
-  cabin: text(80),
-  baggage: text(200),
-  requiredServices: text(400),
-  paymentCategory: text(100),
-  capacityConfirmed: nullable(bool),
-  validUntil: nullable(time),
-  sources: list(source, 30, 1),
-  costs: list(
-    object({
-      id: text(80),
-      label: text(200),
-      unit: text(80),
-      quantity: { type: 'integer', minimum: 1, maximum: 100000 },
-      unitMinor: money,
-      currency,
-      treatment: values('included', 'necessary', 'optional', 'conditional'),
-      selected: bool,
-      sourceIds: list(text(80), 30),
-    }),
-    100,
-    1,
-  ),
-  airport: text(120),
-  groundDistanceKm: number,
-  groundMinutes: integer,
-  overnight: bool,
-  ticketStructure: values('single', 'separate', 'unknown'),
-  connectionProtectionSourceId: nullable(text(80)),
-  connections: list(
-    object({
-      arrival: time,
-      departure: time,
-      minimumMinutes: integer,
-      basis: nullable(text()),
-      sourceId: nullable(text(80)),
-      airportChange: bool,
-      baggageRecheck: nullable(bool),
-      entryPermission: values('confirmed', 'not_required', 'unknown'),
-    }),
-    10,
-  ),
-});
+const offer = object(
+  {
+    id: text(80),
+    seller: text(200),
+    operator: text(200),
+    origin: text(120),
+    destination: text(120),
+    departure: time,
+    arrival: time,
+    returnDeparture: nullable(time),
+    destinationArrivalDate: date,
+    destinationDepartureDate: nullable(date),
+    passengers: text(300),
+    cabin: text(80),
+    baggage: text(200),
+    requiredServices: text(400),
+    paymentCategory: text(100),
+    capacityConfirmed: nullable(bool),
+    validUntil: nullable(time),
+    sources: list(source, 30, 1),
+    costs: list(
+      object({
+        id: text(80),
+        label: text(200),
+        unit: text(80),
+        quantity: { type: 'integer', minimum: 1, maximum: 100000 },
+        unitMinor: money,
+        currency,
+        treatment: values('included', 'necessary', 'optional', 'conditional'),
+        selected: bool,
+        sourceIds: list(text(80), 30),
+      }),
+      100,
+      1,
+    ),
+    airport: text(120),
+    groundDistanceKm: number,
+    groundMinutes: integer,
+    overnight: bool,
+    ticketStructure: values('single', 'separate', 'unknown'),
+    connectionProtectionSourceId: nullable(text(80)),
+    connections: list(
+      object({
+        arrival: time,
+        departure: time,
+        minimumMinutes: integer,
+        basis: nullable(text()),
+        sourceId: nullable(text(80)),
+        airportChange: bool,
+        baggageRecheck: nullable(bool),
+        entryPermission: values('confirmed', 'not_required', 'unknown'),
+      }),
+      10,
+    ),
+  },
+  { groundCostIds: list(text(80), 20) },
+);
 const comparison = object({
   offers: list(offer, 30, 1),
   baselineId: nullable(text(80)),

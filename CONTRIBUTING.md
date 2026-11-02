@@ -9,6 +9,8 @@ changes are easier to maintain than a new agent framework.
    Workspace tests need a temporary directory without a Git checkout among its ancestors;
    the guard rejects such roots by design. If one exists above the system temporary
    folder, point `TMP`/`TEMP` (or `TMPDIR`) to an isolated, unsynchronized directory.
+   Workspace and Git-boundary tests write and flush many small files; on a rotating disk under
+   concurrent load a single case can approach the 15-second test limit. Prefer an SSD.
 3. For schema changes, run `npm run schema:types` and `npm run contracts:generate`.
 4. Add meaningful tests for new invariants, trust boundaries and changed behavior.
 5. Explain migration and compatibility implications for public contracts.
