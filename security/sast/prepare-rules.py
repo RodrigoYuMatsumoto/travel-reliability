@@ -48,7 +48,7 @@ def download(url):
 
 
 def validate_lock(lock):
-    if not isinstance(lock, dict) or lock.get("format") != "travel-reliability-semgrep-rules-lock/1" or lock.get("engine") != "1.183.0":
+    if not isinstance(lock, dict) or lock.get("format") not in {"travel-reliability-semgrep-rules-lock/1", "travel-reliability-semgrep-rules-lock/2"} or lock.get("engine") != "1.183.0":
         raise ValueError("INVALID_RULESET_LOCK")
     entries = lock.get("configs")
     if not isinstance(entries, list) or len(entries) != 2 or any(not isinstance(entry, dict) for entry in entries) or {entry.get("id") for entry in entries} != {"p/security-audit", "p/owasp-top-ten"}:
@@ -59,6 +59,8 @@ def validate_lock(lock):
         valid_url(entry["url"])
         if not isinstance(entry.get("bytes"), int) or not 0 < entry["bytes"] <= LIMIT or not re.fullmatch(r"[0-9a-f]{64}", str(entry.get("sha256", ""))):
             raise ValueError("INVALID_RULESET_DIGEST")
+        if lock["format"].endswith("/2") and (entry.get("normalization") != "whole-rule-order-only/1" or entry.get("orderIndependent") is not True):
+            raise ValueError("INVALID_RULESET_LOCK")
     return entries
 
 
@@ -76,8 +78,26 @@ class RulesetContentDrift(ValueError):
 
 
 def validate_bytes(entry, data):
-    if len(data) != entry["bytes"] or hashlib.sha256(data).hexdigest() != entry["sha256"] or not data.lstrip().startswith(b"rules:"):
+    candidate = normalized_rule_order(data) if entry.get("normalization") == "whole-rule-order-only/1" else data
+    if len(data) != entry["bytes"] or hashlib.sha256(candidate).hexdigest() != entry["sha256"] or not data.lstrip().startswith(b"rules:"):
         raise RulesetContentDrift(entry, data)
+    return candidate
+
+
+def normalized_rule_order(data):
+    """Only permute complete byte-identical rule blocks. No YAML field is rewritten.
+
+    The digest pins the complete resulting document, including every pattern,
+    metadata field, comment and prefix byte. The reviewed lock asserts absence
+    of cross-rule YAML anchors; a new byte cannot enter through normalization.
+    """
+    metadata = rule_block_metadata(data)
+    if metadata.get("layout") != "whole-top-level-rule-blocks/1":
+        raise ValueError("INVALID_RULESET_DATA")
+    starts = [match.start() for match in re.finditer(rb"(?m)^- ", data)]
+    blocks = [(row["id"], data[start:starts[index + 1] if index + 1 < len(starts) else len(data)])
+              for index, (start, row) in enumerate(zip(starts, metadata["orderedBlocks"]))]
+    return data[:starts[0]] + b"".join(block for _, block in sorted(blocks))
 
 
 def rule_block_metadata(data):
@@ -133,16 +153,19 @@ def prepare(lock, output, fetch=download, check_only=False):
         if target.exists():
             if target.stat().st_size > LIMIT:
                 raise ValueError("RULESET_SIZE_LIMIT")
-            validate_bytes(entry, target.read_bytes())
-            continue
-        if check_only:
-            raise ValueError("RULESET_CACHE_MISSING")
-        data = fetch(entry["url"])
-        try:
-            validate_bytes(entry, data)
-        except RulesetContentDrift as error:
-            error.diagnostic["driftMetadataStored"] = record_drift_metadata(output, entry, data)
-            raise
+            original = target.read_bytes()
+            data = validate_bytes(entry, original)
+            if data == original or check_only:
+                continue
+        else:
+            if check_only:
+                raise ValueError("RULESET_CACHE_MISSING")
+            data = fetch(entry["url"])
+            try:
+                data = validate_bytes(entry, data)
+            except RulesetContentDrift as error:
+                error.diagnostic["driftMetadataStored"] = record_drift_metadata(output, entry, data)
+                raise
         handle, temporary = tempfile.mkstemp(prefix=".rules-", dir=output)
         try:
             with os.fdopen(handle, "wb") as stream:

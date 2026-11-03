@@ -35,9 +35,16 @@ claim host-LLM behavioral certification or exhaustive vulnerability coverage.
 
 ### Reproducible v0.6 follow-up gates
 
-`security/sast/rules-lock.json` records the exact bytes and SHA-256 of both existing
-Semgrep packs. `security/sast/prepare-rules.py` fetches public configuration only,
-validates it before scanning source and reuses only byte-identical cached files.
+`security/sast/rules-lock.json` pins the complete normalized bytes and SHA-256 of
+both existing Semgrep packs. The registry was observed returning different
+permutations of the same 560 complete OWASP rule blocks. Linux and Windows
+fingerprints matched every block and prefix. A safe YAML token scan found no
+anchors, aliases, directives or custom tags in the reviewed captures.
+Normalization sorts whole rule blocks by unique ID, preserving every internal
+byte and the prefix; it never rewrites YAML fields or drops metadata. Any changed
+pattern, comment, field or block fails the complete normalized-document digest.
+`security/sast/prepare-rules.py` fetches public configuration only and validates
+it before scanning source. Verified cache files use the same normalized bytes.
 Rule bodies remain in the ignored local cache; they are not redistributed under
 the project's MIT license. Cold downloads whose bytes drift fail explicitly;
 maintainers must review and commit a deliberate lock update rather than silently

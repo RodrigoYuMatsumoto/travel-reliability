@@ -40,6 +40,26 @@ def fixture_lock():
 
 
 class RulesLockTests(unittest.TestCase):
+    def test_order_only_normalization_never_accepts_changed_rule_bytes(self):
+        first = b'- id: aaa\n  pattern: "synthetic-one"\n'
+        second = b'- patterns:\n  - pattern: "synthetic-two"\n  id: bbb\n'
+        original = b'rules:\n' + first + second
+        swapped = b'rules:\n' + second + first
+        lock, _ = fixture_lock()
+        lock['format'] = 'travel-reliability-semgrep-rules-lock/2'
+        for entry in lock['configs']:
+            entry.update(bytes=len(original), sha256=hashlib.sha256(original).hexdigest(), normalization='whole-rule-order-only/1', orderIndependent=True)
+            self.assertEqual(rules.validate_bytes(entry, swapped), original)
+            with self.assertRaises(ValueError):
+                rules.validate_bytes(entry, swapped.replace(b'synthetic-two', b'synthetic-NEW'))
+            with self.assertRaises(ValueError):
+                rules.validate_bytes(entry, b'rules:\n' + first + first)
+            with self.assertRaises(ValueError):
+                rules.validate_bytes(entry, swapped + b'# changed metadata\n')
+        with tempfile.TemporaryDirectory(prefix='travel-order-lock-') as temporary:
+            rules.prepare(lock, Path(temporary), lambda _: swapped)
+            self.assertEqual((Path(temporary) / 'owasp-top-ten.yaml').read_bytes(), original)
+
     def test_committed_lock_preserves_both_existing_packs(self):
         lock = json.loads((ROOT / "security/sast/rules-lock.json").read_text(encoding="utf-8"))
         self.assertEqual(len(rules.validate_lock(lock)), 2)

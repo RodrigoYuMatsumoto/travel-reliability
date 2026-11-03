@@ -90,7 +90,7 @@ def main() -> int:
             if args.kind != "semgrep" or args.rules_lock.stat().st_size > 64 * 1024:
                 raise ValueError("INVALID_RULESET_LOCK")
             lock = json.loads(args.rules_lock.read_text(encoding="utf-8-sig"))
-            if lock.get("format") != "travel-reliability-semgrep-rules-lock/1" or lock.get("engine") != report["version"]:
+            if lock.get("format") not in {"travel-reliability-semgrep-rules-lock/1", "travel-reliability-semgrep-rules-lock/2"} or lock.get("engine") != report["version"]:
                 raise ValueError("RULESET_ENGINE_MISMATCH")
             configs = lock["configs"]
             if {item["id"] for item in configs} != {"p/security-audit", "p/owasp-top-ten"} or len(configs) != 2 or any(not re.fullmatch(r"[0-9a-f]{64}", item["sha256"]) for item in configs):
