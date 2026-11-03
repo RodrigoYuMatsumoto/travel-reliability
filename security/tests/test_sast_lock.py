@@ -103,6 +103,36 @@ class RulesLockTests(unittest.TestCase):
                 self.assertNotIn(marker, output.getvalue())
                 self.assertNotIn("https://", output.getvalue())
 
+    def test_drift_diagnostics_identify_bytes_and_representation_without_payload(self):
+        lock, _ = fixture_lock()
+        for data, representation in [(b'rules:\n# synthetic private value\n', "yaml"), (b'{"synthetic-private":true}', "json"), (b'<html>synthetic private</html>', "html"), (b'\x1f\x8bsynthetic', "gzip")]:
+            with self.subTest(representation=representation):
+                with self.assertRaises(rules.RulesetContentDrift) as captured:
+                    rules.validate_bytes(lock["configs"][0], data)
+                report = rules.failure_diagnostic(captured.exception)
+                self.assertEqual(report["reasonCode"], "RULESET_CONTENT_DRIFT")
+                self.assertEqual(report["rulesetId"], "p/security-audit")
+                self.assertEqual(report["observedBytes"], len(data))
+                self.assertEqual(report["observedSha256"], hashlib.sha256(data).hexdigest())
+                self.assertEqual(report["representation"], representation)
+                self.assertNotIn("synthetic", json.dumps(report))
+
+    def test_download_requests_a_fixed_representation_without_weakening_transport(self):
+        class Response:
+            url = "https://semgrep.dev/c/p/security-audit"
+            def __enter__(self): return self
+            def __exit__(self, *_): return False
+            def read(self, limit):
+                self.limit = limit
+                return b"rules:\n"
+        with patch.object(rules, "build_opener") as opener:
+            opener.return_value.open.return_value = Response()
+            self.assertEqual(rules.download(Response.url), b"rules:\n")
+        request = opener.return_value.open.call_args.args[0]
+        self.assertEqual(request.get_header("Accept"), "text/yaml")
+        self.assertEqual(request.get_header("Accept-encoding"), "identity")
+        self.assertEqual(opener.return_value.open.call_args.kwargs["timeout"], 45)
+
 
 class SourceBoundTriageTests(unittest.TestCase):
     def test_only_exact_rule_path_line_and_source_digest_are_triaged(self):

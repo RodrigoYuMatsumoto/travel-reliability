@@ -34,7 +34,11 @@ class RegistryRedirects(HTTPRedirectHandler):
 
 
 def download(url):
-    request = Request(valid_url(url), headers={"User-Agent": "travel-reliability-security-rule-lock/1"})
+    request = Request(valid_url(url), headers={
+        "User-Agent": "travel-reliability-security-rule-lock/1",
+        "Accept": "text/yaml",
+        "Accept-Encoding": "identity",
+    })
     with build_opener(RegistryRedirects()).open(request, timeout=45) as response:
         valid_url(response.url)
         data = response.read(LIMIT + 1)
@@ -58,9 +62,22 @@ def validate_lock(lock):
     return entries
 
 
+class RulesetContentDrift(ValueError):
+    def __init__(self, entry, data):
+        super().__init__("RULESET_CONTENT_DRIFT")
+        stripped = data.lstrip()
+        kind = ("yaml" if stripped.startswith(b"rules:") else "json" if stripped.startswith((b"{", b"["))
+                else "gzip" if data.startswith(b"\x1f\x8b") else "html" if stripped.startswith(b"<") else "other")
+        self.diagnostic = {
+            "rulesetId": entry["id"], "expectedBytes": entry["bytes"], "observedBytes": len(data),
+            "expectedSha256": entry["sha256"], "observedSha256": hashlib.sha256(data).hexdigest(),
+            "representation": kind,
+        }
+
+
 def validate_bytes(entry, data):
     if len(data) != entry["bytes"] or hashlib.sha256(data).hexdigest() != entry["sha256"] or not data.lstrip().startswith(b"rules:"):
-        raise ValueError("RULESET_CONTENT_DRIFT")
+        raise RulesetContentDrift(entry, data)
 
 
 def prepare(lock, output, fetch=download, check_only=False):
@@ -92,6 +109,8 @@ def prepare(lock, output, fetch=download, check_only=False):
 
 def failure_diagnostic(error):
     """Expose a bounded failure category, never URLs, payloads or local paths."""
+    if isinstance(error, RulesetContentDrift):
+        return {"reasonCode": "RULESET_CONTENT_DRIFT", **error.diagnostic}
     if isinstance(error, HTTPError):
         return {"reasonCode": "REGISTRY_HTTP_ERROR", "httpStatus": error.code}
     if isinstance(error, URLError):
