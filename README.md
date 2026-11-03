@@ -4,7 +4,7 @@
 
 [Português](README.pt-BR.md) · [Use your AI](#use-your-ai-no-installation) · [Command catalog](prompts/README.md) · [Agent audit](docs/AGENT_AUDIT.md) · [Optional local app](#optional-local-app) · [Security](SECURITY.md) · [Architecture](docs/ARCHITECTURE.md) · [Delivery evidence](docs/IMPLEMENTATION_STATUS.md)
 
-Travel Reliability starts with a **portable instruction kit for the LLM you choose**. The 0.6 catalog routes eleven roles and 66 workflows across international, domestic, regional and local leisure or professional travel. It covers transport, lodging, geography, history, culture, local customs, business preparation, insurance, health logistics, documents and group costs. Roles are selected instructions, not background services. Deterministic tools handle contracts, context and reconciliation; an operator-bound workspace can organize actual local files through reviewed plans and explicit CLI authorization.
+Travel Reliability starts with a **portable instruction kit for the LLM you choose**. The 0.6 catalog routes eleven roles and 68 workflows across international, domestic, regional and local leisure or professional travel. It covers transport, lodging, geography, history, culture, local customs, business preparation, insurance, health logistics, documents and group costs. Roles are selected instructions, not background services. Deterministic tools handle contracts, context and reconciliation; an operator-bound workspace can organize actual local files through reviewed plans and explicit CLI authorization.
 
 Version 0.6 adds a [verified Codex installer/updater](docs/INSTALLATION.md#4-codex-complete-skill-nine-shortcuts-and-offline-mcp), [opt-in public sources and practical integration alternatives](docs/PUBLIC_SOURCES.md), a [reproducible synthetic benchmark](docs/VALIDATION.md), and [complete nine-asset release verification](docs/PACKAGING.md#complete-nine-asset-release-v06-and-later). The default MCP remains offline with explicit permissions.
 
@@ -92,7 +92,7 @@ npm run test:e2e
 ## Public interfaces
 
 - [Trip schema](schema/trip-contract.schema.json), [planning schemas](schema/planning.schema.json), [OpenAPI](api/openapi.json).
-- [Agent and command catalog](docs/AGENT_CATALOG.md): eleven roles, 66 commands, nine original calculators and a separate expense-settlement calculator. Workflow preparation does not execute research or booking; additional runtime capabilities require the documented operator configuration.
+- [Agent and command catalog](docs/AGENT_CATALOG.md): eleven roles, 68 commands, eleven planning calculators (including the nine original IDs) and a separate expense-settlement calculator. Workflow preparation does not execute research or booking; additional runtime capabilities require the documented operator configuration.
 - [PDF font configuration](docs/UNICODE_EXPORTS.md): verified local font coverage, explicit missing-glyph errors and limits of complex-script rendering.
 - [Source coverage](agents/coverage.json) and [agent audit](docs/AGENT_AUDIT.md): sanitized provenance, preserved behavior, corrections and validation limits.
 - [Prompt commands](prompts/README.md): load one task, not every file. The original calculator IDs and legacy MCP agent resource remain available.
@@ -100,3 +100,5 @@ npm run test:e2e
 - [Reference comparison](docs/COMPARISON.md), [governance](GOVERNANCE.md), [contribution guide](CONTRIBUTING.md), [roadmap](docs/ROADMAP.md), [license](LICENSE).
 
 Original code, schemas, prompts and documentation from v0.4.0: MIT, with the original repository identified in the attribution notices. Earlier releases retain their published Apache-2.0 terms. Explicit synthetic examples: CC0-1.0. Third-party and official materials retain their own terms. See [licensing](docs/LICENSING.md), [publication boundaries](docs/PUBLICATION_BOUNDARY.md) and the delivery record. Hashes prove byte consistency, not authenticity or universal security.
+
+See [deterministic intelligence contracts](docs/INTELLIGENCE.md) for bounded loyalty and multimodal calculations, hierarchical country packs, cryptographic claim binding and explicit unverified states. The nine original prompt aliases remain available.

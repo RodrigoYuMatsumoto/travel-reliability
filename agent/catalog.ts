@@ -113,10 +113,14 @@ export const catalogSchema = {
       additionalProperties: false,
       required: contractNames,
       properties: Object.fromEntries(
-        contractNames.map((name) => [
-          name,
-          { type: 'string', pattern: '^schema/[a-z0-9-]+\\.schema\\.json$' },
-        ]),
+        [
+          ...contractNames,
+          'loyaltyGraph',
+          'localEcosystem',
+          'culturalProtocol',
+          'claimOutput',
+          'countryPackQuery',
+        ].map((name) => [name, { type: 'string', pattern: '^schema/[a-z0-9-]+\\.schema\\.json$' }]),
       ),
     },
     execution: text,

@@ -1,0 +1,450 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "format": {
+      "const": "travel-reliability-country-pack/1"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "country": {
+          "type": "string",
+          "pattern": "^[A-Z]{2}$"
+        },
+        "subdivision": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 80
+        },
+        "municipality": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 80
+        }
+      },
+      "required": [
+        "country",
+        "subdivision",
+        "municipality"
+      ]
+    },
+    "synthetic": {
+      "type": "boolean"
+    },
+    "evidence": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+          },
+          "sourceUrl": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048,
+            "pattern": "^https://"
+          },
+          "sourceSha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "retrievedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reviewAfter": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "state": {
+            "enum": [
+              "operator_asserted",
+              "source_captured",
+              "reviewed",
+              "conflicting"
+            ]
+          },
+          "sourceSpan": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "quote": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 180
+              },
+              "locator": {
+                "type": "string",
+                "maxLength": 600
+              }
+            },
+            "required": [
+              "quote",
+              "locator"
+            ]
+          },
+          "assertion": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "subject": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+              },
+              "predicate": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+              },
+              "value": {}
+            },
+            "required": [
+              "subject",
+              "predicate",
+              "value"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "sourceUrl",
+          "sourceSha256",
+          "retrievedAt",
+          "reviewAfter",
+          "state",
+          "sourceSpan",
+          "assertion"
+        ]
+      }
+    },
+    "mobility_apps": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+          },
+          "key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+          },
+          "statement": {
+            "type": "string",
+            "maxLength": 600
+          },
+          "context": {
+            "type": "string",
+            "maxLength": 600
+          },
+          "value": {},
+          "kind": {
+            "enum": [
+              "fact",
+              "guidance"
+            ]
+          },
+          "evidenceRefs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+            },
+            "uniqueItems": true,
+            "maxItems": 40
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "validTo": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "personas": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "solo",
+                "family",
+                "tourism",
+                "business_corporate"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "statement",
+          "context",
+          "value",
+          "kind",
+          "evidenceRefs",
+          "validFrom",
+          "validTo",
+          "personas"
+        ]
+      }
+    },
+    "food_and_delivery_apps": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+          },
+          "key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+          },
+          "statement": {
+            "type": "string",
+            "maxLength": 600
+          },
+          "context": {
+            "type": "string",
+            "maxLength": 600
+          },
+          "value": {},
+          "kind": {
+            "enum": [
+              "fact",
+              "guidance"
+            ]
+          },
+          "evidenceRefs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+            },
+            "uniqueItems": true,
+            "maxItems": 40
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "validTo": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "personas": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "solo",
+                "family",
+                "tourism",
+                "business_corporate"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "statement",
+          "context",
+          "value",
+          "kind",
+          "evidenceRefs",
+          "validFrom",
+          "validTo",
+          "personas"
+        ]
+      }
+    },
+    "payment_and_connectivity": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+          },
+          "key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+          },
+          "statement": {
+            "type": "string",
+            "maxLength": 600
+          },
+          "context": {
+            "type": "string",
+            "maxLength": 600
+          },
+          "value": {},
+          "kind": {
+            "enum": [
+              "fact",
+              "guidance"
+            ]
+          },
+          "evidenceRefs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+            },
+            "uniqueItems": true,
+            "maxItems": 40
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "validTo": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "personas": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "solo",
+                "family",
+                "tourism",
+                "business_corporate"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "statement",
+          "context",
+          "value",
+          "kind",
+          "evidenceRefs",
+          "validFrom",
+          "validTo",
+          "personas"
+        ]
+      }
+    },
+    "safety_and_sanitary": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+          },
+          "key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+          },
+          "statement": {
+            "type": "string",
+            "maxLength": 600
+          },
+          "context": {
+            "type": "string",
+            "maxLength": 600
+          },
+          "value": {},
+          "kind": {
+            "enum": [
+              "fact",
+              "guidance"
+            ]
+          },
+          "evidenceRefs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+            },
+            "uniqueItems": true,
+            "maxItems": 40
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "validTo": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "personas": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "solo",
+                "family",
+                "tourism",
+                "business_corporate"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "statement",
+          "context",
+          "value",
+          "kind",
+          "evidenceRefs",
+          "validFrom",
+          "validTo",
+          "personas"
+        ]
+      }
+    }
+  },
+  "required": [
+    "format",
+    "version",
+    "scope",
+    "synthetic",
+    "evidence",
+    "mobility_apps",
+    "food_and_delivery_apps",
+    "payment_and_connectivity",
+    "safety_and_sanitary"
+  ]
+}

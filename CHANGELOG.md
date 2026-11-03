@@ -1,10 +1,15 @@
 # Changelog
 
-## 0.6.0 - 2026-11-02
+## 0.6.0 - candidate, not yet released
+
+- Added two bounded deterministic planning calculators for loyalty conversion economics and explicit-schedule multimodal stitching; eleven original role IDs and nine original planning IDs remain compatible. Unknown ratios, current eligibility, inventory and costs remain explicit.
+- Expanded to 68 workflows and 15 MCP tools with hierarchical country/cultural pack validation, exact typed assertion binding, process-local calculation receipts and a fail-closed output gate. External free-form host responses remain outside this gate.
+- Preserved default no-retry connectors and added an explicit opt-in bounded idempotent-read policy; added synthetic schema, privacy, arithmetic, transport, receipt-replay and mutation regressions.
+- Corrected SAST lock reproducibility by sorting whole unchanged rule blocks, without dropping metadata or accepting changed content. Release verification now binds every public reviewed-file digest to the source ZIP, raw committed blobs and the current complete main-push Actions attempt.
 
 - Airport comparisons require an explicit sourced terrestrial-cost scope; incomplete legacy input remains conditional with unknown savings. Interstate-bus continuity stays under review where the contract cannot distinguish lodging, residence and transfer conditions.
 - Preserved the air-assistance overnight exception while requiring review when the assistance flag cannot establish qualification and accommodation exceptions. Completed historical communication, bus-scope and future effective-date references without claiming unsupported event coverage.
-- Added a verified, reversible Codex installer for the complete skill, nine shortcuts and ten-tool offline MCP allowlist. Existing settings and older versioned runtimes are preserved.
+- Added a verified, reversible Codex installer for the complete skill, nine shortcuts and a twelve-tool offline MCP allowlist intersected with the installed catalog. Existing settings and older versioned runtimes are preserved.
 - Normalized SBOM identity from project metadata rather than checkout directory names, pinned SAST rule bytes, and retained the reproduced Windows child-process finding with exact source-bound triage and boundary regressions.
 - Restricted the synthetic-email privacy exemption to exact reserved domains; longer lookalike domains remain subject to detection.
 - Added complete nine-asset release assembly, source/blob and manifest verification, private hash-bound independent-review receipts and a read-only post-publication verification workflow. A missing review or CI record fails stable eligibility.

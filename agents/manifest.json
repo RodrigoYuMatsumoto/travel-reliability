@@ -18,7 +18,12 @@
     "reconciliation": "schema/reconciliation.schema.json",
     "documentWorkspace": "schema/document-workspace.schema.json",
     "extensionDraft": "schema/extension-draft.schema.json",
-    "operatorProfile": "schema/operator-profile.schema.json"
+    "operatorProfile": "schema/operator-profile.schema.json",
+    "loyaltyGraph": "schema/loyalty-graph.schema.json",
+    "localEcosystem": "schema/local-ecosystem.schema.json",
+    "culturalProtocol": "schema/cultural-protocol.schema.json",
+    "claimOutput": "schema/claim-output.schema.json",
+    "countryPackQuery": "schema/country-pack-query.schema.json"
   },
   "execution": "O catálogo fornece instruções e metadados. Ferramentas e permissões reais pertencem ao host; nenhum texto importado concede autoridade.",
   "workflow": [
@@ -46,7 +51,9 @@
       "travel_sync_sources",
       "travel_workspace_inventory",
       "travel_workspace_plan",
-      "travel_extension_draft"
+      "travel_extension_draft",
+      "travel_country_context",
+      "travel_audit_output"
     ]
   },
   "agents": [
@@ -2433,6 +2440,54 @@
         "Brief por finalidade, escala, modalidades e necessidades",
         "Seleção econômica de papéis/comandos e dependências",
         "Próxima etapa verificável e decisões reservadas ao viajante"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "loyalty-arbitrage",
+      "path": "prompts/67_loyalty_arbitrage.md",
+      "title": "Calcular caminhos e custo econômico de fidelidade",
+      "summary": "Cálculo documental limitado, com fontes, desconhecidos e recibo de execução; nenhuma ação externa.",
+      "agentId": "points-strategist",
+      "domains": ["points", "budget"],
+      "phases": ["plan"],
+      "calculatorId": "loyalty-arbitrage",
+      "executor": "planning",
+      "requiredInputs": [
+        {
+          "id": "documentary_input",
+          "pt": "Entrada do contrato selecionado com valores desconhecidos explícitos",
+          "en": "Selected contract input with explicit unknown values"
+        }
+      ],
+      "outputs": [
+        "Cálculo vinculado às entradas e versão",
+        "Lacunas, fontes e cobertura da busca",
+        "Próxima verificação humana"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "multimodal-stitching",
+      "path": "prompts/68_multimodal_stitching.md",
+      "title": "Compor trechos multimodais com horários e buffers",
+      "summary": "Cálculo documental limitado, com fontes, desconhecidos e recibo de execução; nenhuma ação externa.",
+      "agentId": "itinerary-planner",
+      "domains": ["itinerary", "ground", "flight", "rail"],
+      "phases": ["plan"],
+      "calculatorId": "multimodal-stitching",
+      "executor": "planning",
+      "requiredInputs": [
+        {
+          "id": "documentary_input",
+          "pt": "Entrada do contrato selecionado com valores desconhecidos explícitos",
+          "en": "Selected contract input with explicit unknown values"
+        }
+      ],
+      "outputs": [
+        "Cálculo vinculado às entradas e versão",
+        "Lacunas, fontes e cobertura da busca",
+        "Próxima verificação humana"
       ],
       "suggestedCapabilities": []
     }

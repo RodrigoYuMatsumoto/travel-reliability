@@ -1,5 +1,6 @@
 /** Pseudonymous, documentary planning inputs. No booking or messaging capabilities. */
 import { localeSchema } from './locale.js';
+import { loyaltyArbitrageSchema, multimodalStitchingSchema } from './intelligence.js';
 export const toolIds = [
   'flex-dates',
   'airports',
@@ -10,6 +11,8 @@ export const toolIds = [
   'negotiation',
   'hidden-city',
   'group-split',
+  'loyalty-arbitrage',
+  'multimodal-stitching',
 ] as const;
 export type ToolId = (typeof toolIds)[number];
 export interface Source {
@@ -306,6 +309,8 @@ const comparison = object({
   overnightAllowed: bool,
 });
 export const planningSchemas: Record<ToolId, object> = {
+  'loyalty-arbitrage': loyaltyArbitrageSchema,
+  'multimodal-stitching': multimodalStitchingSchema,
   'flex-dates': comparison,
   airports: comparison,
   connections: comparison,

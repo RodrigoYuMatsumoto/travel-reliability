@@ -1,0 +1,27 @@
+{
+  "format": "travel-reliability-loyalty-proposal-status/1",
+  "origin": "Operator specification, not independently verified",
+  "proposedEdges": 138,
+  "programs": 49,
+  "fullEdgeVerification": "NOT_COMPLETE",
+  "unresolvedOrExcluded": [
+    {
+      "relationship": "ESFERA-IBERIA",
+      "reason": "CONFLICTING_CURRENT_PRIMARY_REFERENCES",
+      "source": "https://www.santander.com.br/blog/shopping/quantos-pontos-vale-uma-milha/"
+    },
+    {
+      "relationship": "AVIOS_COMPLETE_CLIQUE",
+      "reason": "DIRECT_LINKS_NOT_UNIVERSAL",
+      "source": "https://www.finnair.com/be-en/finnair-plus/buy--transfer-or-exchange-avios/transfer-avios-between-loyalty-programmes"
+    },
+    {
+      "relationship": "ITAU-LIVELO",
+      "reason": "NO_CURRENT_OPERATIONAL_EVIDENCE"
+    },
+    {
+      "relationship": "HOTEL_CARD_STATUS_BENEFITS",
+      "reason": "NOT_A_POINT_TRANSFER_EDGE; provider and tier terms required"
+    }
+  ]
+}

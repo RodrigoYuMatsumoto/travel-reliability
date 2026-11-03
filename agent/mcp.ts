@@ -6,6 +6,18 @@ import { readFile, realpath, lstat, stat } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { relative, isAbsolute } from 'node:path';
 import { plan } from '../api/src/planning.js';
+import { countryContext } from './country-packs.js';
+import { auditClaims, type CalculationReceipt } from './provenance.js';
+import {
+  countryPackQuerySchema,
+  localEcosystemSchema,
+  culturalProtocolSchema,
+  claimOutputSchema,
+  loyaltyGraphSchema,
+} from '../schema/src/intelligence.js';
+import loyaltyGraph from '../data/loyalty_graph.json' with { type: 'json' };
+import { enforceContentPolicy } from './content-policy.js';
+import type { EvidenceReference } from './provenance.js';
 import { validateTrip } from '../api/src/validation.js';
 import { assess, checklist } from '../api/src/assessment.js';
 import { prepareBrief, briefSchema } from './brief.js';
@@ -76,6 +88,7 @@ const errorResult = (code: string) => ({
 function result(action: () => unknown) {
   try {
     const value = action();
+    enforceContentPolicy(value);
     const text = JSON.stringify(value);
     if (Buffer.byteLength(text) > MCP_LIMITS.outputBytes / 2)
       return errorResult('MCP_OUTPUT_LIMIT');
@@ -113,6 +126,23 @@ async function asyncResult(action: () => Promise<unknown>) {
 }
 
 export function createTravelServer(supplied: TravelServerOptions = {}): McpServer {
+  // Per-process, bounded, ephemeral receipts. No original document or account access.
+  const calculations = new Map<
+    string,
+    { receipt: CalculationReceipt; input: unknown; output: unknown; createdAt: number }
+  >();
+  const pruneCalculations = () => {
+    for (const [id, value] of calculations)
+      if (Date.now() - value.createdAt > 15 * 60_000) calculations.delete(id);
+    while (calculations.size > 100) calculations.delete(calculations.keys().next().value!);
+  };
+  const intelligenceSchemas: Record<string, object> = {
+    'loyalty-graph': loyaltyGraphSchema,
+    'country-pack-query': countryPackQuerySchema,
+    'local-ecosystem': localEcosystemSchema,
+    'cultural-protocol': culturalProtocolSchema,
+    'claim-output': claimOutputSchema,
+  };
   const options = Object.freeze({
     connectors: supplied.connectors,
     workspace: supplied.workspace,
@@ -311,7 +341,7 @@ export function createTravelServer(supplied: TravelServerOptions = {}): McpServe
     'travel_plan',
     {
       description:
-        'Run one of nine bounded documentary calculators on supplied evidence. Read travel_schema for the selected tool; no live prices or external actions.',
+        'Run one selected bounded documentary calculator on supplied evidence. Read its travel_schema; no live prices, transfers, bookings or external actions.',
       inputSchema: z.strictObject({
         tool: z.enum(toolIds),
         input: z.record(z.string(), z.unknown()),
@@ -321,7 +351,20 @@ export function createTravelServer(supplied: TravelServerOptions = {}): McpServe
     ({ tool, input }) =>
       result(() => {
         bounded(input);
-        return plan(tool, input);
+        const output = plan(tool, input);
+        const inner = output.result as Record<string, unknown>;
+        if (inner && typeof inner === 'object' && 'calculationReceipt' in inner) {
+          const { calculationReceipt, ...value } = inner;
+          const record = calculationReceipt as CalculationReceipt;
+          calculations.set(record.outputSha256, {
+            receipt: record,
+            input,
+            output: value,
+            createdAt: Date.now(),
+          });
+          pruneCalculations();
+        }
+        return output;
       }),
   );
   server.registerTool(
@@ -342,6 +385,7 @@ export function createTravelServer(supplied: TravelServerOptions = {}): McpServe
           'connector-request',
           'document-workspace',
           'extension-draft',
+          ...Object.keys(intelligenceSchemas),
           ...toolIds,
           ...commandIds.map((id) => 'workflow/' + id),
         ] as [string, ...string[]]),
@@ -349,41 +393,72 @@ export function createTravelServer(supplied: TravelServerOptions = {}): McpServe
       annotations,
     },
     ({ name }) =>
-      result(() =>
-        name === 'brief'
-          ? briefSchema
-          : name === 'trip'
-            ? tripSchema
-            : name === 'catalog'
-              ? catalogSchema
-              : name === 'catalog-query'
-                ? catalogQuerySchema
-                : name === 'workflow'
-                  ? workflowSchema
-                  : name === 'expenses'
-                    ? expenseSchema
-                    : name === 'global-context'
-                      ? globalContextSchema
-                      : name === 'reconciliation'
-                        ? reconciliationSchema
-                        : name === 'connector-request'
-                          ? connectorRequestSchema
-                          : name === 'document-workspace'
-                            ? documentWorkspaceInputSchema
-                            : name === 'extension-draft'
-                              ? extensionDraftSchema
-                              : name.startsWith('workflow/')
-                                ? {
-                                    ...workflowSchema,
-                                    title: getCommand(name.slice(9)).title,
-                                    properties: {
-                                      ...workflowSchema.properties,
-                                      workflowId: { const: getCommand(name.slice(9)).id },
-                                    },
-                                    description: getCommand(name.slice(9)).summary,
-                                  }
-                                : planningSchemas[name as (typeof toolIds)[number]],
+      result(
+        () =>
+          intelligenceSchemas[name] ??
+          (name === 'brief'
+            ? briefSchema
+            : name === 'trip'
+              ? tripSchema
+              : name === 'catalog'
+                ? catalogSchema
+                : name === 'catalog-query'
+                  ? catalogQuerySchema
+                  : name === 'workflow'
+                    ? workflowSchema
+                    : name === 'expenses'
+                      ? expenseSchema
+                      : name === 'global-context'
+                        ? globalContextSchema
+                        : name === 'reconciliation'
+                          ? reconciliationSchema
+                          : name === 'connector-request'
+                            ? connectorRequestSchema
+                            : name === 'document-workspace'
+                              ? documentWorkspaceInputSchema
+                              : name === 'extension-draft'
+                                ? extensionDraftSchema
+                                : name.startsWith('workflow/')
+                                  ? {
+                                      ...workflowSchema,
+                                      title: getCommand(name.slice(9)).title,
+                                      properties: {
+                                        ...workflowSchema.properties,
+                                        workflowId: { const: getCommand(name.slice(9)).id },
+                                      },
+                                      description: getCommand(name.slice(9)).summary,
+                                    }
+                                  : planningSchemas[name as (typeof toolIds)[number]]),
       ),
+  );
+  server.registerTool(
+    'travel_country_context',
+    {
+      description:
+        'Resolve one scoped set of passive country/subdivision/city packs. Caller evidence is not trusted registration; no safety ranking, legal plugin execution or external lookup.',
+      inputSchema: z.strictObject({ input: z.record(z.string(), z.unknown()) }),
+      annotations,
+    },
+    ({ input }) =>
+      result(() => {
+        bounded(input);
+        return countryContext(input, loyaltyGraph.evidence as EvidenceReference[]);
+      }),
+  );
+  server.registerTool(
+    'travel_audit_output',
+    {
+      description:
+        'Gate structured claims against the operator evidence registry or receipts generated in this server process. Does not authenticate providers or inspect arbitrary files.',
+      inputSchema: z.strictObject({ input: z.record(z.string(), z.unknown()) }),
+      annotations,
+    },
+    ({ input }) =>
+      result(() => {
+        bounded(input);
+        pruneCalculations();
+        return auditClaims(input, loyaltyGraph.evidence as EvidenceReference[], calculations);
+      }),
   );
   server.registerTool(
     'travel_check_trip',

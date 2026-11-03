@@ -1,6 +1,7 @@
 """Synthetic release fixtures: no real accounts, review captures or publication."""
 
 import importlib.util
+from copy import deepcopy
 import io
 import json
 import tempfile
@@ -73,7 +74,7 @@ class ReleaseFixture:
 
     @staticmethod
     def workflow(run_id, jobs, path):
-        return {"id": run_id, "attempt": 1, "sourceCommit": COMMIT, "event": "push", "status": "completed", "conclusion": "success", "workflow": path, "jobs": [{"name": name, "conclusion": "success"} for name in jobs]}
+        return {"id": run_id, "attempt": 1, "sourceCommit": COMMIT, "headBranch": "main", "event": "push", "status": "completed", "conclusion": "success", "workflow": path, "jobs": [{"name": name, "conclusion": "success"} for name in jobs]}
 
     def object(self, name, content):
         (self.directory / name).write_bytes(content)
@@ -84,6 +85,17 @@ class ReleaseFixture:
 
 
 class ReleaseBundleTests(unittest.TestCase):
+    def test_raw_git_snapshot_includes_export_ignored_files(self):
+        with tempfile.TemporaryDirectory(prefix="travel-source-binding-") as directory:
+            root = Path(directory)
+            (root / ".gitattributes").write_text("hidden.txt export-ignore\n", encoding="utf-8")
+            (root / "hidden.txt").write_bytes(b"synthetic committed source\n")
+            bundle.safe_git(root, ["init", "--quiet"])
+            bundle.safe_git(root, ["add", ".gitattributes", "hidden.txt"])
+            bundle.safe_git(root, ["-c", "user.name=Travel Maintainer", "-c", "user.email=maintainer@example.invalid", "-c", "core.hooksPath=", "commit", "--quiet", "-m", "synthetic snapshot"])
+            commit = bundle.safe_git(root, ["rev-parse", "HEAD"])
+            self.assertEqual(bundle.git_source_snapshot(root, commit), {".gitattributes": b"hidden.txt export-ignore\n", "hidden.txt": b"synthetic committed source\n"})
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="travel-release-synthetic-")
         self.addCleanup(self.temporary.cleanup)
@@ -98,10 +110,65 @@ class ReleaseBundleTests(unittest.TestCase):
                 return str(repository.resolve())
             if args == ["rev-parse", f"{COMMIT}^{{tree}}"]:
                 return TREE
+            if args == ['merge-base', '--is-ancestor', BASELINE, COMMIT]:
+                return ''
+            if args == ['diff', '--name-only', '--diff-filter=ACMRT', BASELINE, COMMIT]:
+                return '\n'.join(self.fixture.reviewed)
+            if args == ['diff', '--name-only', '--diff-filter=D', BASELINE, COMMIT]:
+                return ''
             raise AssertionError("Unexpected fixture Git operation")
 
         with patch.object(bundle, "safe_git", side_effect=git_result), patch.object(bundle, "git_source_snapshot", return_value=self.fixture.source_files):
-            return bundle.verify_bundle(output, COMMIT, VERSION, True, metadata, repository)
+            return bundle.verify_bundle(output, COMMIT, VERSION, True, metadata, repository, self.synthetic_actions)
+
+    def synthetic_actions(self, endpoint):
+        rows = self.fixture.evidence['workflows']
+        def run(row):
+            return {'id': row['id'], 'head_sha': COMMIT, 'head_branch': 'main', 'event': row['event'], 'path': row['workflow'], 'run_attempt': row['attempt'], 'status': row['status'], 'conclusion': row['conclusion'], 'created_at': '2026-11-03T00:00:00Z'}
+        if '?head_sha=' in endpoint:
+            return {'total_count': 2, 'workflow_runs': [run(row) for row in rows]}
+        row = next(row for row in rows if f"/runs/{row['id']}" in endpoint)
+        if '/jobs?' in endpoint:
+            return {'total_count': len(row['jobs']), 'jobs': [{**job, 'status': 'completed'} for job in row['jobs']]}
+        return run(row)
+
+    def test_main_branch_and_one_run_per_workflow_are_mandatory(self):
+        for branch in [None, 'other']:
+            changed = deepcopy(self.fixture.evidence['workflows'])
+            changed[0]['headBranch'] = branch
+            self.assertFalse(bundle.validate_workflows(changed, COMMIT)[1])
+        changed = deepcopy(self.fixture.evidence['workflows'])
+        duplicate = deepcopy(changed[0]); duplicate['id'] = 99; changed.append(duplicate)
+        with self.assertRaisesRegex(ValueError, 'DUPLICATE_WORKFLOW_PATH'):
+            bundle.validate_workflows(changed, COMMIT)
+
+    def test_offline_verification_never_claims_current_stable_eligibility(self):
+        assets, _ = self.fixture.build(stable=True)
+        output = self.fixture.directory / 'offline-check'
+        output.mkdir()
+        for name, data in assets.items(): (output / name).write_bytes(data)
+        report = bundle.verify_bundle(output)
+        self.assertTrue(report['recordedEligible'])
+        self.assertFalse(report['stableEligible'])
+        self.assertEqual(report['actionsBinding'], 'NOT_RUN')
+
+    def test_live_actions_rejects_newer_failures_and_wrong_attempts(self):
+        rows = self.fixture.evidence['workflows']
+        self.assertTrue(bundle.verify_actions(rows, COMMIT, self.synthetic_actions))
+        def newer(endpoint):
+            value = self.synthetic_actions(endpoint)
+            if '?head_sha=' in endpoint:
+                row = dict(value['workflow_runs'][0], id=999, conclusion='failure', created_at='2026-11-04T00:00:00Z')
+                value['workflow_runs'].append(row); value['total_count'] += 1
+            return value
+        with self.assertRaisesRegex(ValueError, 'ACTIONS_NEWER_RUN_EXISTS'):
+            bundle.verify_actions(rows, COMMIT, newer)
+        def wrong(endpoint):
+            value = self.synthetic_actions(endpoint)
+            if '?head_sha=' not in endpoint and '/jobs?' not in endpoint: value['run_attempt'] = 2
+            return value
+        with self.assertRaisesRegex(ValueError, 'ACTIONS_RUN_BINDING_MISMATCH'):
+            bundle.verify_actions(rows, COMMIT, wrong)
 
     def test_nine_assets_are_deterministic_for_the_same_inputs(self):
         first, report = self.fixture.build(stable=True)

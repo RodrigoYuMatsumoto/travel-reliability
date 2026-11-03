@@ -42,8 +42,8 @@ npm run release:pack
 ## Agent and skill packages
 
 The manual kit and complete skill ZIP contain allowlisted Markdown instructions,
-the eleven declared roles, 66 workflows, schemas, eighteen synthetic JSON input
-examples and selected documentation. They preserve the nine planning calculator
+the eleven declared roles, 68 workflows, schemas, synthetic JSON input
+examples and selected documentation. They preserve the original nine planning calculator
 IDs, license notices, historical license text and per-file/source digests. The
 full source archive is a separate artifact.
 
@@ -203,8 +203,8 @@ response, reused response, same-family quorum, downgraded caveat, inconsistent
 SBOM identity, missing checks or an unresolved stable-release gate.
 
 ```text
-uv run --project ingest python scripts/release-bundle.py assemble --evidence .local/release-ci.json --review-receipt PRIVATE_RECEIPT_JSON --review-evidence-dir PRIVATE_OBJECT_DIRECTORY --output artifacts/release-vVERSION --require-stable
-uv run --project ingest python scripts/release-bundle.py verify --directory artifacts/release-vVERSION --expected-version VERSION --expected-commit FINAL_COMMIT --source-tree-repository . --require-stable
+uv run --project ingest python scripts/release-bundle.py assemble --evidence .local/release-ci.json --review-receipt PRIVATE_RECEIPT_JSON --review-evidence-dir PRIVATE_OBJECT_DIRECTORY --output artifacts/release-vVERSION --require-stable --check-github-actions
+uv run --project ingest python scripts/release-bundle.py verify --directory artifacts/release-vVERSION --expected-version VERSION --expected-commit FINAL_COMMIT --source-tree-repository . --require-stable --check-github-actions
 ```
 
 The source ZIP must match **every** regular file/blob of the committed tree,
@@ -213,7 +213,7 @@ hash cannot authorize replacement of an unreviewed source file. The agent ZIPs
 retain the existing exact-membership, allowlist, link and source-commit checks.
 
 For offline preparation without a completed B.9, omit the receipt and
-`--require-stable`. The candidate report explicitly says `NOT_RUN` and
+`--require-stable --check-github-actions`. The candidate report explicitly says `NOT_RUN` and
 `stableEligible: false`; it cannot pass the stable gate. Do not upload private
 objects to a workflow to turn that candidate into an approval.
 
@@ -232,7 +232,7 @@ GitHub asset digests.
 ```text
 gh release download vVERSION --repo RodrigoYuMatsumoto/travel-reliability --dir artifacts/download-vVERSION
 gh api repos/RodrigoYuMatsumoto/travel-reliability/releases/tags/vVERSION > .local/published-release.json
-uv run --project ingest python scripts/release-bundle.py verify --directory artifacts/download-vVERSION --expected-version VERSION --expected-commit FINAL_COMMIT --source-tree-repository . --require-stable --github-release-metadata .local/published-release.json
+uv run --project ingest python scripts/release-bundle.py verify --directory artifacts/download-vVERSION --expected-version VERSION --expected-commit FINAL_COMMIT --source-tree-repository . --require-stable --check-github-actions --github-release-metadata .local/published-release.json
 ```
 
 Use UTF-8 when creating the JSON on Windows. The verifier accepts UTF-8 with or
@@ -256,3 +256,5 @@ has read-only repository permission and does not publish, merge, create tags,
 run a model, or change the underlying review decision. Legacy v0.5 manifests
 remain historical; the new verifier does not pretend to certify their old
 schema retrospectively.
+
+The stable gate independently reads the current main-push Actions attempt and complete job set using `--check-github-actions`. Duplicate workflow records, a newer failed run, changed reviewed-file digests or an incomplete public delta reject eligibility. Offline integrity alone reports recorded eligibility separately from current eligibility. Git source verification uses raw committed blobs, including paths marked export-ignore; archive attributes cannot conceal source files.

@@ -95,7 +95,7 @@ their real PostgreSQL/Redis/S3 and Tesseract dependencies. Production build,
 formatting, Python lint and current-source/history privacy checks passed. npm audit and
 the locked Python runtime pip-audit found zero known advisories at that time.
 
-The catalog now contains eleven roles, 66 commands, thirteen MCP tools and 78
+The catalog now contains eleven roles, 68 commands, fifteen MCP tools and 80
 fixed resources/prompts. Runtime tests exercise the real stdio SDK, disabled
 optional capabilities, operator-profile binding, selected-message Gmail reads
 over synthetic HTTP transport, the actual isolated Python email parser, document

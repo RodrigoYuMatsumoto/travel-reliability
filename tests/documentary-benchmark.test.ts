@@ -4,8 +4,8 @@ import { benchmarkDocumentary, nearestRankPercentile } from '../scripts/benchmar
 describe('documentary benchmark evidence', () => {
   it('executes all calculators, rejects missing input, and distinguishes bytes from tokens', () => {
     const report = benchmarkDocumentary(2);
-    expect(report.calculators).toHaveLength(9);
-    expect(report.executions).toBe(18);
+    expect(report.calculators).toHaveLength(11);
+    expect(report.executions).toBe(22);
     expect(report.latencyMethod).toMatchObject({
       percentile: 'nearest-rank',
       samplesPerCalculator: 2,

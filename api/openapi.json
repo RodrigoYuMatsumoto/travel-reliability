@@ -415,7 +415,9 @@
                 "fare-scenarios",
                 "negotiation",
                 "hidden-city",
-                "group-split"
+                "group-split",
+                "loyalty-arbitrage",
+                "multimodal-stitching"
               ]
             }
           },
@@ -469,6 +471,12 @@
                   },
                   {
                     "$ref": "#/components/schemas/group-split"
+                  },
+                  {
+                    "$ref": "#/components/schemas/loyalty-arbitrage"
+                  },
+                  {
+                    "$ref": "#/components/schemas/multimodal-stitching"
                   }
                 ]
               }
@@ -4495,6 +4503,475 @@
             "const": true
           }
         }
+      },
+      "loyalty-arbitrage": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "evaluatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sourceProgram": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+          },
+          "targetProgram": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+          },
+          "sourcePoints": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "acquisitionCostPer1000Minor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "topUp": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "points": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "cashMinor": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "points",
+                  "cashMinor"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "eligibility": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+                },
+                "value": {
+                  "enum": [
+                    "yes",
+                    "no",
+                    "unknown"
+                  ]
+                }
+              },
+              "required": [
+                "code",
+                "value"
+              ]
+            }
+          },
+          "requiredAwardPoints": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "awardTaxesMinor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cashFareMinor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "comparableBaggage": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "comparableCancellation": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "awardAvailable": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "pointsValidThroughTravel": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "maxHops": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "maxExpansions": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2000
+          },
+          "maxResults": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          }
+        },
+        "required": [
+          "evaluatedAt",
+          "sourceProgram",
+          "targetProgram",
+          "sourcePoints",
+          "acquisitionCostPer1000Minor",
+          "topUp",
+          "eligibility",
+          "requiredAwardPoints",
+          "awardTaxesMinor",
+          "cashFareMinor",
+          "currency",
+          "comparableBaggage",
+          "comparableCancellation",
+          "awardAvailable",
+          "pointsValidThroughTravel",
+          "maxHops",
+          "maxExpansions",
+          "maxResults"
+        ]
+      },
+      "multimodal-stitching": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "evaluatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "origin": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+          },
+          "destination": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+          },
+          "nodes": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+                },
+                "minimumConnectionMinutes": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "timeZone": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 100
+                },
+                "country": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "pattern": "^[A-Z]{2}$"
+                }
+              },
+              "required": [
+                "id",
+                "minimumConnectionMinutes",
+                "timeZone",
+                "country"
+              ]
+            }
+          },
+          "legs": {
+            "type": "array",
+            "maxItems": 500,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+                },
+                "origin": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+                },
+                "destination": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+                },
+                "mode": {
+                  "enum": [
+                    "flight",
+                    "bus",
+                    "rail",
+                    "transfer",
+                    "ferry"
+                  ]
+                },
+                "departure": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "local": {
+                      "type": "string",
+                      "maxLength": 40
+                    },
+                    "timeZone": {
+                      "type": "string",
+                      "maxLength": 100
+                    }
+                  },
+                  "required": [
+                    "local",
+                    "timeZone"
+                  ]
+                },
+                "arrival": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "local": {
+                      "type": "string",
+                      "maxLength": 40
+                    },
+                    "timeZone": {
+                      "type": "string",
+                      "maxLength": 100
+                    }
+                  },
+                  "required": [
+                    "local",
+                    "timeZone"
+                  ]
+                },
+                "currency": {
+                  "type": "string",
+                  "pattern": "^[A-Z]{3}$"
+                },
+                "costMinor": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "bookingGroup": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "baggageThrough": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "positioning": {
+                  "type": "boolean"
+                },
+                "hiddenCity": {
+                  "type": "boolean"
+                },
+                "sourceRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+                  },
+                  "uniqueItems": true,
+                  "maxItems": 40
+                }
+              },
+              "required": [
+                "id",
+                "origin",
+                "destination",
+                "mode",
+                "departure",
+                "arrival",
+                "currency",
+                "costMinor",
+                "bookingGroup",
+                "baggageThrough",
+                "positioning",
+                "hiddenCity",
+                "sourceRefs"
+              ]
+            }
+          },
+          "sources": {
+            "type": "array",
+            "maxItems": 500,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+                },
+                "observedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "evidenceRef": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "observedAt",
+                "evidenceRef"
+              ]
+            }
+          },
+          "separateTicketBufferMinutes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "baggageBufferMinutes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "maxHops": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8
+          },
+          "maxExpansions": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3000
+          },
+          "maxResults": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          }
+        },
+        "required": [
+          "evaluatedAt",
+          "origin",
+          "destination",
+          "nodes",
+          "legs",
+          "sources",
+          "separateTicketBufferMinutes",
+          "baggageBufferMinutes",
+          "maxHops",
+          "maxExpansions",
+          "maxResults"
+        ]
       },
       "flex-dates": {
         "type": "object",

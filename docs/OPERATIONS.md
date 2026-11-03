@@ -111,7 +111,7 @@ chains.
 For v0.6 and later, follow the complete [nine-asset release procedure](PACKAGING.md#complete-nine-asset-release-v06-and-later).
 Collect actual CI outcomes for the final main-branch commit, bind the frozen B.9
 objects through a private hash-checked receipt, and assemble a new directory with
-`scripts/release-bundle.py assemble --require-stable`. A missing independent
+`scripts/release-bundle.py assemble --require-stable --check-github-actions`. A missing independent
 review can produce an explicit offline candidate, never a stable-eligible report.
 The CLI cannot publish or turn authentication into authority.
 

@@ -28,6 +28,7 @@ TOOLS = [
     "travel_catalog", "travel_workflow", "travel_settle_expenses",
     "travel_prepare_brief", "travel_schema", "travel_plan", "travel_check_trip",
     "travel_global_context", "travel_reconcile_bookings", "travel_extension_draft",
+    "travel_country_context", "travel_audit_output",
 ]
 ALIASES = {
     "travel-flex-dates": "01_datas_flexiveis.md",
@@ -367,11 +368,19 @@ def travel_spans(text):
             if path[:2] == ["mcp_servers", "travel-reliability"]]
 
 
-def configuration(original, node, entry):
+def allowed_tools(source):
+    catalog = json_document(source.get("agents/manifest.json", b"{}"))
+    advertised = catalog.get("optionalRuntime", {}).get("tools", [])
+    if not isinstance(advertised, list) or any(not isinstance(tool, str) for tool in advertised):
+        raise ValueError("INVALID_ADVERTISED_TOOL_LIST")
+    return [tool for tool in TOOLS if tool in advertised]
+
+
+def configuration(original, node, entry, enabled_tools=None):
     previous = tomllib.loads(original.decode("utf-8-sig")) if original else {}
     section = {
         "command": str(node), "args": [str(entry)], "enabled": True,
-        "enabled_tools": TOOLS, "startup_timeout_sec": 30, "tool_timeout_sec": 30,
+        "enabled_tools": TOOLS if enabled_tools is None else enabled_tools, "startup_timeout_sec": 30, "tool_timeout_sec": 30,
         "default_tools_approval_mode": "approve",
     }
     text = original.decode("utf-8-sig")
@@ -535,7 +544,10 @@ def install(source_archive, skill_archive, checksums, codex_home, skills_home, n
     runtime = local_path(codex_home / "tools/travel-reliability" / ("v" + version))
     if runtime.exists():
         raise ValueError("VERSION_ALREADY_INSTALLED_PRESERVED")
-    proposed = configuration(original, node, runtime / "scripts/agent-mcp.mjs")
+    enabled_tools = allowed_tools(source)
+    if not enabled_tools:
+        raise ValueError("NO_SUPPORTED_OFFLINE_TOOLS")
+    proposed = configuration(original, node, runtime / "scripts/agent-mcp.mjs", enabled_tools)
     targets = {"travel-agent": skill}
     tick = chr(96)
     for alias, prompt in ALIASES.items():
@@ -598,7 +610,7 @@ def install(source_archive, skill_archive, checksums, codex_home, skills_home, n
             with WindowsConfigEdit(config, original, config_existed) as edit:
                 edit.write(proposed)
                 record = {"format": "travel-reliability-codex-install/1", "version": version,
-                          "sourceCommit": commit, "skills": 10, "allowedTools": len(TOOLS),
+                          "sourceCommit": commit, "skills": 10, "allowedTools": len(enabled_tools),
                           "sensitiveToolsEnabled": False, "dependenciesInstalled": dependencies,
                           "configPreviouslyExisted": config_existed,
                           "configBackupSha256": digest(original), "configSha256": digest(proposed),

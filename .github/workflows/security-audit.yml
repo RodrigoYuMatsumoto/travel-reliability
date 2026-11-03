@@ -78,6 +78,8 @@ jobs:
         run: node --import tsx security/fuzz/ecosystem.ts --seed 20261031 --cases 2000 --seconds 120 --output .local/security-audit/fuzz/ecosystem-ci.json
       - name: Mutate passive MIME imports without account access
         run: uv run --project ingest python security/fuzz/email_import.py --seed 20261031 --cases 384 --seconds 120 --output .local/security-audit/fuzz/email-import-ci.json
+      - name: Mutate loyalty, multimodal, country packs and evidence gate
+        run: node --import tsx security/fuzz/intelligence.ts --seed 20261103 --cases 1000 --seconds 90 --output .local/security-audit/fuzz/intelligence-ci.json
       # Harnesses contain only generated-case metadata, counters, source hashes and
       # failure codes. Raw payloads/reduced recipes live elsewhere and are excluded.
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7

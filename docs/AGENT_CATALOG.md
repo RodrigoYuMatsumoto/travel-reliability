@@ -1,6 +1,6 @@
-# Catálogo internacional de agentes e workflows — 0.4
+# Catálogo internacional de agentes e workflows — 0.6
 
-O [manifesto](../agents/manifest.json), formato 3, define **onze papéis e 66
+O [manifesto](../agents/manifest.json), formato 3, define **onze papéis e 68
 comandos**. Dez papéis são operacionais, contando o coordenador; o arquiteto é
 um metapapel técnico acionado por pedido explícito. Papéis roteados não são
 processos instalados nem daemons.
@@ -166,3 +166,5 @@ A revisão textual não comprova comportamento de toda LLM nem independência de
 família arquitetural. Veja [auditoria](AGENT_AUDIT.md) e [segurança](SECURITY_MODEL.md).
 Conteúdo original desta versão usa [MIT](../LICENSE); materiais de terceiros e
 fontes oficiais mantêm seus próprios termos.
+
+See [deterministic intelligence contracts](INTELLIGENCE.md) for bounded loyalty and multimodal calculations, hierarchical country packs, cryptographic claim binding and explicit unverified states. The nine original prompt aliases remain available.

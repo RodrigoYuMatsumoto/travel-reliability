@@ -14,6 +14,9 @@ import {
 } from '../../schema/src/planning.js';
 import { AppError, requireCondition } from './errors.js';
 import { canonicalLocale, messageLanguage } from '../../schema/src/locale.js';
+import { loyaltyArbitrage } from './loyalty-arbitrage.js';
+import { multimodalStitching } from './multimodal-stitching.js';
+import { enforceContentPolicy } from '../../agent/content-policy.js';
 
 const ajv = new Ajv2020({ strict: true, allErrors: false });
 (addFormats as unknown as (a: Ajv2020) => void)(ajv);
@@ -826,6 +829,23 @@ export function plan(tool: string, value: unknown) {
   else if (tool === 'fare-scenarios') result = scenarios(value as FareScenarioInput);
   else if (tool === 'negotiation') result = negotiation(value as NegotiationInput);
   else if (tool === 'hidden-city') result = hiddenCity(value as HiddenCityInput);
-  else result = groupSplit(value as GroupInput);
-  return { tool, version: '1.0.0', mode: 'documentary', externalCalls: 0, result };
+  else if (tool === 'group-split') result = groupSplit(value as GroupInput);
+  else if (tool === 'loyalty-arbitrage') result = loyaltyArbitrage(value);
+  else if (tool === 'multimodal-stitching') result = multimodalStitching(value);
+  else throw new AppError('UNKNOWN_PLANNING_TOOL', 422);
+  enforceContentPolicy(result);
+  return {
+    tool,
+    version: '1.0.0',
+    mode: 'documentary',
+    externalCalls: 0,
+    audit: {
+      status: 'calculation_only',
+      factsVerified: false,
+      inputProvenance: 'caller_declared',
+      limitation:
+        'A deterministic result does not authenticate prices, eligibility, sources, contracts or availability.',
+    },
+    result,
+  };
 }

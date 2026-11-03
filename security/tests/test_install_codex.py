@@ -36,6 +36,7 @@ def fixture(root, links=False):
         "package.json": json.dumps({"name": "travel-reliability", "version": "0.6.0"}).encode(),
         "package-lock.json": json.dumps({"lockfileVersion": 3, "packages": {}}).encode(),
         "scripts/agent-mcp.mjs": b"// Synthetic fixture, never executed.\n",
+        "agents/manifest.json": json.dumps({"optionalRuntime": {"tools": installer.TOOLS}}).encode(),
         "skills/travel-agent/SKILL.md": b"---\nname: travel-agent\n---\nSynthetic instructions.\n",
     }
     skill = {"SKILL.md": source["skills/travel-agent/SKILL.md"]}
@@ -338,7 +339,18 @@ class ConfigurationTests(unittest.TestCase):
         self.assertEqual(parsed["other"], before["other"])
         self.assertEqual(parsed["mcp_servers"]["other"], before["mcp_servers"]["other"])
         self.assertNotIn("env", parsed["mcp_servers"]["travel-reliability"])
-        self.assertEqual(len(parsed["mcp_servers"]["travel-reliability"]["enabled_tools"]), 10)
+        self.assertEqual(parsed["mcp_servers"]["travel-reliability"]["enabled_tools"], [
+            "travel_catalog", "travel_workflow", "travel_settle_expenses", "travel_prepare_brief",
+            "travel_schema", "travel_plan", "travel_check_trip", "travel_global_context",
+            "travel_reconcile_bookings", "travel_extension_draft", "travel_country_context", "travel_audit_output",
+        ])
+
+    def test_old_catalog_does_not_enable_unadvertised_or_sensitive_tools(self):
+        source = {"agents/manifest.json": json.dumps({"optionalRuntime": {"tools": [
+            "travel_plan", "travel_catalog", "travel_document_workspace", "travel_read_source", "untrusted_tool",
+        ]}}).encode()}
+        self.assertEqual(installer.allowed_tools(source), ["travel_catalog", "travel_plan"])
+        self.assertEqual(installer.allowed_tools({}), [])
 
     def test_appending_preserves_original_bytes_and_bom(self):
         original = b"\xef\xbb\xbf" + b'title = "synthetic"\r\n[other]\r\nvalue = 4\r\n'

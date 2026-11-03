@@ -18,6 +18,11 @@ schema/connector-request.schema.json
 schema/document-workspace.schema.json
 schema/extension-draft.schema.json
 schema/operator-profile.schema.json
+schema/claim-output.schema.json
+schema/country-pack-query.schema.json
+schema/cultural-protocol.schema.json
+schema/local-ecosystem.schema.json
+schema/loyalty-graph.schema.json
 schema/src/trip-contract.ts
 examples/*.json
 prompts/*.md

@@ -1,4 +1,5 @@
 import type { ComparisonInput, Offer, Source, ToolId } from '../../schema/src/planning';
+import { loyaltyExample, multimodalExample } from './intelligence-examples';
 const source: Source = {
   id: 'source-a',
   url: 'https://example.invalid/synthetic-offer',
@@ -77,6 +78,8 @@ const comparison: ComparisonInput = {
   overnightAllowed: false,
 };
 export const toolLabels: Record<ToolId, [string, string]> = {
+  'loyalty-arbitrage': ['10 · Fidelidade e custo econômico', '10 · Loyalty and economic cost'],
+  'multimodal-stitching': ['11 · Composição multimodal', '11 · Multimodal stitching'],
   'flex-dates': ['01 · Datas flexíveis', '01 · Flexible dates'],
   airports: ['02 · Aeroportos e companhias', '02 · Airports & airlines'],
   connections: ['03 · Rotas e conexões', '03 · Routes & connections'],
@@ -88,6 +91,8 @@ export const toolLabels: Record<ToolId, [string, string]> = {
   'group-split': ['09 · Grupo e rateio', '09 · Groups & cost allocation'],
 };
 export const planningExamples: Record<ToolId, unknown> = {
+  'loyalty-arbitrage': loyaltyExample,
+  'multimodal-stitching': multimodalExample,
   'flex-dates': comparison,
   airports: comparison,
   connections: comparison,

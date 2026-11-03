@@ -157,7 +157,7 @@ def source_files(data, version):
 def validate_workflows(value, commit):
     require(isinstance(value, list) and len(value) <= 8, "INVALID_WORKFLOW_EVIDENCE")
     result, successful = [], set()
-    identities = set()
+    identities, workflow_paths = set(), set()
     for row in value:
         require(isinstance(row, dict), "INVALID_WORKFLOW_EVIDENCE")
         run_id, attempt = row.get("id"), row.get("attempt", 1)
@@ -170,6 +170,9 @@ def validate_workflows(value, commit):
         require(row.get("conclusion") in {"success", "failure", "cancelled", "timed_out", "skipped", None}, "INVALID_WORKFLOW_CONCLUSION")
         path = row.get("workflow")
         require(path in {".github/workflows/ci.yml", ".github/workflows/security-audit.yml"}, "UNEXPECTED_WORKFLOW")
+        require(path not in workflow_paths, "DUPLICATE_WORKFLOW_PATH")
+        workflow_paths.add(path)
+        require(row.get("headBranch") in {None, "main", "other"}, "INVALID_WORKFLOW_BRANCH")
         jobs = row.get("jobs")
         require(isinstance(jobs, list) and len(jobs) <= 16, "INVALID_JOB_EVIDENCE")
         names = set()
@@ -179,11 +182,11 @@ def validate_workflows(value, commit):
             names.add(job["name"])
             require(job.get("conclusion") in {"success", "failure", "cancelled", "timed_out", "skipped", None}, "INVALID_JOB_CONCLUSION")
             safe_jobs.append({"name": job["name"], "conclusion": job["conclusion"]})
-        if row["status"] == "completed" and row["conclusion"] == "success" and row["event"] == "push":
+        if row["status"] == "completed" and row["conclusion"] == "success" and row["event"] == "push" and row.get("headBranch") == "main":
             expected_jobs = {"verify"} if path.endswith("/ci.yml") else REQUIRED_CHECKS - {"verify"}
             require(names == expected_jobs, "WORKFLOW_JOB_COVERAGE_MISMATCH")
             successful.update(job["name"] for job in safe_jobs if job["conclusion"] == "success")
-        result.append({"id": run_id, "attempt": attempt, "sourceCommit": commit, "event": row["event"], "status": row["status"], "conclusion": row["conclusion"], "workflow": path, "jobs": safe_jobs, "url": f"https://github.com/{REPOSITORY}/actions/runs/{run_id}"})
+        result.append({"id": run_id, "attempt": attempt, "sourceCommit": commit, "headBranch": row.get("headBranch"), "event": row["event"], "status": row["status"], "conclusion": row["conclusion"], "workflow": path, "jobs": safe_jobs, "url": f"https://github.com/{REPOSITORY}/actions/runs/{run_id}"})
     return result, successful == REQUIRED_CHECKS
 
 
@@ -257,7 +260,7 @@ def validate_review(receipt, evidence_directory, files, version, commit, tree, c
     require(packet_coverage == covered, "REVIEW_PACKET_COVERAGE_MISSING")
     if overall in APPROVALS:
         require(all_approved and (not saw_caveat or overall == "APPROVE_WITH_CAVEATS"), "REVIEW_VERDICT_CONTRADICTION")
-    return {"overall": overall, "generatorFamilies": generators, "baselineCommit": receipt["baselineCommit"], "sourceCommit": commit, "sourceTree": tree, "reviewedFileCount": len(covered), "deletedFileCount": len(deleted), "packets": results, "exactModelVersions": "Not inferred by the bundler.", "limits": "Hashes bind the supplied review objects; this program does not authenticate model identity or independently adjudicate their content."}, overall in APPROVALS and all_approved
+    return {"overall": overall, "generatorFamilies": generators, "baselineCommit": receipt["baselineCommit"], "sourceCommit": commit, "sourceTree": tree, "reviewedFileCount": len(covered), "deletedFileCount": len(deleted), "files": inventory, "deletedPaths": deleted, "packets": results, "exactModelVersions": "Not inferred by the bundler.", "limits": "Hashes bind the supplied review objects; this program does not authenticate model identity or independently adjudicate their content."}, overall in APPROVALS and all_approved
 
 
 def public_review_approved(review, commit, tree):
@@ -347,9 +350,10 @@ def build_bundle(base_assets, evidence, receipt=None, review_directory=None, cha
     workflows, ci_ok = validate_workflows(evidence.get("workflows", []), commit)
     review, review_ok = validate_review(receipt, review_directory, files, version, commit, tree, changed_paths, deleted_paths)
     names = asset_names(version)
-    eligible = ci_ok and review_ok and "-" not in version
+    eligible = ci_ok and review_ok and changed_paths is not None and deleted_paths is not None and "-" not in version
     require(not require_stable or eligible, "STABLE_RELEASE_GATE_NOT_SATISFIED")
     report = {"format": "travel-reliability-agent-release-validation/3", "version": version, "sourceCommit": commit, "sourceTree": tree, "generatedAt": generated, "workflows": workflows, "catalog": counts, "review": review, "verification": {"archiveVerification": archive_validation, "sbomComponents": components, "evidenceSha256": digest(json_bytes(evidence)), "reviewReceiptSha256": digest(json_bytes(receipt)) if receipt is not None else None}, "releaseEligibility": {"eligible": eligible, "ciRequiredChecksPassed": ci_ok, "reviewGatePassed": review_ok}, "limits": ["CI and review evidence are supplied declarations validated for identity, coverage and hashes, not a signed external attestation.", "No private review objects or local paths are copied into this bundle.", "Archive validation does not prove universal security, legal accuracy or host-LLM behavior."]}
+    report["verification"]["publicEvidenceProjectionSha256"] = digest(json_bytes({key: report[key] for key in ["version", "sourceCommit", "sourceTree", "generatedAt", "workflows"]}))
     assets = dict(base_assets)
     assets[names["audit"]] = json_bytes(report)
     manifest = {"format": "travel-reliability-release-manifest/2", "version": version, "commit": commit, "sourceTree": tree, "includes": "committed source and declared public release metadata only", "excludes": "runtime data, credentials, private review objects, dependency directories and Git internals", "assets": [{"name": name, "sha256": digest(data)} for name, data in sorted(assets.items())], "verificationWorkflows": [row["url"] for row in workflows]}
@@ -359,7 +363,7 @@ def build_bundle(base_assets, evidence, receipt=None, review_directory=None, cha
     return assets, report
 
 
-def verify_bundle(directory, expected_commit=None, expected_version=None, require_stable=False, github_metadata=None, source_tree_repository=None):
+def verify_bundle(directory, expected_commit=None, expected_version=None, require_stable=False, github_metadata=None, source_tree_repository=None, github_ci_reader=None):
     directory = Path(directory)
     manifest = strict_json(read_regular(directory / "release-manifest.json", MAX_JSON))
     version, commit = manifest.get("version"), manifest.get("commit")
@@ -379,7 +383,7 @@ def verify_bundle(directory, expected_commit=None, expected_version=None, requir
         indexed[name] = row["sha256"]
     require(set(indexed) == set(assets) - {names["manifest"], names["sums"]}, "MANIFEST_ASSET_INVENTORY_MISMATCH")
     base = {names[key]: assets[names[key]] for key in ["source", "agent-kit", "skill", "agent-manifest", "agent-sums", "sbom"]}
-    files, _, validations, components = validate_base_assets(base, version, commit)
+    files, counts, validations, components = validate_base_assets(base, version, commit)
     require(not require_stable or source_tree_repository is not None, "TRUSTED_SOURCE_CHECKOUT_REQUIRED")
     if source_tree_repository is not None:
         require(expected_commit is not None, "EXPECTED_COMMIT_REQUIRED_FOR_SOURCE_BINDING")
@@ -390,8 +394,32 @@ def verify_bundle(directory, expected_commit=None, expected_version=None, requir
     report = strict_json(assets[names["audit"]])
     require(report.get("format") == "travel-reliability-agent-release-validation/3" and report.get("version") == version and report.get("sourceCommit") == commit and report.get("sourceTree") == manifest.get("sourceTree"), "AUDIT_REPORT_SNAPSHOT_MISMATCH")
     _, ci_ok = validate_workflows(report.get("workflows"), commit)
+    require(report.get("catalog") == counts, "AUDIT_CATALOG_COUNTS_MISMATCH")
+    projected = {key: report.get(key) for key in ["version", "sourceCommit", "sourceTree", "generatedAt", "workflows"]}
+    require(report.get("verification", {}).get("publicEvidenceProjectionSha256") == digest(json_bytes(projected)), "PUBLIC_EVIDENCE_PROJECTION_MISMATCH")
     gate = report.get("releaseEligibility", {})
     review_ok = public_review_approved(report.get("review"), commit, manifest.get("sourceTree"))
+    if review_ok:
+        inventory = report["review"].get("files")
+        require(isinstance(inventory, list) and len(inventory) == report["review"]["reviewedFileCount"], "PUBLIC_REVIEW_INVENTORY_REQUIRED")
+        reviewed = set()
+        for item in inventory:
+            name = public_path(item["path"])
+            require(name in files and name not in reviewed and item.get("sha256") == digest(files[name]), "PUBLIC_REVIEW_FILE_BINDING_MISMATCH")
+            reviewed.add(name)
+        deleted = report["review"].get("deletedPaths")
+        require(isinstance(deleted, list) and len(set(deleted)) == len(deleted) and len(deleted) == report["review"]["deletedFileCount"] and all(public_path(name) not in files for name in deleted), "PUBLIC_REVIEW_DELETIONS_MISMATCH")
+        if source_tree_repository is not None:
+            baseline = report["review"]["baselineCommit"]
+            safe_git(repository, ["merge-base", "--is-ancestor", baseline, commit])
+            changed = set(safe_git(repository, ["diff", "--name-only", "--diff-filter=ACMRT", baseline, commit]).splitlines())
+            removed = set(safe_git(repository, ["diff", "--name-only", "--diff-filter=D", baseline, commit]).splitlines())
+            require(changed <= reviewed and removed == set(deleted), "PUBLIC_REVIEW_DELTA_COVERAGE_MISMATCH")
+    actions_ok = False
+    if github_ci_reader is not None:
+        verify_actions(report["workflows"], commit, github_ci_reader)
+        actions_ok = True
+    require(not require_stable or actions_ok, "TRUSTED_ACTIONS_READ_REQUIRED")
     require(not gate.get("eligible") or (ci_ok and review_ok and gate.get("ciRequiredChecksPassed") is True and gate.get("reviewGatePassed") is True), "AUDIT_REPORT_GATE_CONTRADICTION")
     require(not require_stable or gate.get("eligible") is True, "STABLE_RELEASE_GATE_NOT_SATISFIED")
     if github_metadata is not None:
@@ -401,26 +429,46 @@ def verify_bundle(directory, expected_commit=None, expected_version=None, requir
         require({row.get("name") for row in rows} == set(assets), "GITHUB_ASSET_INVENTORY_MISMATCH")
         for row in rows:
             require(row.get("digest") == "sha256:" + digest(assets[row["name"]]), "GITHUB_ASSET_DIGEST_MISMATCH")
-    return {"status": "PASS", "version": version, "sourceCommit": commit, "assets": 9, "agentArchives": validations, "sbomComponents": components, "sourceTreeBinding": "PASS" if source_tree_repository is not None else "NOT_RUN", "stableEligible": gate.get("eligible") is True, "limits": "Integrity and recorded eligibility were checked; this is not independent authentication of the supplied audit or of GitHub metadata."}
+    return {"status": "PASS", "version": version, "sourceCommit": commit, "assets": 9, "agentArchives": validations, "sbomComponents": components, "sourceTreeBinding": "PASS" if source_tree_repository is not None else "NOT_RUN", "actionsBinding": "PASS" if actions_ok else "NOT_RUN", "recordedEligible": gate.get("eligible") is True, "stableEligible": gate.get("eligible") is True and source_tree_repository is not None and actions_ok, "limits": "Source bytes and optional live Actions metadata are bound; model identity and private review content are not independently authenticated."}
 
 
-def safe_git(root, args, binary=False):
+def safe_git(root, args, binary=False, input_data=None):
     environment = {key: value for key, value in os.environ.items() if not key.upper().startswith("GIT_")}
     environment.update({"GIT_TERMINAL_PROMPT": "0", "GIT_NO_REPLACE_OBJECTS": "1", "GIT_OPTIONAL_LOCKS": "0"})
     try:
-        output = subprocess.run(["git", "--no-pager", "-c", "core.fsmonitor=false", *args], cwd=root, env=environment, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30).stdout
+        output = subprocess.run(["git", "--no-pager", "-c", "core.fsmonitor=false", *args], cwd=root, env=environment, input=input_data, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30).stdout
         return output if binary else output.decode("utf-8").strip()
     except (OSError, subprocess.SubprocessError, UnicodeError) as error:
         raise ValueError("RELEASE_GIT_COMMAND_FAILED") from error
 
 
 def read_github_json(endpoint):
-    require(re.fullmatch(r"repos/" + re.escape(REPOSITORY) + r"/actions/runs/[1-9]\d*(?:/attempts/[1-9]\d*/jobs\?per_page=100)?", endpoint), "INVALID_GITHUB_ENDPOINT")
+    require(re.fullmatch(r"repos/" + re.escape(REPOSITORY) + r"/actions/runs(?:/[1-9]\d*(?:/attempts/[1-9]\d*/jobs\?per_page=100)?|\?head_sha=[a-f0-9]{40}&branch=main&event=push&per_page=100)", endpoint), "INVALID_GITHUB_ENDPOINT")
     try:
         completed = subprocess.run(["gh", "api", endpoint], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
         return strict_json(completed.stdout)
     except (OSError, subprocess.SubprocessError) as error:
         raise ValueError("GITHUB_EVIDENCE_READ_FAILED") from error
+
+
+def verify_actions(workflows, commit, reader):
+    rows, passed = validate_workflows(workflows, commit)
+    require(passed and len(rows) == 2, "ACTIONS_RECORDED_CHECKS_NOT_PASSED")
+    prefix = f"repos/{REPOSITORY}/actions/runs"
+    recent = reader(f"{prefix}?head_sha={commit}&branch=main&event=push&per_page=100")
+    runs = recent.get("workflow_runs")
+    require(isinstance(runs, list) and recent.get("total_count") == len(runs) and len(runs) <= 100, "ACTIONS_RUN_PAGINATION_INCOMPLETE")
+    for row in rows:
+        matching = [run for run in runs if run.get("path") == row["workflow"] and run.get("head_sha") == commit and run.get("head_branch") == "main" and run.get("event") == "push"]
+        require(matching and max(matching, key=lambda run: (run.get("created_at", ""), run.get("id", 0))).get("id") == row["id"], "ACTIONS_NEWER_RUN_EXISTS")
+        run = reader(f"{prefix}/{row['id']}")
+        require(run.get("id") == row["id"] and run.get("head_sha") == commit and run.get("head_branch") == "main" and run.get("event") == "push" and run.get("path") == row["workflow"] and run.get("run_attempt") == row["attempt"] and run.get("status") == "completed" and run.get("conclusion") == "success", "ACTIONS_RUN_BINDING_MISMATCH")
+        jobs = reader(f"{prefix}/{row['id']}/attempts/{row['attempt']}/jobs?per_page=100")
+        actual = jobs.get("jobs")
+        require(isinstance(actual, list) and jobs.get("total_count") == len(actual) and all(job.get("status") == "completed" for job in actual), "ACTIONS_JOB_COVERAGE_INCOMPLETE")
+        expected_jobs = sorted((job["name"], job["conclusion"]) for job in row["jobs"])
+        require(sorted((job.get("name"), job.get("conclusion")) for job in actual) == expected_jobs, "ACTIONS_JOB_BINDING_MISMATCH")
+    return True
 
 
 def collect_ci(args):
@@ -440,9 +488,10 @@ def collect_ci(args):
         require(type(attempt) is int and 1 <= attempt <= 100, "INVALID_WORKFLOW_ATTEMPT")
         jobs = read_github_json(f"repos/{REPOSITORY}/actions/runs/{run_id}/attempts/{attempt}/jobs?per_page=100")
         require(isinstance(jobs.get("jobs"), list) and jobs.get("total_count") == len(jobs["jobs"]), "GITHUB_JOB_COVERAGE_INCOMPLETE")
-        workflows.append({"id": run_id, "attempt": attempt, "sourceCommit": commit, "event": row.get("event"), "status": row.get("status"), "conclusion": row.get("conclusion"), "workflow": path, "jobs": [{"name": job.get("name"), "conclusion": job.get("conclusion")} for job in jobs["jobs"]]})
+        workflows.append({"id": run_id, "attempt": attempt, "sourceCommit": commit, "headBranch": "main", "event": row.get("event"), "status": row.get("status"), "conclusion": row.get("conclusion"), "workflow": path, "jobs": [{"name": job.get("name"), "conclusion": job.get("conclusion")} for job in jobs["jobs"]]})
     validate_workflows(workflows, commit)
     evidence = {"format": "travel-reliability-release-evidence/1", "version": version, "sourceCommit": commit, "sourceTree": tree, "generatedAt": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"), "workflows": workflows}
+    verify_actions(workflows, commit, read_github_json)
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("xb") as handle:
@@ -451,22 +500,32 @@ def collect_ci(args):
 
 
 def git_source_snapshot(root, commit):
-    import io
-    import tarfile
-    archive_bytes = safe_git(root, ["archive", "--format=tar", commit], binary=True)
-    require(len(archive_bytes) <= 100 * 1024 * 1024, "SOURCE_TREE_SIZE_LIMIT")
+    require(hex_value(commit, 40), "INVALID_SOURCE_COMMIT")
+    entries = safe_git(root, ["ls-tree", "-rz", "--full-tree", commit], binary=True).split(b"\0")
+    members = []
+    for entry in filter(None, entries):
+        header, path_bytes = entry.split(b"\t", 1)
+        mode, kind, oid = header.decode("ascii").split(" ")
+        require(kind == "blob" and mode in {"100644", "100755"} and hex_value(oid, 40), "SOURCE_TREE_REGULAR_FILES_REQUIRED")
+        members.append((public_path(path_bytes.decode("utf-8")), oid))
+    require(len(members) <= 2000, "SOURCE_TREE_SIZE_LIMIT")
+    data = safe_git(root, ["cat-file", "--batch"], binary=True, input_data="".join(oid + "\n" for _, oid in members).encode("ascii"))
+    require(len(data) <= 100 * 1024 * 1024 + 200000, "SOURCE_TREE_SIZE_LIMIT")
     expected, total = {}, 0
-    with tarfile.open(fileobj=io.BytesIO(archive_bytes), mode="r:") as archive:
-        for item in archive:
-            path = public_path(item.name.rstrip("/"))
-            if item.isdir():
-                continue
-            require(item.isfile() and item.size <= MAX_FILE and path not in expected, "SOURCE_TREE_REGULAR_FILES_REQUIRED")
-            total += item.size
-            require(total <= 100 * 1024 * 1024 and len(expected) < 2000, "SOURCE_TREE_SIZE_LIMIT")
-            source = archive.extractfile(item)
-            require(source is not None, "SOURCE_TREE_FILE_MISSING")
-            expected[path] = source.read()
+    offset = 0
+    for path, oid in members:
+        newline = data.find(b"\n", offset)
+        require(newline >= 0, "SOURCE_TREE_FILE_MISSING")
+        fields = data[offset:newline].decode("ascii").split(" ")
+        require(len(fields) == 3 and fields[:2] == [oid, "blob"] and fields[2].isdigit(), "SOURCE_TREE_FILE_MISSING")
+        size = int(fields[2])
+        total += size
+        require(size <= MAX_FILE and total <= 100 * 1024 * 1024 and path not in expected, "SOURCE_TREE_SIZE_LIMIT")
+        offset = newline + 1
+        require(offset + size < len(data) and data[offset + size:offset + size + 1] == b"\n", "SOURCE_TREE_FILE_MISSING")
+        expected[path] = data[offset:offset + size]
+        offset += size + 1
+    require(offset == len(data), "SOURCE_TREE_TRAILING_DATA")
     return expected
 
 
@@ -509,7 +568,7 @@ def assemble(args):
         for name, data in assets.items():
             with (temporary / name).open("xb") as handle:
                 handle.write(data)
-        verify_bundle(temporary, commit, version, args.require_stable, source_tree_repository=root)
+        verify_bundle(temporary, commit, version, args.require_stable, source_tree_repository=root, github_ci_reader=read_github_json if args.check_github_actions else None)
         require(not output.exists(), "RELEASE_OUTPUT_ALREADY_EXISTS")
         temporary.rename(output)
     finally:
@@ -530,11 +589,13 @@ def main():
     build.add_argument("--review-evidence-dir", type=Path)
     build.add_argument("--output", type=Path, required=True)
     build.add_argument("--require-stable", action="store_true")
+    build.add_argument("--check-github-actions", action="store_true")
     verify = commands.add_parser("verify")
     verify.add_argument("--directory", type=Path, required=True)
     verify.add_argument("--expected-commit")
     verify.add_argument("--expected-version")
     verify.add_argument("--require-stable", action="store_true")
+    verify.add_argument("--check-github-actions", action="store_true")
     verify.add_argument("--github-release-metadata", type=Path)
     verify.add_argument("--source-tree-repository", type=Path)
     collect = commands.add_parser("collect-ci")
@@ -549,7 +610,7 @@ def main():
             result = collect_ci(args)
         else:
             metadata = strict_json(read_regular(args.github_release_metadata, MAX_JSON)) if args.github_release_metadata else None
-            result = verify_bundle(args.directory, args.expected_commit, args.expected_version, args.require_stable, metadata, args.source_tree_repository)
+            result = verify_bundle(args.directory, args.expected_commit, args.expected_version, args.require_stable, metadata, args.source_tree_repository, read_github_json if args.check_github_actions else None)
     except (OSError, ValueError, TypeError, KeyError, AttributeError, UnicodeError, zipfile.BadZipFile, RuntimeError) as error:
         code = str(error) if re.fullmatch(r"[A-Z0-9_]{1,80}", str(error)) else "RELEASE_BUNDLE_REJECTED"
         print(json.dumps({"status": "FAIL", "error": code, "privacy": "Input content, paths and raw exceptions are not reflected."}))

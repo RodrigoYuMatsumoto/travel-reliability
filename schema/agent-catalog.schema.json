@@ -108,6 +108,26 @@
         "operatorProfile": {
           "type": "string",
           "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
+        },
+        "loyaltyGraph": {
+          "type": "string",
+          "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
+        },
+        "localEcosystem": {
+          "type": "string",
+          "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
+        },
+        "culturalProtocol": {
+          "type": "string",
+          "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
+        },
+        "claimOutput": {
+          "type": "string",
+          "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
+        },
+        "countryPackQuery": {
+          "type": "string",
+          "pattern": "^schema/[a-z0-9-]+\\.schema\\.json$"
         }
       }
     },
@@ -334,6 +354,8 @@
               "negotiation",
               "hidden-city",
               "group-split",
+              "loyalty-arbitrage",
+              "multimodal-stitching",
               null
             ]
           },

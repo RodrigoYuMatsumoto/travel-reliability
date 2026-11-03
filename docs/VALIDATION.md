@@ -6,7 +6,7 @@ Run the deterministic documentary benchmark after installing the locked graph:
 npm run benchmark
 ```
 
-It executes the nine calculators on committed synthetic examples, rejects a
+It executes the eleven planning calculators on committed synthetic examples, rejects a
 missing-input case for each, prepares the matching workflow under a one-call
 budget, and records local p50/p95 latency. Each normal calculator is executed 25
 times. The benchmark calls no model, provider, mailbox or private storage.
