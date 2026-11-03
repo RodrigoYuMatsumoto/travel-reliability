@@ -124,6 +124,7 @@ const docs = [
   'docs/AGENT_AUDIT.md',
   'docs/PLANNING.md',
   'docs/INTELLIGENCE.md',
+  'docs/GROUND_TRANSPORT.md',
   'docs/INSTALLATION.md',
   'docs/PUBLIC_SOURCES.md',
   'docs/VALIDATION.md',

@@ -63,7 +63,7 @@ Os cálculos não dependem de LLM. Extração assistida por IA é opcional, exig
 
 Para PDF, imagens, DOCX, HTML e EML, use o worker isolado com OCR nativo. Para dados duráveis, siga [operações](docs/OPERATIONS.md): HTTPS, OIDC, PostgreSQL, Redis, armazenamento privado e gestão de chaves. A demonstração em memória não deve ser seu único arquivo de provas.
 
-O [catálogo detalhado](docs/AGENT_CATALOG.md) diferencia onze calculadores de planejamento, 56 workflows de instrução e o acerto de despesas. O [mapa de cobertura](agents/coverage.json) e a [auditoria](docs/AGENT_AUDIT.md) registram origem sanitizada, correções e limites. Os IDs dos nove calculadores e o recurso MCP legado permanecem disponíveis.
+O [catálogo detalhado](docs/AGENT_CATALOG.md) diferencia doze calculadores de planejamento, 56 workflows de instrução e o acerto de despesas. O [mapa de cobertura](agents/coverage.json) e a [auditoria](docs/AGENT_AUDIT.md) registram origem sanitizada, correções e limites. Os IDs dos nove calculadores e o recurso MCP legado permanecem disponíveis.
 
 As ferramentas operam documentalmente. Não há conector de inventário aéreo, consulta automática a CNPJ/Cadastur ou monitor de voo ativo por padrão. Dados do fornecedor devem ser importados ou recebidos por integração configurada; ausência de integração nunca vira disponibilidade simulada.
 

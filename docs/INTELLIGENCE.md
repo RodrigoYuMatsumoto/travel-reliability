@@ -73,3 +73,5 @@ The default connector policy remains **no automatic retry**. Any future retry
 must be explicitly configured for one idempotent read, classified transient
 failure, bounded backoff, deadline and total call budget. This release adds no
 transfer, payment, account login, remote plugin or arbitrary-file capability.
+
+The existing `ground-transport` workflow is now executable for local coach packages versus independent bus and lodging procurement. See [ground transport](GROUND_TRANSPORT.md) for equivalent-scope, price-unit, effective-return and breakfast checks. Income is never inferred from a service-level preset.

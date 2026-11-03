@@ -31,8 +31,9 @@ const bases = [
   load('multimodal-stitching'),
   load('country-pack-query'),
   { evaluatedAt: '2026-11-03T12:00:00Z', claims: [] },
+  load('ground-transport'),
 ];
-const fields = ['sourceProgram', 'origin', 'persona', 'claims'];
+const fields = ['sourceProgram', 'origin', 'persona', 'claims', 'requestedWindow'];
 let state = seed >>> 0;
 const random = () => {
   state ^= state << 13;
@@ -40,7 +41,7 @@ const random = () => {
   state ^= state << 5;
   return state >>> 0;
 };
-const counts = Array.from({ length: 4 }, () => ({ accepted: 0, rejected: 0 }));
+const counts = Array.from({ length: bases.length }, () => ({ accepted: 0, rejected: 0 }));
 const started = Date.now();
 let executed = 0,
   failure: { caseId: number; code: string } | null = null;
@@ -49,7 +50,7 @@ for (; executed < cases; executed++) {
     failure = { caseId: executed, code: 'DEADLINE_EXHAUSTED' };
     break;
   }
-  const target = executed % 4,
+  const target = executed % bases.length,
     recipe = random() % 6;
   const value = structuredClone(bases[target]);
   let expectedRejection = true;
@@ -61,6 +62,7 @@ for (; executed < cases; executed++) {
     expectedRejection = false;
     if (target === 0) value.sourcePoints = 14000 + (random() % 10000);
     if (target === 1) value.maxResults = 1 + (random() % 20);
+    if (target === 4) value.travelerProfile.budgetMinor = random() % 1000000;
     if (target === 3)
       value.claims = [
         {
@@ -88,7 +90,9 @@ for (; executed < cases; executed++) {
           ? plan('multimodal-stitching', value)
           : target === 2
             ? countryContext(value)
-            : auditClaims(value, []);
+            : target === 3
+              ? auditClaims(value, [])
+              : plan('ground-transport', value);
     if (expectedRejection) throw new Error('INVALID_INPUT_ACCEPTED');
     const text = JSON.stringify(result);
     if (Buffer.byteLength(text) > 262144 || text.includes('SYNTHETIC-IGNORE-POLICY'))

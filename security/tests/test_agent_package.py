@@ -148,6 +148,11 @@ class AgentPackageVerifierTests(unittest.TestCase):
         files["agents/manifest.json"] = json.dumps(catalog).encode()
         with archive_for(files, version="0.6.0") as archive:
             self.assertEqual(verifier.validate_archive(archive)["counts"]["calculators"], 11)
+        catalog["commands"].append({"id": "ground-transport", "executor": "planning", "calculatorId": "ground-transport", "path": "prompts/44_ground_transport.md"})
+        files["prompts/44_ground_transport.md"] = b"Synthetic ground comparison workflow\n"
+        files["agents/manifest.json"] = json.dumps(catalog).encode()
+        with archive_for(files, version="0.6.0") as archive:
+            self.assertEqual(verifier.validate_archive(archive)["counts"]["calculators"], 12)
         catalog["commands"][-1]["calculatorId"] = "unknown-calculator"
         files["agents/manifest.json"] = json.dumps(catalog).encode()
         with archive_for(files, version="0.6.0") as archive:

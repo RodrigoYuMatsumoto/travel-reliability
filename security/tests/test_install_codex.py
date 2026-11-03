@@ -111,6 +111,7 @@ class InstallerTests(unittest.TestCase):
             (target / "SKILL.md").write_bytes(body)
             self.original_skills[name] = body
         self.runtime = self.codex / "tools/travel-reliability/v0.6.0"
+        self.candidate_runtime = self.runtime.with_name("v0.6.0-candidate-" + COMMIT[:12])
 
     def install(self, **kwargs):
         return installer.install(*self.inputs, self.codex, self.skills, self.node,
@@ -125,9 +126,91 @@ class InstallerTests(unittest.TestCase):
         self.assertTrue(records)
         self.assertTrue(all(json.loads(path.read_text())["status"] == "RESTORED" for path in records))
 
+    def existing_version_sentinel(self):
+        self.runtime.mkdir(parents=True)
+        sentinel = self.runtime / "preserved.txt"
+        sentinel.write_bytes(b"Synthetic existing runtime; preserve exactly.\n")
+        return sentinel
+
+    def assert_candidate_failure_restored(self, sentinel):
+        self.assertEqual(self.config.read_bytes(), old_config())
+        self.assertEqual(sentinel.read_bytes(), b"Synthetic existing runtime; preserve exactly.\n")
+        self.assertFalse(self.candidate_runtime.exists())
+        for name, body in self.original_skills.items():
+            self.assertEqual((self.skills / name / "SKILL.md").read_bytes(), body)
+        records = list(self.codex.glob("backups/*/rollback.json"))
+        self.assertTrue(records)
+        self.assertTrue(all(json.loads(path.read_text(encoding="utf-8"))["status"] == "RESTORED" for path in records))
+
+    def test_candidate_uses_verified_commit_key_and_preserves_existing_version(self):
+        sentinel = self.existing_version_sentinel()
+        record = self.install(candidate=True)
+        self.assertEqual(record["channel"], "candidate")
+        self.assertEqual(record["runtimeKey"], "v0.6.0-candidate-" + COMMIT[:12])
+        self.assertEqual(record["sourceCommit"], COMMIT)
+        self.assertTrue((self.candidate_runtime / "scripts/agent-mcp.mjs").is_file())
+        self.assertEqual(sentinel.read_bytes(), b"Synthetic existing runtime; preserve exactly.\n")
+        before = tomllib.loads(old_config().decode("utf-8"))
+        after = tomllib.loads(self.config.read_text(encoding="utf-8"))
+        self.assertEqual(after["mcp_servers"]["travel-reliability"]["args"], [str(self.candidate_runtime / "scripts/agent-mcp.mjs")])
+        before["mcp_servers"].pop("travel-reliability")
+        after["mcp_servers"].pop("travel-reliability")
+        self.assertEqual(after, before)
+        recorded = [json.loads(path.read_text(encoding="utf-8")) for path in self.codex.glob("backups/*/installation.json")]
+        self.assertEqual(recorded, [record])
+
+    def test_existing_candidate_is_preserved_without_any_second_install_mutation(self):
+        sentinel = self.existing_version_sentinel()
+        self.install(candidate=True)
+        config = self.config.read_bytes()
+        source = (self.candidate_runtime / "scripts/agent-mcp.mjs").read_bytes()
+        skills = {name: (self.skills / name / "SKILL.md").read_bytes() for name in self.original_skills}
+        backups = set(self.codex.glob("backups/*"))
+        with self.assertRaisesRegex(ValueError, "VERSION_ALREADY_INSTALLED_PRESERVED"):
+            self.install(candidate=True)
+        self.assertEqual(self.config.read_bytes(), config)
+        self.assertEqual((self.candidate_runtime / "scripts/agent-mcp.mjs").read_bytes(), source)
+        self.assertEqual({name: (self.skills / name / "SKILL.md").read_bytes() for name in skills}, skills)
+        self.assertEqual(set(self.codex.glob("backups/*")), backups)
+        self.assertEqual(sentinel.read_bytes(), b"Synthetic existing runtime; preserve exactly.\n")
+
+    def test_candidate_failure_before_runtime_promotion_preserves_previous_state(self):
+        sentinel = self.existing_version_sentinel()
+        rename = Path.rename
+        def interrupt(source, destination):
+            if source.name == "runtime" and destination == self.candidate_runtime:
+                raise OSError("Synthetic candidate runtime promotion failure")
+            return rename(source, destination)
+        with patch.object(Path, "rename", interrupt):
+            with self.assertRaises(OSError):
+                self.install(candidate=True)
+        self.assert_candidate_failure_restored(sentinel)
+        self.assertTrue(list(self.codex.glob("backups/*/failed/staged-runtime/package.json")))
+
+    def test_candidate_failure_after_config_write_restores_previous_state(self):
+        sentinel = self.existing_version_sentinel()
+        write = Path.write_text
+        def interrupt(path, *args, **kwargs):
+            if path.name == "installation.json":
+                raise OSError("Synthetic candidate installation record failure")
+            return write(path, *args, **kwargs)
+        with patch.object(Path, "write_text", interrupt):
+            with self.assertRaises(OSError):
+                self.install(candidate=True)
+        self.assert_candidate_failure_restored(sentinel)
+        self.assertTrue(list(self.codex.glob("backups/*/failed/runtime/package.json")))
+
+    def test_candidate_channel_requires_an_explicit_boolean(self):
+        with self.assertRaisesRegex(ValueError, "INVALID_INSTALL_CHANNEL"):
+            self.install(candidate="arbitrary-runtime-suffix")
+        self.assertFalse((self.codex / "backups").exists())
+        self.assertEqual(self.config.read_bytes(), old_config())
+
     def test_verified_install_preserves_eighteen_servers_and_backs_up_ten_skills(self):
         record = self.install()
         self.assertEqual(record["version"], "0.6.0")
+        self.assertEqual(record["channel"], "versioned")
+        self.assertEqual(record["runtimeKey"], "v0.6.0")
         cfg = tomllib.loads(self.config.read_text())
         self.assertEqual(len(cfg["mcp_servers"]), 19)
         previous = tomllib.loads(old_config().decode())

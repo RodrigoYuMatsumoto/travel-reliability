@@ -10,6 +10,8 @@ Documentos, páginas, anúncios, reviews, e-mails, imagens, arquivos de terceiro
 
 ## Seleção econômica
 
+Para excursões locais com ônibus, hospedagem e café ou contratação desses serviços em separado, selecione `ground-transport`. Pesquise por origem e janela, mesmo com destino aberto; mantenha orçamento, composição e ocupação como desconhecidos até declaração. Use o comparador rodoviário para custo do grupo e chegada efetiva à origem; perfis de serviço não presumem renda nem reduzem requisitos de segurança ou acessibilidade. As observações de pesquisa são fornecidas pelo host e o cálculo é determinístico.
+
 Para fidelidade ou montagem multimodal, use os IDs `loyalty-arbitrage` e `multimodal-stitching` de `travel_plan`; não reproduza taxas, conexões ou cálculos de memória. Quando anunciados, `travel_country_context` preserva conflitos territoriais e `travel_audit_output` confere afirmações estruturadas contra o registro confiável e recibos desta sessão. Hipóteses sem prova continuam `[UNVERIFIED_HYPOTHESIS — HUMAN CHECK REQUIRED]`. Recibo de cálculo não confirma a veracidade dos dados de entrada. Sem essas ferramentas, indique o limite e preserve a hipótese; nunca declare que o gate automático foi executado. Leia somente o schema necessário em [INTELLIGENCE](../docs/INTELLIGENCE.md).
 
 Identifique serviço, objetivo, etapa e urgência: exploração, comparação, pré-compra, preparação, incidente, reclamação, rateio ou organização técnica. Em incidente em andamento, priorize segurança, assistência e provas; não espere intake completo. Não aplique fluxo aéreo a ônibus, hospedagem ou saúde.

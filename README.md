@@ -92,7 +92,7 @@ npm run test:e2e
 ## Public interfaces
 
 - [Trip schema](schema/trip-contract.schema.json), [planning schemas](schema/planning.schema.json), [OpenAPI](api/openapi.json).
-- [Agent and command catalog](docs/AGENT_CATALOG.md): eleven roles, 68 commands, eleven planning calculators (including the nine original IDs) and a separate expense-settlement calculator. Workflow preparation does not execute research or booking; additional runtime capabilities require the documented operator configuration.
+- [Agent and command catalog](docs/AGENT_CATALOG.md): eleven roles, 68 commands, twelve planning calculators (including the nine original IDs) and a separate expense-settlement calculator. Workflow preparation does not execute research or booking; additional runtime capabilities require the documented operator configuration.
 - [PDF font configuration](docs/UNICODE_EXPORTS.md): verified local font coverage, explicit missing-glyph errors and limits of complex-script rendering.
 - [Source coverage](agents/coverage.json) and [agent audit](docs/AGENT_AUDIT.md): sanitized provenance, preserved behavior, corrections and validation limits.
 - [Prompt commands](prompts/README.md): load one task, not every file. The original calculator IDs and legacy MCP agent resource remain available.

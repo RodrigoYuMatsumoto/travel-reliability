@@ -1,0 +1,244 @@
+{
+  "evaluatedAt": "2030-01-01T12:00:00Z",
+  "baselineId": "synthetic-package",
+  "requestedWindow": {
+    "origin": "Fictional Origin AAA",
+    "destination": null,
+    "earliestDepartureAt": "2030-06-13T00:00:00-03:00",
+    "latestReturnAt": "2030-06-16T23:59:59-03:00",
+    "timeZone": "America/Recife"
+  },
+  "travelerProfile": {
+    "serviceLevel": "economic",
+    "adults": 2,
+    "children": 0,
+    "rooms": 1,
+    "minimumLodgingNights": 3,
+    "minimumBreakfasts": 3,
+    "roomType": "private",
+    "accessibilityRequired": false,
+    "budgetMinor": 170000,
+    "cashLimitMinor": 180000,
+    "currency": "BRL"
+  },
+  "requiredCategories": [
+    "outbound_bus",
+    "return_bus",
+    "lodging",
+    "breakfast",
+    "local_transfers",
+    "taxes",
+    "mandatory_activities",
+    "other_meals"
+  ],
+  "sources": [
+    {
+      "id": "source-synthetic",
+      "url": "https://example.invalid/ground-quote",
+      "observedAt": "2030-01-01T12:00:00Z",
+      "status": "observed",
+      "validUntil": "2030-01-02T12:00:00Z",
+      "reviewAfter": "2030-01-02T12:00:00Z"
+    }
+  ],
+  "offers": [
+    {
+      "id": "synthetic-package",
+      "provider": "Synthetic Local Agency",
+      "kind": "agency_package",
+      "origin": "Fictional Origin AAA",
+      "destination": "Fictional Destination BBB",
+      "yearConfirmed": true,
+      "departureAt": "2030-06-13T06:00:00-03:00",
+      "arrivalAtDestination": "2030-06-13T14:00:00-03:00",
+      "returnDepartureAt": "2030-06-16T12:00:00-03:00",
+      "returnToOriginAt": "2030-06-16T20:00:00-03:00",
+      "lodging": {
+        "checkIn": "2030-06-13",
+        "checkOut": "2030-06-16",
+        "declaredNights": 3,
+        "nightsInTransit": 0,
+        "rooms": 1,
+        "roomType": "private",
+        "occupantsPerRoom": 2,
+        "occupancyConfirmed": true,
+        "breakfast": "included",
+        "includedBreakfasts": 3,
+        "arrivalBreakfastIncluded": false
+      },
+      "available": true,
+      "accessibilityConfirmed": true,
+      "requiredServicesConfirmed": true,
+      "cancellationPolicyKnown": true,
+      "serviceScopeKey": "synthetic-equivalent-services",
+      "coverage": {
+        "outbound_bus": "included",
+        "return_bus": "included",
+        "lodging": "included",
+        "breakfast": "included",
+        "arrival_breakfast": "not_required",
+        "local_transfers": "included",
+        "taxes": "included",
+        "mandatory_activities": "not_required",
+        "other_meals": "included"
+      },
+      "notRequiredReasons": {
+        "arrival_breakfast": "Synthetic arrival occurs after breakfast.",
+        "mandatory_activities": "The synthetic itinerary contains no required paid activity."
+      },
+      "costs": [
+        {
+          "id": "package-price",
+          "category": "package",
+          "unit": "person",
+          "quantity": 2,
+          "unitMinor": 80000,
+          "currency": "BRL",
+          "treatment": "necessary",
+          "selected": true,
+          "sourceIds": [
+            "source-synthetic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-independent",
+      "provider": "Synthetic Independent Combination",
+      "kind": "independent",
+      "origin": "Fictional Origin AAA",
+      "destination": "Fictional Destination BBB",
+      "yearConfirmed": true,
+      "departureAt": "2030-06-13T06:00:00-03:00",
+      "arrivalAtDestination": "2030-06-13T14:00:00-03:00",
+      "returnDepartureAt": "2030-06-16T12:00:00-03:00",
+      "returnToOriginAt": "2030-06-16T20:00:00-03:00",
+      "lodging": {
+        "checkIn": "2030-06-13",
+        "checkOut": "2030-06-16",
+        "declaredNights": 3,
+        "nightsInTransit": 0,
+        "rooms": 1,
+        "roomType": "private",
+        "occupantsPerRoom": 2,
+        "occupancyConfirmed": true,
+        "breakfast": "included",
+        "includedBreakfasts": 3,
+        "arrivalBreakfastIncluded": false
+      },
+      "available": true,
+      "accessibilityConfirmed": true,
+      "requiredServicesConfirmed": true,
+      "cancellationPolicyKnown": true,
+      "serviceScopeKey": "synthetic-equivalent-services",
+      "coverage": {
+        "outbound_bus": "itemized",
+        "return_bus": "itemized",
+        "lodging": "itemized",
+        "breakfast": "itemized",
+        "arrival_breakfast": "not_required",
+        "local_transfers": "itemized",
+        "taxes": "itemized",
+        "mandatory_activities": "not_required",
+        "other_meals": "itemized"
+      },
+      "notRequiredReasons": {
+        "arrival_breakfast": "Synthetic arrival occurs after breakfast.",
+        "mandatory_activities": "The synthetic itinerary contains no required paid activity."
+      },
+      "costs": [
+        {
+          "id": "bus-out",
+          "category": "outbound_bus",
+          "unit": "person",
+          "quantity": 2,
+          "unitMinor": 15000,
+          "currency": "BRL",
+          "treatment": "necessary",
+          "selected": true,
+          "sourceIds": [
+            "source-synthetic"
+          ]
+        },
+        {
+          "id": "bus-return",
+          "category": "return_bus",
+          "unit": "person",
+          "quantity": 2,
+          "unitMinor": 15000,
+          "currency": "BRL",
+          "treatment": "necessary",
+          "selected": true,
+          "sourceIds": [
+            "source-synthetic"
+          ]
+        },
+        {
+          "id": "hotel",
+          "category": "lodging",
+          "unit": "room_night",
+          "quantity": 3,
+          "unitMinor": 20000,
+          "currency": "BRL",
+          "treatment": "necessary",
+          "selected": true,
+          "sourceIds": [
+            "source-synthetic"
+          ]
+        },
+        {
+          "id": "breakfast",
+          "category": "breakfast",
+          "unit": "group",
+          "quantity": 1,
+          "unitMinor": 0,
+          "currency": "BRL",
+          "treatment": "necessary",
+          "selected": true,
+          "sourceIds": [
+            "source-synthetic"
+          ]
+        },
+        {
+          "id": "tax",
+          "category": "taxes",
+          "unit": "group",
+          "quantity": 1,
+          "unitMinor": 0,
+          "currency": "BRL",
+          "treatment": "necessary",
+          "selected": true,
+          "sourceIds": [
+            "source-synthetic"
+          ]
+        },
+        {
+          "id": "transfers",
+          "category": "local_transfers",
+          "unit": "group",
+          "quantity": 1,
+          "unitMinor": 20000,
+          "currency": "BRL",
+          "treatment": "necessary",
+          "selected": true,
+          "sourceIds": [
+            "source-synthetic"
+          ]
+        },
+        {
+          "id": "food",
+          "category": "other_meals",
+          "unit": "group",
+          "quantity": 1,
+          "unitMinor": 10000,
+          "currency": "BRL",
+          "treatment": "necessary",
+          "selected": true,
+          "sourceIds": [
+            "source-synthetic"
+          ]
+        }
+      ]
+    }
+  ]
+}

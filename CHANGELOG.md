@@ -2,6 +2,9 @@
 
 ## 0.6.0 - candidate, not yet released
 
+- Activated the existing ground-transport workflow as a twelfth deterministic calculator: local coach packages versus separately purchased buses and lodging, exact return-to-origin windows, room/person units, breakfast, complete mandatory costs and explicit unknown budgets. Service levels never relax safety or accessibility.
+- Added opt-in commit-addressed candidate runtime installation so iterative testing preserves existing versioned runtimes and can roll back configuration and skills.
+
 - Added two bounded deterministic planning calculators for loyalty conversion economics and explicit-schedule multimodal stitching; eleven original role IDs and nine original planning IDs remain compatible. Unknown ratios, current eligibility, inventory and costs remain explicit.
 - Expanded to 68 workflows and 15 MCP tools with hierarchical country/cultural pack validation, exact typed assertion binding, process-local calculation receipts and a fail-closed output gate. External free-form host responses remain outside this gate.
 - Preserved default no-retry connectors and added an explicit opt-in bounded idempotent-read policy; added synthetic schema, privacy, arithmetic, transport, receipt-replay and mutation regressions.

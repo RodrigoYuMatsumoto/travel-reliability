@@ -68,7 +68,7 @@ nova calculadora nem autoriza efeitos externos.
 | `code-workbench` | [Adaptação de runtime: CLI com arquivos/shell](41_code_workbench.md) | Workflow do host; sem execução automática |
 | `cowork-workbench` | [Adaptação de runtime: Cowork/desktop](42_cowork_workbench.md) | Workflow do host; sem execução automática |
 | `chat-guidance` | [Adaptação de runtime: Chat/manual](43_chat_guidance.md) | Workflow do host; sem execução automática |
-| `ground-transport` | [Transporte terrestre e multimodal](44_ground_transport.md) | Workflow do host; sem execução automática |
+| `ground-transport` | [Transporte terrestre e multimodal](44_ground_transport.md) | Calculador determinístico via travel_plan |
 | `travel-documents` | [Documentação e requisitos de entrada](45_travel_documents.md) | Workflow do host; sem execução automática |
 | `insurance-review` | [Seguro e assistência de viagem](46_insurance_review.md) | Workflow do host; sem execução automática |
 | `health-plan` | [Preparação de saúde e apoio](47_health_plan.md) | Workflow do host; sem execução automática |

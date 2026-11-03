@@ -1,6 +1,7 @@
 /** Pseudonymous, documentary planning inputs. No booking or messaging capabilities. */
 import { localeSchema } from './locale.js';
 import { loyaltyArbitrageSchema, multimodalStitchingSchema } from './intelligence.js';
+import { groundTransportSchema } from './ground-transport.js';
 export const toolIds = [
   'flex-dates',
   'airports',
@@ -11,6 +12,7 @@ export const toolIds = [
   'negotiation',
   'hidden-city',
   'group-split',
+  'ground-transport',
   'loyalty-arbitrage',
   'multimodal-stitching',
 ] as const;
@@ -309,6 +311,7 @@ const comparison = object({
   overnightAllowed: bool,
 });
 export const planningSchemas: Record<ToolId, object> = {
+  'ground-transport': groundTransportSchema,
   'loyalty-arbitrage': loyaltyArbitrageSchema,
   'multimodal-stitching': multimodalStitchingSchema,
   'flex-dates': comparison,

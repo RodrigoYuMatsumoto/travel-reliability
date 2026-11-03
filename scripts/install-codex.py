@@ -531,17 +531,21 @@ class WindowsConfigEdit:
         return False
 
 
-def install(source_archive, skill_archive, checksums, codex_home, skills_home, node, dependencies=True):
+def install(source_archive, skill_archive, checksums, codex_home, skills_home, node, dependencies=True, candidate=False):
     if os.name != "nt":
         raise ValueError("AUTOMATIC_INSTALL_REQUIRES_WINDOWS")
     version, commit, source, skill = verify_inputs(source_archive, skill_archive, checksums)
+    if type(candidate) is not bool:
+        raise ValueError("INVALID_INSTALL_CHANNEL")
+    channel = "candidate" if candidate else "versioned"
+    runtime_key = "v" + version + ("-candidate-" + commit[:12] if candidate else "")
     codex_home, skills_home, node = map(local_path, (codex_home, skills_home, node))
     if not node.is_file():
         raise ValueError("NODE_EXECUTABLE_REQUIRED")
     config = local_path(codex_home / "config.toml")
     config_existed = config.exists()
     original = config.read_bytes() if config_existed else b""
-    runtime = local_path(codex_home / "tools/travel-reliability" / ("v" + version))
+    runtime = local_path(codex_home / "tools/travel-reliability" / runtime_key)
     if runtime.exists():
         raise ValueError("VERSION_ALREADY_INSTALLED_PRESERVED")
     enabled_tools = allowed_tools(source)
@@ -605,16 +609,17 @@ def install(source_archive, skill_archive, checksums, codex_home, skills_home, n
             runtime_installed = True
             for name in targets:
                 target = local_path(skills_home / name)
-                candidate = stage / name
+                staged_skill = stage / name
                 saved = local_path(backup / name)
-                installed.append((target, saved, candidate))
+                installed.append((target, saved, staged_skill))
                 if target.exists():
                     inspect_skill_tree(target)
                     target.rename(saved)
-                candidate.rename(target)
+                staged_skill.rename(target)
             with WindowsConfigEdit(config, original, config_existed) as edit:
                 edit.write(proposed)
                 record = {"format": "travel-reliability-codex-install/1", "version": version,
+                          "channel": channel, "runtimeKey": runtime_key,
                           "sourceCommit": commit, "skills": 10, "allowedTools": len(enabled_tools),
                           "sensitiveToolsEnabled": False, "dependenciesInstalled": dependencies,
                           "configPreviouslyExisted": config_existed,
@@ -627,13 +632,13 @@ def install(source_archive, skill_archive, checksums, codex_home, skills_home, n
             failures = ["configuration"] if str(error).startswith("CONFIGURATION_ROLLBACK_FAILED") else []
             failed = local_path(backup / "failed")
             failed.mkdir(exist_ok=True, mode=0o700)
-            for target, saved, candidate in reversed(installed):
+            for target, saved, staged_skill in reversed(installed):
                 try:
                     if saved.exists():
                         if target.exists():
                             local_path(target).rename(failed / target.name)
                         local_path(saved).rename(local_path(target))
-                    elif not candidate.exists() and target.exists():
+                    elif not staged_skill.exists() and target.exists():
                         local_path(target).rename(failed / target.name)
                 except (OSError, ValueError):
                     failures.append("skill")
@@ -663,6 +668,7 @@ def main():
     parser.add_argument("--skills-home", type=Path, default=Path.home() / ".agents/skills")
     parser.add_argument("--node", type=Path, default=Path(shutil.which("node") or "node"))
     parser.add_argument("--verify-only", action="store_true")
+    parser.add_argument("--candidate", action="store_true", help="Install into a separate commit-derived candidate runtime; preserve existing runtimes")
     args = parser.parse_args()
     try:
         if args.verify_only:
@@ -670,7 +676,7 @@ def main():
             print(json.dumps({"status": "VERIFIED_INPUTS_ONLY", "version": version, "sourceCommit": commit}))
         else:
             print(json.dumps(install(args.source_archive, args.skill_archive, args.checksums,
-                                     args.codex_home, args.skills_home, args.node)))
+                                     args.codex_home, args.skills_home, args.node, candidate=args.candidate)))
     except (ValueError, KeyError, TypeError, AttributeError, UnicodeError, OSError,
             subprocess.SubprocessError, zipfile.BadZipFile, tomllib.TOMLDecodeError) as error:
         message = str(error)

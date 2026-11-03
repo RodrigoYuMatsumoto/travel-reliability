@@ -16,6 +16,7 @@ import { AppError, requireCondition } from './errors.js';
 import { canonicalLocale, messageLanguage } from '../../schema/src/locale.js';
 import { loyaltyArbitrage } from './loyalty-arbitrage.js';
 import { multimodalStitching } from './multimodal-stitching.js';
+import { groundTransport } from './ground-transport.js';
 import { enforceContentPolicy } from '../../agent/content-policy.js';
 
 const ajv = new Ajv2020({ strict: true, allErrors: false });
@@ -832,6 +833,7 @@ export function plan(tool: string, value: unknown) {
   else if (tool === 'group-split') result = groupSplit(value as GroupInput);
   else if (tool === 'loyalty-arbitrage') result = loyaltyArbitrage(value);
   else if (tool === 'multimodal-stitching') result = multimodalStitching(value);
+  else if (tool === 'ground-transport') result = groundTransport(value);
   else throw new AppError('UNKNOWN_PLANNING_TOOL', 422);
   enforceContentPolicy(result);
   return {

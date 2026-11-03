@@ -10,7 +10,7 @@ test('synthetic trip, evidence review, dossier and language', async ({ page }) =
   await page.getByRole('button', { name: 'Analisar dados' }).click();
   await expect(page.getByRole('cell', { name: 'N01', exact: true })).toBeVisible();
   await expect(page.locator('pre')).toContainText('"groupFinalCost": null');
-  for (const tool of ['loyalty-arbitrage', 'multimodal-stitching']) {
+  for (const tool of ['loyalty-arbitrage', 'multimodal-stitching', 'ground-transport']) {
     await page.getByRole('combobox', { name: 'Ferramenta', exact: true }).selectOption(tool);
     await page.getByRole('button', { name: 'Analisar dados' }).click();
     await expect(page.locator('pre')).toContainText('"calculatorId": "' + tool + '"');
