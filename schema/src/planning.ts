@@ -1,5 +1,7 @@
 /** Pseudonymous, documentary planning inputs. No booking or messaging capabilities. */
 import { localeSchema } from './locale.js';
+import { loyaltyArbitrageSchema, multimodalStitchingSchema } from './intelligence.js';
+import { groundTransportSchema } from './ground-transport.js';
 export const toolIds = [
   'flex-dates',
   'airports',
@@ -10,6 +12,9 @@ export const toolIds = [
   'negotiation',
   'hidden-city',
   'group-split',
+  'ground-transport',
+  'loyalty-arbitrage',
+  'multimodal-stitching',
 ] as const;
 export type ToolId = (typeof toolIds)[number];
 export interface Source {
@@ -53,6 +58,14 @@ export interface Offer {
   airport: string;
   groundDistanceKm: number | null;
   groundMinutes: number | null;
+  /** Optional for legacy inputs; absence leaves airport total-cost scope unconfirmed. */
+  groundTransport?: {
+    status: 'itemized' | 'included' | 'not_required' | 'unknown';
+    coversAllRequiredLegs: boolean | null;
+    costIds: string[];
+    sourceIds: string[];
+    basis: string | null;
+  };
   overnight: boolean;
   ticketStructure: 'single' | 'separate' | 'unknown';
   connectionProtectionSourceId: string | null;
@@ -252,6 +265,13 @@ const offer = object({
   airport: text(120),
   groundDistanceKm: number,
   groundMinutes: integer,
+  groundTransport: object({
+    status: values('itemized', 'included', 'not_required', 'unknown'),
+    coversAllRequiredLegs: nullable(bool),
+    costIds: { ...list(text(80), 100), uniqueItems: true },
+    sourceIds: { ...list(text(80), 30), uniqueItems: true },
+    basis: nullable(text(1000)),
+  }),
   overnight: bool,
   ticketStructure: values('single', 'separate', 'unknown'),
   connectionProtectionSourceId: nullable(text(80)),
@@ -269,6 +289,8 @@ const offer = object({
     10,
   ),
 });
+// Existing offers still parse, but the airport workflow cannot infer this cost scope.
+offer.required = offer.required.filter((key) => key !== 'groundTransport');
 const comparison = object({
   offers: list(offer, 30, 1),
   baselineId: nullable(text(80)),
@@ -289,6 +311,9 @@ const comparison = object({
   overnightAllowed: bool,
 });
 export const planningSchemas: Record<ToolId, object> = {
+  'ground-transport': groundTransportSchema,
+  'loyalty-arbitrage': loyaltyArbitrageSchema,
+  'multimodal-stitching': multimodalStitchingSchema,
   'flex-dates': comparison,
   airports: comparison,
   connections: comparison,

@@ -49,3 +49,45 @@ node scripts/bootstrap-demo.mjs
 The bootstrap anchors paths to the source directory and checks readiness. For the existing development command, use `npm run demo` and open port 5173 yourself. For a single compiled server, use `npm run build` followed by `npm start`, then open port 4310. Stop the current demo first so the port is available.
 
 Production requires a separately configured identity provider, HTTPS, durable private stores, keys and isolated ingestion. Follow the [full-source operations guide](https://github.com/RodrigoYuMatsumoto/travel-reliability/blob/main/docs/OPERATIONS.md). The local demo is not a durable evidence archive or an unattended production service.
+
+## 4. Codex: complete skill, nine shortcuts and offline MCP
+
+On Windows, with Python 3.12 and Node.js 24 already installed, download the source ZIP, skill
+ZIP and `SHA256SUMS` from the same release. Extract the source ZIP and run its
+installer with those downloaded files as explicit inputs:
+
+```text
+python scripts/install-codex.py --source-archive travel-reliability-vVERSION.zip --skill-archive travel-reliability-skill-vVERSION.zip --checksums SHA256SUMS
+```
+
+Use paths to the actual downloaded files and replace `VERSION` with their release
+version. The installer verifies archive SHA-256, safe membership, skill manifests,
+source bindings and all nine prompt files before changing the host. The checksum
+file establishes consistency with that distribution, not independent authorship.
+Use `--verify-only` to verify inputs without installing.
+
+Automatic host configuration uses a Windows exclusive file handle to preserve
+concurrent edits. Other operating systems can use `--verify-only`, the complete
+skill ZIP and their host's documented manual MCP setup; automatic configuration
+on those systems fails explicitly rather than claiming an unsupported lock.
+
+The runtime is installed in a versioned directory beneath the current Codex home;
+the complete `travel-agent` and nine `travel-*` shortcuts use the current user's
+skills directory. Previous skills/configuration receive a private backup. Existing
+MCP settings are preserved, and a failed installation restores previous settings
+and skills. Old versioned runtimes remain available to existing sessions.
+
+Dependencies come from the locked public npm graph with lifecycle scripts disabled.
+The MCP launches Node directly, avoiding npm output on the JSON-RPC channel. Only
+ten local tools are allowed; source synchronization and workspace inventory/plans
+stay excluded. No supplier, mailbox, document root or credential is configured.
+
+`--codex-home`, `--skills-home` and `--node` support explicit local destinations;
+network paths and links are rejected. Reopen the Codex session if the host does
+not refresh its catalog. Verify the installed server and shortcuts in a fresh
+host before treating the update as active. Source upgrades do not automatically
+upgrade an already installed host runtime.
+
+Shortcuts: `travel-flex-dates`, `travel-airports`, `travel-connections`,
+`travel-promotions`, `travel-total-cost`, `travel-fare-scenarios`,
+`travel-negotiation`, `travel-hidden-city`, and `travel-group-split`.

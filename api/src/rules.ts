@@ -9,6 +9,7 @@ interface Rule {
   departureOnly?: boolean;
   overnightOrAssistance?: boolean;
   nationalTerritoryOnly?: boolean;
+  componentConditionsUnmodeled?: boolean;
   validFrom: string;
   validTo: string | null;
   article: string;
@@ -53,8 +54,13 @@ export function rightsFor(
       event.exceptionalConditions !== 'none' ||
       (rule.departureOnly && event.phase === 'unknown') ||
       (rule.overnightOrAssistance && event.residentAtOrigin !== false) ||
+      // Article 27(2) can waive overnight need, but the flag proves neither qualification
+      // nor the absence of an adequate accommodation accepted by the passenger/companion.
+      (rule.overnightOrAssistance && event.specialAssistance && !event.overnight) ||
       // The contract does not record where a wait happened; a territorial limit stays open.
       rule.nationalTerritoryOnly === true ||
+      // Aggregate advice cannot certify lodging/transfer facts absent from the event contract.
+      rule.componentConditionsUnmodeled === true ||
       (service.kind === 'bus' && event.phase === 'unknown');
     result.push({
       ruleId: rule.id,

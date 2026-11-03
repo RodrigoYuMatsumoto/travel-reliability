@@ -117,12 +117,17 @@ const examples = [
   'examples/connector-request.json',
   'examples/document-workspace.json',
   'examples/operator-profile.json',
+  'examples/country-pack-query.json',
 ];
 const docs = [
   'docs/AGENT_CATALOG.md',
   'docs/AGENT_AUDIT.md',
   'docs/PLANNING.md',
+  'docs/INTELLIGENCE.md',
+  'docs/GROUND_TRANSPORT.md',
   'docs/INSTALLATION.md',
+  'docs/PUBLIC_SOURCES.md',
+  'docs/VALIDATION.md',
   'docs/GLOBAL_CONTEXT.md',
   'docs/CONNECTORS.md',
   'docs/DOCUMENT_WORKSPACE.md',

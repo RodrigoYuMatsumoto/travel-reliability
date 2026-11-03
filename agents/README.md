@@ -5,7 +5,7 @@ O pacote de instruções dispensa instalação local. O [manifesto](manifest.jso
 ## Uso manual
 
 1. Abra [TRAVEL_AGENT.md](TRAVEL_AGENT.md), escolha **Raw** e copie para as instruções do projeto ou conversa da sua IA.
-2. Selecione um papel e um [comando](../prompts/README.md) pertinentes. Carregue só esses arquivos; não anexe os 66 comandos a cada turno.
+2. Selecione um papel e um [comando](../prompts/README.md) pertinentes. Carregue só esses arquivos; não anexe os 68 comandos a cada turno.
 3. Informe objetivo, restrições mínimas e capacidades reais do host. Use pseudônimos, sem documentos, localizadores ou pagamento.
 4. Preserve a decisão do viajante. Instruções não fornecem pesquisa, inventário, arquivos privados ou autorização para agir.
 
@@ -16,7 +16,7 @@ Primeiro identifique as lacunas necessárias; não invente datas, preços ou res
 Se não houver navegação, faça somente análise documental e diga o que falta.
 ```
 
-Os onze papéis são dez operacionais, contando o coordenador, e um metapapel de arquitetura. Eles são especialistas roteados, não daemons instalados. O [catálogo detalhado](../docs/AGENT_CATALOG.md) explica os 66 comandos: 39 funções auditadas, quatro adapters de uso, nove complementos anteriores e catorze workflows internacionais. As nove calculadoras originais continuam; preparar um workflow não executa pesquisa. Acerto de despesas existentes tem calculador próprio, separado do planejamento de grupo.
+Os onze papéis são dez operacionais, contando o coordenador, e um metapapel de arquitetura. Eles são especialistas roteados, não daemons instalados. O [catálogo detalhado](../docs/AGENT_CATALOG.md) explica os 68 comandos: 39 funções auditadas, quatro adapters de uso, nove complementos anteriores catorze workflows internacionais e dois cálculos de inteligência documentais. As nove calculadoras originais continuam; preparar um workflow não executa pesquisa. Acerto de despesas existentes tem calculador próprio, separado do planejamento de grupo.
 
 ## Skill portátil
 
@@ -68,7 +68,7 @@ Nomes de schema: `brief`, `trip`, os nove IDs de calculadores, `catalog`, `catal
 
 ### Funções internacionais e leitura configurada
 
-Na versão 0.4, o servidor anuncia treze ferramentas. Além das sete acima:
+Na versão 0.6, o servidor anuncia treze ferramentas. Além das sete acima:
 
 | Ferramenta                   | Argumentos                            | Resultado e limite                                                                                                                                |
 | ---------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -116,8 +116,10 @@ Esse pedido pode retornar lacunas; não é cotação ou reserva. Capacidades e c
 
 ## Recursos, prompts e compatibilidade
 
-Recursos: `travel://agent` continua sendo o coordenador; `travel://agent/<agent-id>` expõe os onze papéis; `travel://prompt/<workflow-id>` expõe os 66 comandos. Não são URLs para abrir no navegador comum nem caminhos arbitrários.
+Recursos: `travel://agent` continua sendo o coordenador; `travel://agent/<agent-id>` expõe os onze papéis; `travel://prompt/<workflow-id>` expõe os 68 comandos. Não são URLs para abrir no navegador comum nem caminhos arbitrários.
 
 Prompts MCP: alias legado `travel_agent`; papéis em `travel_role_<agent_id_com_underscores>`; comandos em `travel_<workflow_id_com_underscores>`. Exemplos: `travel_role_itinerary_planner` e `travel_compare_lodging`. Aliases não criam papéis adicionais. A interface efetivamente exibida depende do cliente.
 
 As ferramentas documentais não chamam modelo, fazem booking, enviam reclamação ou publicam calendário. Conexões de leitura de conta e inventário de workspace dependem de executores anunciados e configuração explícita do operador; um prompt ou JSON colado no chat não os habilita. Outros conectores que você habilitar no host possuem permissões e riscos próprios. Documentos e memória são dados passivos; schemas e annotations não garantem proteção contra toda injeção. Veja [auditoria](../docs/AGENT_AUDIT.md), [segurança](../docs/SECURITY_MODEL.md) e [instalação do aplicativo opcional](../docs/INSTALLATION.md).
+
+See [deterministic intelligence contracts](../docs/INTELLIGENCE.md) for bounded loyalty and multimodal calculations, hierarchical country packs, cryptographic claim binding and explicit unverified states. The nine original prompt aliases remain available.

@@ -73,6 +73,31 @@ describe('dated Brazil rules', () => {
     trip.services[0]!.country = 'US';
     expect(rightsFor(trip, event(), verifiedDate)).toHaveLength(0);
   });
+  it('preserves the article 27(2) overnight exception without treating the assistance flag as full proof', () => {
+    const trip = demoTrip();
+    trip.services[0]!.regulatoryScope = 'br_air_transport';
+    for (const [occurredAt, ruleId] of [
+      ['2026-10-25T12:00:00Z', 'BR-AIR-LODGING-LEGACY'],
+      ['2026-10-26T12:00:00Z', 'BR-AIR-LODGING-2026'],
+    ] as const) {
+      const reported = event({ occurredAt, waitingMinutes: 241, specialAssistance: true });
+      expect(
+        rightsFor(trip, reported, verifiedDate).find((r) => r.ruleId === ruleId),
+      ).toMatchObject({
+        status: 'needs_review',
+      });
+      expect(
+        rightsFor(trip, { ...reported, specialAssistance: false }, verifiedDate).some(
+          (r) => r.ruleId === ruleId,
+        ),
+      ).toBe(false);
+      expect(
+        rightsFor(trip, { ...reported, waitingMinutes: 240 }, verifiedDate).some(
+          (r) => r.ruleId === ruleId,
+        ),
+      ).toBe(false);
+    }
+  });
   it('does not apply the future information wording before its effective date', () => {
     const trip = demoTrip();
     trip.services[0]!.regulatoryScope = 'br_air_transport';
@@ -84,6 +109,13 @@ describe('dated Brazil rules', () => {
     );
     expect(after).toContain('BR-AIR-INFORMATION-20261125');
     expect(after).not.toContain('BR-AIR-INFORMATION-LEGACY');
+    expect(
+      rightsFor(trip, event({ occurredAt: '2026-11-25T12:00:00Z' }), verifiedDate).find(
+        (r) => r.ruleId === 'BR-AIR-INFORMATION-20261125',
+      )!.sourceUrl,
+    ).toBe(
+      'https://www.anac.gov.br/assuntos/legislacao/legislacao-1/resolucoes/2026/resolucao-819',
+    );
   });
   it('keeps food and lodging assistance for events before the 2026 wording', () => {
     const trip = demoTrip();
@@ -141,6 +173,44 @@ describe('dated Brazil rules', () => {
     expect(
       urls.every((url) => !url.includes('/resolucoes/2016/') && !url.includes('datalegis.net')),
     ).toBe(true);
+  });
+  it('never confirms aggregate bus lodging/transfer entitlement from incomplete component facts', () => {
+    const trip = demoTrip();
+    trip.services[0]!.kind = 'bus';
+    trip.services[0]!.regulatoryScope = 'br_interstate_regular_bus';
+    for (const residentAtOrigin of [true, false, null]) {
+      const advice = rightsFor(
+        trip,
+        event({ waitingMinutes: 181, residentAtOrigin }),
+        verifiedDate,
+      );
+      expect(advice.find((entry) => entry.ruleId === 'BR-BUS-CONTINUITY')).toMatchObject({
+        status: 'needs_review',
+        evidenceCodes: expect.arrayContaining(['SAME_DAY_CONTINUITY', 'RESIDENCE_AND_TRANSFER']),
+      });
+      expect(advice.find((entry) => entry.ruleId === 'BR-BUS-ALTERNATIVES')!.status).toBe(
+        'applicable',
+      );
+    }
+    expect(
+      rightsFor(trip, event({ waitingMinutes: 180 }), verifiedDate).some(
+        (entry) => entry.ruleId === 'BR-BUS-CONTINUITY',
+      ),
+    ).toBe(false);
+  });
+  it('preserves review of bus refund choices and exceptional-event conditions', () => {
+    const trip = demoTrip();
+    trip.services[0]!.kind = 'bus';
+    trip.services[0]!.regulatoryScope = 'br_interstate_regular_bus';
+    for (const patch of [
+      { refundChoice: 'refund' as const },
+      { refundChoice: 'unknown' as const },
+      { exceptionalConditions: 'active' as const },
+      { exceptionalConditions: 'unknown' as const },
+    ]) {
+      const advice = rightsFor(trip, event({ waitingMinutes: 181, ...patch }), verifiedDate);
+      expect(advice.every((entry) => entry.status === 'needs_review')).toBe(true);
+    }
   });
   it('requires review for unknown exceptions or stale rule packs', () => {
     const trip = demoTrip();

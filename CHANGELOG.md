@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.6.0 - candidate, not yet released
+
+- Activated the existing ground-transport workflow as a twelfth deterministic calculator: local coach packages versus separately purchased buses and lodging, exact return-to-origin windows, room/person units, breakfast, complete mandatory costs and explicit unknown budgets. Service levels never relax safety or accessibility.
+- Added opt-in commit-addressed candidate runtime installation so iterative testing preserves existing versioned runtimes and can roll back configuration and skills.
+
+- Added two bounded deterministic planning calculators for loyalty conversion economics and explicit-schedule multimodal stitching; eleven original role IDs and nine original planning IDs remain compatible. Unknown ratios, current eligibility, inventory and costs remain explicit.
+- Expanded to 68 workflows and 15 MCP tools with hierarchical country/cultural pack validation, exact typed assertion binding, process-local calculation receipts and a fail-closed output gate. External free-form host responses remain outside this gate.
+- Preserved default no-retry connectors and added an explicit opt-in bounded idempotent-read policy; added synthetic schema, privacy, arithmetic, transport, receipt-replay and mutation regressions.
+- Corrected SAST lock reproducibility by sorting whole unchanged rule blocks, without dropping metadata or accepting changed content. Release verification now binds every public reviewed-file digest to the source ZIP, raw committed blobs and the current complete main-push Actions attempt.
+
+- Airport comparisons require an explicit sourced terrestrial-cost scope; incomplete legacy input remains conditional with unknown savings. Interstate-bus continuity stays under review where the contract cannot distinguish lodging, residence and transfer conditions.
+- Preserved the air-assistance overnight exception while requiring review when the assistance flag cannot establish qualification and accommodation exceptions. Completed historical communication, bus-scope and future effective-date references without claiming unsupported event coverage.
+- Added a verified, reversible Codex installer for the complete skill, nine shortcuts and a twelve-tool offline MCP allowlist intersected with the installed catalog. Existing settings and older versioned runtimes are preserved.
+- The real Windows installation smoke exposed npm rejecting the same null-device file as both user and global configuration. Separate owned empty configuration files now preserve isolation without double-loading; failures retain the rollback record.
+- Normalized SBOM identity from project metadata rather than checkout directory names, pinned SAST rule bytes, and retained the reproduced Windows child-process finding with exact source-bound triage and boundary regressions.
+- Restricted the synthetic-email privacy exemption to exact reserved domains; longer lookalike domains remain subject to detection.
+- Added complete nine-asset release assembly, source/blob and manifest verification, private hash-bound independent-review receipts and a read-only post-publication verification workflow. A missing review or CI record fails stable eligibility.
+- Added opt-in bounded official locality/weather readers, explicit assisted integration alternatives, and a synthetic nine-calculator execution/payload benchmark. No commercial supplier access, paid inference, real traveler pilot or universal token-savings claim is implied.
+- Updated support policy, installation/release/security documentation and the current catalog/skill metadata. Validation results belong to the exact-commit release report; historical checkpoints remain intact.
+
 ## 0.5.0 - 2026-11-01
 
 ### Corrections from the v0.4 audit

@@ -64,7 +64,7 @@ function main() {
     ['identifier', /\b\d{3}\.\d{3}\.\d{3}-\d{2}\b/],
     [
       'private-email',
-      /\b[A-Z0-9._%+-]+@(?!example\.(?:invalid|com|org)|localhost)[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
+      /\b[A-Z0-9._%+-]+@(?!(?:example\.(?:invalid|com|org)|localhost)(?![A-Z0-9.-]))[A-Z0-9.-]+\.[A-Z]{2,}\b/i,
     ],
   ];
   const failures = [];

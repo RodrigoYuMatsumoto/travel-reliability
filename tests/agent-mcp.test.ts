@@ -47,6 +47,52 @@ async function rejected(promise: Promise<unknown>) {
 }
 
 describe('official MCP stdio transport', () => {
+  it('binds a calculation to this process and blocks forged or cross-process receipts', async () => {
+    const first = await connected(),
+      second = await connected();
+    try {
+      const input = JSON.parse(
+        readFileSync(new URL('../examples/loyalty-arbitrage.json', import.meta.url), 'utf8'),
+      );
+      const planned = decoded(
+        await first.client.callTool({
+          name: 'travel_plan',
+          arguments: { tool: 'loyalty-arbitrage', input },
+        }),
+      );
+      const { calculationReceipt, ...value } = planned.result as Record<string, unknown>;
+      const reference = calculationReceipt as { outputSha256: string };
+      const packet = {
+        evaluatedAt: input.evaluatedAt,
+        claims: [
+          {
+            id: 'C1',
+            subject: 'loyalty-arbitrage',
+            predicate: 'result',
+            value,
+            kind: 'calculation',
+            evidenceRefs: [],
+            calculationRef: reference.outputSha256,
+          },
+        ],
+      };
+      const audit = (client: Client, body: unknown) =>
+        client.callTool({ name: 'travel_audit_output', arguments: { input: body } }).then(decoded);
+      expect((await audit(first.client, packet)).approved).toBe(true);
+      expect((await audit(second.client, packet)).approved).toBe(false);
+      expect(
+        (
+          await audit(first.client, {
+            ...packet,
+            claims: [{ ...packet.claims[0], value: { invented: 1 } }],
+          })
+        ).approved,
+      ).toBe(false);
+    } finally {
+      await first.client.close();
+      await second.client.close();
+    }
+  }, 30000);
   it('executes the new documentary tools and keeps all unconfigured reads disabled', async () => {
     const { client } = await connected();
     try {
@@ -117,8 +163,10 @@ describe('official MCP stdio transport', () => {
       expect(client.getProtocolEra()).toBe('legacy');
       const tools = (await client.listTools()).tools;
       expect(tools.map((tool) => tool.name).sort()).toEqual([
+        'travel_audit_output',
         'travel_catalog',
         'travel_check_trip',
+        'travel_country_context',
         'travel_extension_draft',
         'travel_global_context',
         'travel_plan',

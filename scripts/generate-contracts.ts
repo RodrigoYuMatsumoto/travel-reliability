@@ -16,9 +16,21 @@ import { connectorRequestSchema, reconciliationSchema } from '../agent/connector
 import { documentWorkspaceInputSchema } from '../agent/document-workspace.js';
 import { extensionDraftSchema } from '../agent/extension-draft.js';
 import { operatorProfileSchema } from '../agent/operator-profile.js';
+import {
+  loyaltyGraphSchema,
+  localEcosystemSchema,
+  culturalProtocolSchema,
+  countryPackQuerySchema,
+  claimOutputSchema,
+} from '../schema/src/intelligence.js';
 const json = async (path: string, value: unknown) =>
   writeFile(path, JSON.stringify(value, null, 2) + '\n');
 for (const [name, schema] of Object.entries({
+  'loyalty-graph': loyaltyGraphSchema,
+  'local-ecosystem': localEcosystemSchema,
+  'cultural-protocol': culturalProtocolSchema,
+  'country-pack-query': countryPackQuerySchema,
+  'claim-output': claimOutputSchema,
   'global-context': globalContextSchema,
   'connector-request': connectorRequestSchema,
   reconciliation: reconciliationSchema,

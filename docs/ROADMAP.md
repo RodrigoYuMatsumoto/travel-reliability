@@ -27,7 +27,12 @@ stars, engagement automation, fabricated testimonials or unsolicited outreach.
 
 ## Explicitly deferred
 
-Automatic flight-status polling, real-time fare search, CNPJ/Cadastur lookups,
+Version 0.6 adds [bounded public-data readers and assisted alternatives](PUBLIC_SOURCES.md),
+a [synthetic execution/payload benchmark](VALIDATION.md), a verified Codex updater
+and a complete nine-asset assembly/verification recipe. These resolve the local
+delivery paths; they do not fabricate partner access or human adoption.
+
+Universal flight-status polling, real-time fare inventory, unattended CNPJ/Cadastur lookups,
 live promotion validation, booking/payment, automatic complaint submission,
 identity/stay verification, visual listing-truth detection, native mobile apps,
 automated FX and independent country packs. Their absence is visible rather

@@ -1,7 +1,7 @@
 # Catálogo internacional de comandos
 
-Catálogo 0.5, formato 3: **66 comandos e onze papéis**, com as nove calculadoras
-documentais preservadas. A ampliação cobre contexto internacional, geografia,
+Catálogo 0.6, formato 3: **68 comandos e onze papéis**, com as nove calculadoras
+documentais preservadas e duas extensões determinísticas. A ampliação cobre contexto internacional, geografia,
 história/cultura/costumes, viagens profissionais, negociação, fontes de contas,
 reconciliação, organização local e geração de extensões revisáveis.
 
@@ -68,7 +68,7 @@ nova calculadora nem autoriza efeitos externos.
 | `code-workbench` | [Adaptação de runtime: CLI com arquivos/shell](41_code_workbench.md) | Workflow do host; sem execução automática |
 | `cowork-workbench` | [Adaptação de runtime: Cowork/desktop](42_cowork_workbench.md) | Workflow do host; sem execução automática |
 | `chat-guidance` | [Adaptação de runtime: Chat/manual](43_chat_guidance.md) | Workflow do host; sem execução automática |
-| `ground-transport` | [Transporte terrestre e multimodal](44_ground_transport.md) | Workflow do host; sem execução automática |
+| `ground-transport` | [Transporte terrestre e multimodal](44_ground_transport.md) | Calculador determinístico via travel_plan |
 | `travel-documents` | [Documentação e requisitos de entrada](45_travel_documents.md) | Workflow do host; sem execução automática |
 | `insurance-review` | [Seguro e assistência de viagem](46_insurance_review.md) | Workflow do host; sem execução automática |
 | `health-plan` | [Preparação de saúde e apoio](47_health_plan.md) | Workflow do host; sem execução automática |
@@ -111,3 +111,10 @@ Veja [agente/MCP](../agents/README.md), [contratos](../docs/AGENT_CATALOG.md),
 e [calculadores](../docs/PLANNING.md). Código, prompts, schemas e documentação
 originais desta versão usam [MIT](../LICENSE); fontes oficiais, dados e
 dependências preservam seus próprios termos.
+
+## Extensões determinísticas
+
+| ID | Comando | Executor |
+| --- | --- | --- |
+| `loyalty-arbitrage` | [Pontos e custo econômico](67_loyalty_arbitrage.md) | `travel_plan` |
+| `multimodal-stitching` | [Conexões multimodais](68_multimodal_stitching.md) | `travel_plan` |

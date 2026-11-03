@@ -123,7 +123,10 @@ def validate_archive(archive, expected_commit=None, expected_version=None):
     for path in catalog.get("contracts", {}).values():
         require(base + safe_path(path) in names, "CATALOG_CONTRACT_MISSING")
     counts = {"agents": len(agents), "workflows": len(commands), "calculators": len({row.get("calculatorId") for row in commands if row.get("calculatorId")})}
-    require({row.get("calculatorId") for row in commands if row.get("calculatorId")} == LEGACY_CALCULATORS, "LEGACY_CALCULATORS_MISMATCH")
+    expected_calculators = LEGACY_CALCULATORS | ({"loyalty-arbitrage", "multimodal-stitching"} if tuple(map(int, manifest["version"].split("-", 1)[0].split("."))) >= (0, 6, 0) else set())
+    if any(row.get("id") == "ground-transport" and row.get("executor") == "planning" for row in commands):
+        expected_calculators = expected_calculators | {"ground-transport"}
+    require({row.get("calculatorId") for row in commands if row.get("calculatorId")} == expected_calculators, "LEGACY_CALCULATORS_MISMATCH")
     require(manifest.get("counts") == counts, "PACKAGE_COUNT_MISMATCH")
     if is_skill:
         require(prefix + "SKILL.md" in names and base + "agent.md" in names, "SKILL_ENTRYPOINT_MISSING")

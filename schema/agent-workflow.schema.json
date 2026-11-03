@@ -80,7 +80,9 @@
         "ecosystem-extension",
         "rail-ferry-cruise-plan",
         "border-entry-plan",
-        "travel-purpose-plan"
+        "travel-purpose-plan",
+        "loyalty-arbitrage",
+        "multimodal-stitching"
       ]
     },
     "language": {
@@ -242,7 +244,9 @@
             "ecosystem-extension",
             "rail-ferry-cruise-plan",
             "border-entry-plan",
-            "travel-purpose-plan"
+            "travel-purpose-plan",
+            "loyalty-arbitrage",
+            "multimodal-stitching"
           ]
         },
         "suppliedFields": {

@@ -1,6 +1,6 @@
-# Catálogo internacional de agentes e workflows — 0.4
+# Catálogo internacional de agentes e workflows — 0.6
 
-O [manifesto](../agents/manifest.json), formato 3, define **onze papéis e 66
+O [manifesto](../agents/manifest.json), formato 3, define **onze papéis e 68
 comandos**. Dez papéis são operacionais, contando o coordenador; o arquiteto é
 um metapapel técnico acionado por pedido explícito. Papéis roteados não são
 processos instalados nem daemons.
@@ -88,7 +88,7 @@ integram essa projeção. Isso não remove versões anteriormente publicadas.
 | `code-workbench`           | [Adaptação de runtime: CLI com arquivos/shell](../prompts/41_code_workbench.md)                                 | `travel-agent`           | operations                         | Workflow do host; sem execução automática |
 | `cowork-workbench`         | [Adaptação de runtime: Cowork/desktop](../prompts/42_cowork_workbench.md)                                       | `travel-agent`           | operations                         | Workflow do host; sem execução automática |
 | `chat-guidance`            | [Adaptação de runtime: Chat/manual](../prompts/43_chat_guidance.md)                                             | `travel-agent`           | all                                | Workflow do host; sem execução automática |
-| `ground-transport`         | [Transporte terrestre e multimodal](../prompts/44_ground_transport.md)                                          | `itinerary-planner`      | ground                             | Workflow do host; sem execução automática |
+| `ground-transport`         | [Transporte terrestre e multimodal](../prompts/44_ground_transport.md)                                          | `itinerary-planner`      | ground                             | Calculador determinístico via travel_plan |
 | `travel-documents`         | [Documentação e requisitos de entrada](../prompts/45_travel_documents.md)                                       | `consumer-rights`        | documents                          | Workflow do host; sem execução automática |
 | `insurance-review`         | [Seguro e assistência de viagem](../prompts/46_insurance_review.md)                                             | `travel-risk`            | insurance                          | Workflow do host; sem execução automática |
 | `health-plan`              | [Preparação de saúde e apoio](../prompts/47_health_plan.md)                                                     | `travel-risk`            | health                             | Workflow do host; sem execução automática |
@@ -166,3 +166,5 @@ A revisão textual não comprova comportamento de toda LLM nem independência de
 família arquitetural. Veja [auditoria](AGENT_AUDIT.md) e [segurança](SECURITY_MODEL.md).
 Conteúdo original desta versão usa [MIT](../LICENSE); materiais de terceiros e
 fontes oficiais mantêm seus próprios termos.
+
+See [deterministic intelligence contracts](INTELLIGENCE.md) for bounded loyalty and multimodal calculations, hierarchical country packs, cryptographic claim binding and explicit unverified states. The nine original prompt aliases remain available.

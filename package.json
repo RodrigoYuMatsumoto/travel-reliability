@@ -1,6 +1,6 @@
 {
   "name": "travel-reliability",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "description": "Open contracts, evidence and recovery workflows for travel.",
   "license": "MIT",
@@ -26,7 +26,7 @@
     "build": "npm run typecheck && vite build --config web/vite.config.ts && node scripts/build-offline.mjs && tsc -p api/tsconfig.json",
     "start": "node --env-file-if-exists=.env dist/api/src/server.js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "node scripts/test-isolated.mjs",
     "test:python": "uv run --project ingest python -m pytest ingest/tests",
     "test:e2e": "playwright test",
     "check": "npm run typecheck && npm test && npm run test:python && npm run privacy:check",
@@ -43,7 +43,10 @@
     "format:check": "prettier --check .",
     "lint:python": "uv run --project ingest ruff check ingest/travel_ingest ingest/tests",
     "agent:operator": "node scripts/agent-operator.mjs",
-    "security:fuzz:ecosystem": "node --import tsx security/fuzz/ecosystem.ts --seed 20261031 --cases 2000 --seconds 120 && uv run --project ingest python security/fuzz/email_import.py --seed 20261031 --cases 384 --seconds 120"
+    "security:fuzz:ecosystem": "node --import tsx security/fuzz/ecosystem.ts --seed 20261031 --cases 2000 --seconds 120 && uv run --project ingest python security/fuzz/email_import.py --seed 20261031 --cases 384 --seconds 120",
+    "benchmark": "node --import tsx scripts/benchmark-documentary.ts",
+    "sources": "node --import tsx scripts/public-sources.ts",
+    "release:bundle": "uv run --no-project --python 3.12 python scripts/release-bundle.py"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1160.0",

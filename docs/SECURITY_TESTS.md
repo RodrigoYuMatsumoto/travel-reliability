@@ -13,7 +13,79 @@ Passing the automated suite is not an exhaustive security assessment or a produc
 | Browser and privacy              | `tests/browser/trip.spec.ts`: real browser workflow and private API data excluded from the offline cache; source/history scanner; npm SBOM omits optional author/contact fields                                  | Automated accessibility and privacy scans have limited coverage and are not proofs of compliance                        |
 | Dependencies and infrastructure  | npm audit, locked Python runtime pip-audit; CI runs real PostgreSQL/Redis/S3 tests, native OCR and both container builds                                                                                         | No known advisory at audit time does not mean no vulnerability; built images are not a hardened deployed service        |
 
-## Current executed evidence
+## Release evidence and published baseline
+
+For the [current stable release](https://github.com/RodrigoYuMatsumoto/travel-reliability/releases/latest),
+use its attached `agent-audit` report, source commit and linked completed workflow
+runs. This document describes boundaries and dated baselines; an older baseline
+does not substitute for the candidate's own exact-commit results.
+
+### Published v0.5.0 baseline
+
+The published v0.5.0 release is bound to commit `9a5e2a1803a1936560d3e9a2cfd5eb97fd7e08c8`.
+Both the [main verification run](https://github.com/RodrigoYuMatsumoto/travel-reliability/actions/runs/41514176924)
+and [security audit run](https://github.com/RodrigoYuMatsumoto/travel-reliability/actions/runs/41514176928)
+completed successfully for that exact SHA. The security jobs executed Semgrep,
+Bandit, bounded mutation campaigns and isolated HTTP/ZAP checks. Their clean
+results establish only those configured scopes. The [release validation report](https://github.com/RodrigoYuMatsumoto/travel-reliability/releases/download/v0.5.0/agent-audit-v0.5.0.json)
+records 378 local TypeScript and 29 Python passes, exact-commit CI, published
+artifact verification and a two-packet B.9 result of `APPROVE_WITH_CAVEATS`.
+That report explicitly leaves exact verifier model versions unknown and does not
+claim host-LLM behavioral certification or exhaustive vulnerability coverage.
+
+### Reproducible v0.6 follow-up gates
+
+`security/sast/rules-lock.json` pins the complete normalized bytes and SHA-256 of
+both existing Semgrep packs. The registry was observed returning different
+permutations of the same 560 complete OWASP rule blocks. Linux and Windows
+fingerprints matched every block and prefix. A safe YAML token scan found no
+anchors, aliases, directives or custom tags in the reviewed captures.
+Normalization sorts whole rule blocks by unique ID, preserving every internal
+byte and the prefix; it never rewrites YAML fields or drops metadata. Any changed
+pattern, comment, field or block fails the complete normalized-document digest.
+`security/sast/prepare-rules.py` fetches public configuration only and validates
+it before scanning source. Verified cache files use the same normalized bytes.
+Rule bodies remain in the ignored local cache; they are not redistributed under
+the project's MIT license. Cold downloads whose bytes drift fail explicitly;
+maintainers must review and commit a deliberate lock update rather than silently
+adopting new rules. `--check-only` verifies a prepared cache without network.
+The scanner uses local configs, `--no-rewrite-rule-ids`, metrics/version checks
+disabled and an empty app token. Both OSes therefore use the same rule identity
+and content. Sanitized summaries include config, raw-report and triage hashes.
+
+The Windows `detect-child-process` finding was reproduced on the fixed packs:
+`agent/email-normalizer.ts:83`, Semgrep CE 1.183.0, one finding and zero parser/tool
+errors in the baseline run. It follows the trusted operator-selected interpreter
+into `spawn`. The reviewed boundary requires an absolute, local, existing file;
+rejects relative/UNC paths; fixes Python `-I/-B` and the bootstrap; disables the
+shell; and passes only an allowlisted environment. Raw MIME and record values
+are serialized to stdin, never used to choose the executable or command string.
+`tests/agent-email-normalizer-security.test.ts` exercises these controls, hostile
+MIME and cancellation, while the existing normalizer/profile suites exercise the
+actual parser and reject runtime settings from caller-controlled profile data.
+
+`security/sast/triage.json` records this scope-specific non-exploitability finding,
+including the exact rule, path, line, source SHA-256, rationale and regression
+references. There is no blanket rule suppression or `nosemgrep`. The original
+finding remains visible in `triagedFindings`; a changed source digest invalidates
+the triage, any different rule/path/line remains blocking, and scanner/parser
+errors cannot be triaged. `security/tests/test_sast_lock.py` tests those negative
+controls. CI success alone is not used to dismiss the original Windows result.
+
+The SBOM generator now anchors npm and output to the project and normalizes its
+root name/version/package URL and graph reference from `package.json`, independently
+of the checkout directory. It preserves third-party dependency identities and
+rejects residual local paths. `security/tests/test_sbom.py` exercises the actual
+CLI from an unrelated directory in a disposable checkout with a different name,
+plus graph consistency, contact-field projection and fail-closed cases. npm
+serial numbers and timestamps may still differ; these are not reproducibility
+claims for the entire SBOM byte stream.
+
+These follow-up regressions and scans must pass for their candidate commit;
+completed reports for a new release remain separate from the v0.5.0 links above.
+No production identity provider, traveler account or family document is used.
+
+## Historical local v0.4 candidate evidence
 
 The local v0.4 candidate was checked on 2026-10-31: **363 TypeScript tests,
 28 Python tests, four browser tests, twenty-two audit/package-gate regressions and
@@ -23,7 +95,7 @@ their real PostgreSQL/Redis/S3 and Tesseract dependencies. Production build,
 formatting, Python lint and current-source/history privacy checks passed. npm audit and
 the locked Python runtime pip-audit found zero known advisories at that time.
 
-The catalog now contains eleven roles, 66 commands, thirteen MCP tools and 78
+The catalog now contains eleven roles, 68 commands, fifteen MCP tools and 80
 fixed resources/prompts. Runtime tests exercise the real stdio SDK, disabled
 optional capabilities, operator-profile binding, selected-message Gmail reads
 over synthetic HTTP transport, the actual isolated Python email parser, document

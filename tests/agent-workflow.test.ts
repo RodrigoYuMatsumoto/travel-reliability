@@ -58,7 +58,9 @@ describe('bounded documentary workflow preparation', () => {
       expect(command!.domains).not.toContain('flight');
       const result = prepareWorkflow(draft(command!), now);
       expect(result.agentId).toBe(command!.agentId);
-      expect(result.executor.calculatorId).toBeNull();
+      expect(result.executor.calculatorId).toBe(
+        workflowId === 'ground-transport' ? 'ground-transport' : null,
+      );
       expect(result.instructions.resourceUri).not.toMatch(/airports|flex-dates/);
       expect(result.missingFields).toEqual(allFields(command!));
     }

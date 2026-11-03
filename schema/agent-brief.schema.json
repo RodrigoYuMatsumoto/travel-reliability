@@ -145,6 +145,8 @@
         "rail-ferry-cruise-plan",
         "border-entry-plan",
         "travel-purpose-plan",
+        "loyalty-arbitrage",
+        "multimodal-stitching",
         null
       ]
     },

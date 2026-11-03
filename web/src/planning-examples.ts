@@ -1,4 +1,6 @@
 import type { ComparisonInput, Offer, Source, ToolId } from '../../schema/src/planning';
+import { loyaltyExample, multimodalExample } from './intelligence-examples';
+import { groundTransportExample } from './ground-transport-example';
 const source: Source = {
   id: 'source-a',
   url: 'https://example.invalid/synthetic-offer',
@@ -77,6 +79,8 @@ const comparison: ComparisonInput = {
   overnightAllowed: false,
 };
 export const toolLabels: Record<ToolId, [string, string]> = {
+  'loyalty-arbitrage': ['10 · Fidelidade e custo econômico', '10 · Loyalty and economic cost'],
+  'multimodal-stitching': ['11 · Composição multimodal', '11 · Multimodal stitching'],
   'flex-dates': ['01 · Datas flexíveis', '01 · Flexible dates'],
   airports: ['02 · Aeroportos e companhias', '02 · Airports & airlines'],
   connections: ['03 · Rotas e conexões', '03 · Routes & connections'],
@@ -86,8 +90,15 @@ export const toolLabels: Record<ToolId, [string, string]> = {
   negotiation: ['07 · Negociação comercial', '07 · Commercial negotiation'],
   'hidden-city': ['08 · Riscos de hidden-city', '08 · Hidden-city risks'],
   'group-split': ['09 · Grupo e rateio', '09 · Groups & cost allocation'],
+  'ground-transport': [
+    '12 · Excursão ou ônibus + hospedagem',
+    '12 · Coach package or bus + lodging',
+  ],
 };
 export const planningExamples: Record<ToolId, unknown> = {
+  'ground-transport': groundTransportExample,
+  'loyalty-arbitrage': loyaltyExample,
+  'multimodal-stitching': multimodalExample,
   'flex-dates': comparison,
   airports: comparison,
   connections: comparison,

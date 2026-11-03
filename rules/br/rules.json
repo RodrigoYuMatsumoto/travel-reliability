@@ -1,6 +1,6 @@
 {
   "country": "BR",
-  "version": "2026.11.01",
+  "version": "2026.11.02",
   "verifiedAt": "2026-11-01",
   "reviewAfter": "2026-12-01",
   "rules": [
@@ -96,7 +96,7 @@
       "validFrom": "2026-11-25",
       "validTo": null,
       "article": "Resolução ANAC nº 400/2016, art. 20, redação da Resolução nº 813/2026; vigência da Resolução nº 819/2026",
-      "sourceUrl": "https://www.anac.gov.br/assuntos/legislacao/legislacao-1/resolucoes/2026/resolucao-813",
+      "sourceUrl": "https://www.anac.gov.br/assuntos/legislacao/legislacao-1/resolucoes/2026/resolucao-819",
       "messageKey": "AIR_INFORMATION",
       "evidenceCodes": ["STATUS_SCREENSHOT_WITH_TIMESTAMP", "SUPPORT_PROTOCOL"]
     },
@@ -129,12 +129,20 @@
       "scope": "br_interstate_regular_bus",
       "kinds": ["delay", "cancellation"],
       "waitingMinutesGt": 180,
+      "componentConditionsUnmodeled": true,
       "validFrom": "2024-02-01",
       "validTo": null,
       "article": "Resolução ANTT nº 6.033/2023, art. 181, §§ 1º-6º, e art. 182",
       "sourceUrl": "https://anttlegis.antt.gov.br/action/ActionDatalegis.php?acao=abrirTextoAto&link=S&tipo=RES&numeroAto=00006033&seqAto=000&valorAno=2023&orgao=DG%2FANTT%2FMT&cod_modulo=420&cod_menu=7734",
       "messageKey": "BUS_CONTINUITY",
-      "evidenceCodes": ["TICKET", "DELAY_RECORD", "SUPPORT_PROTOCOL", "NECESSARY_EXPENSE_RECEIPTS"]
+      "evidenceCodes": [
+        "TICKET",
+        "DELAY_RECORD",
+        "SAME_DAY_CONTINUITY",
+        "RESIDENCE_AND_TRANSFER",
+        "SUPPORT_PROTOCOL",
+        "NECESSARY_EXPENSE_RECEIPTS"
+      ]
     }
   ]
 }

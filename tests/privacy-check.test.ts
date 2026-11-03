@@ -138,6 +138,7 @@ it('matches the local account name unless a letter touches it, not inside longer
       file: 'fixture.txt',
       rule: 'operator-deny-term',
     });
+
     // Adjacent digits or underscores do not hide the account name.
     writeFileSync(join(repo.dir, 'fixture.txt'), 'Backup folder: synth_2026\n');
     expect(repo.scan({ USERNAME: 'synth' }).status).toBe(1);
@@ -160,6 +161,30 @@ it('continues to reject private identities in actual parent history', () => {
           finding.file.startsWith('commit:') && finding.rule === 'private-email',
       ),
     ).toBe(true);
+  } finally {
+    repo.cleanup();
+  }
+}, 30000);
+
+it('does not extend reserved example-domain exceptions to longer email domains', () => {
+  const repo = fixture();
+  try {
+    for (const domain of [
+      'example.invalid.attacker.invalid',
+      'example.com-attacker.invalid',
+      'localhost.attacker.invalid',
+    ]) {
+      writeFileSync(join(repo.dir, 'fixture.txt'), 'synthetic' + '@' + domain);
+      const failed = repo.scan();
+      expect(failed.status).toBe(1);
+      expect(
+        failed.report.findings.some((item: { rule: string }) => item.rule === 'private-email'),
+      ).toBe(true);
+    }
+    for (const domain of ['example.invalid', 'example.com', 'example.org']) {
+      writeFileSync(join(repo.dir, 'fixture.txt'), 'synthetic' + '@' + domain);
+      expect(repo.scan().status).toBe(0);
+    }
   } finally {
     repo.cleanup();
   }

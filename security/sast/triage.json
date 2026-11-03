@@ -1,0 +1,20 @@
+{
+  "format": "travel-reliability-sast-triage/1",
+  "findings": [
+    {
+      "ruleId": "javascript.lang.security.detect-child-process.detect-child-process",
+      "path": "agent/email-normalizer.ts",
+      "line": 83,
+      "sourceSha256": "5f3563803a40b119a0b9fe7f249ab3dcf5ccf49ff7247c0116cd763f0fce0880",
+      "disposition": "not_exploitable_in_reviewed_scope",
+      "reasonCode": "TRUSTED_OPERATOR_INTERPRETER_NO_SHELL",
+      "evidence": "Absolute local interpreter configured only by the trusted operator, checked before use; shell false, fixed Python -I/-B bootstrap and minimal environment. MIME data and record fields enter stdin only. No model or document field can select the interpreter.",
+      "tests": [
+        "tests/agent-email-normalizer-security.test.ts",
+        "tests/agent-email-normalizer.test.ts",
+        "tests/agent-operator-profile.test.ts"
+      ],
+      "reviewedAt": "2026-11-02"
+    }
+  ]
+}

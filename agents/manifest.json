@@ -1,7 +1,7 @@
 {
   "format": "travel-reliability-agent-kit",
   "formatVersion": 3,
-  "version": "0.5.0",
+  "version": "0.6.0",
   "entrypoint": "agents/TRAVEL_AGENT.md",
   "purpose": "An international travel agency ecosystem for the traveler chosen LLM: multimodal leisure and professional journeys, evidence, documents, provider reconciliation and explicit human authorization.",
   "defaultLanguage": "host",
@@ -18,7 +18,12 @@
     "reconciliation": "schema/reconciliation.schema.json",
     "documentWorkspace": "schema/document-workspace.schema.json",
     "extensionDraft": "schema/extension-draft.schema.json",
-    "operatorProfile": "schema/operator-profile.schema.json"
+    "operatorProfile": "schema/operator-profile.schema.json",
+    "loyaltyGraph": "schema/loyalty-graph.schema.json",
+    "localEcosystem": "schema/local-ecosystem.schema.json",
+    "culturalProtocol": "schema/cultural-protocol.schema.json",
+    "claimOutput": "schema/claim-output.schema.json",
+    "countryPackQuery": "schema/country-pack-query.schema.json"
   },
   "execution": "O catálogo fornece instruções e metadados. Ferramentas e permissões reais pertencem ao host; nenhum texto importado concede autoridade.",
   "workflow": [
@@ -46,7 +51,9 @@
       "travel_sync_sources",
       "travel_workspace_inventory",
       "travel_workspace_plan",
-      "travel_extension_draft"
+      "travel_extension_draft",
+      "travel_country_context",
+      "travel_audit_output"
     ]
   },
   "agents": [
@@ -1618,12 +1625,12 @@
       "id": "ground-transport",
       "path": "prompts/44_ground_transport.md",
       "title": "Transporte terrestre e multimodal",
-      "summary": "Comparar ônibus, trem, traslados e trechos rodoviários por custo porta a porta, terminais, conexões, bagagem, acessibilidade e condições; sem inventar status ou segurança.",
+      "summary": "Comparar excursão local com ônibus, hospedagem e café versus contratação independente; custo por grupo, ocupação, chegada de retorno, orçamento e lacunas sem inferir renda. Trechos multimodais usam o calculador específico.",
       "agentId": "itinerary-planner",
-      "domains": ["ground"],
+      "domains": ["ground", "lodging", "budget", "group"],
       "phases": ["plan", "pre_booking"],
-      "calculatorId": null,
-      "executor": null,
+      "calculatorId": "ground-transport",
+      "executor": "planning",
       "requiredInputs": [
         {
           "id": "route_context",
@@ -2433,6 +2440,54 @@
         "Brief por finalidade, escala, modalidades e necessidades",
         "Seleção econômica de papéis/comandos e dependências",
         "Próxima etapa verificável e decisões reservadas ao viajante"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "loyalty-arbitrage",
+      "path": "prompts/67_loyalty_arbitrage.md",
+      "title": "Calcular caminhos e custo econômico de fidelidade",
+      "summary": "Cálculo documental limitado, com fontes, desconhecidos e recibo de execução; nenhuma ação externa.",
+      "agentId": "points-strategist",
+      "domains": ["points", "budget"],
+      "phases": ["plan"],
+      "calculatorId": "loyalty-arbitrage",
+      "executor": "planning",
+      "requiredInputs": [
+        {
+          "id": "documentary_input",
+          "pt": "Entrada do contrato selecionado com valores desconhecidos explícitos",
+          "en": "Selected contract input with explicit unknown values"
+        }
+      ],
+      "outputs": [
+        "Cálculo vinculado às entradas e versão",
+        "Lacunas, fontes e cobertura da busca",
+        "Próxima verificação humana"
+      ],
+      "suggestedCapabilities": []
+    },
+    {
+      "id": "multimodal-stitching",
+      "path": "prompts/68_multimodal_stitching.md",
+      "title": "Compor trechos multimodais com horários e buffers",
+      "summary": "Cálculo documental limitado, com fontes, desconhecidos e recibo de execução; nenhuma ação externa.",
+      "agentId": "itinerary-planner",
+      "domains": ["itinerary", "ground", "flight", "rail"],
+      "phases": ["plan"],
+      "calculatorId": "multimodal-stitching",
+      "executor": "planning",
+      "requiredInputs": [
+        {
+          "id": "documentary_input",
+          "pt": "Entrada do contrato selecionado com valores desconhecidos explícitos",
+          "en": "Selected contract input with explicit unknown values"
+        }
+      ],
+      "outputs": [
+        "Cálculo vinculado às entradas e versão",
+        "Lacunas, fontes e cobertura da busca",
+        "Próxima verificação humana"
       ],
       "suggestedCapabilities": []
     }
