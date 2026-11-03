@@ -16,17 +16,17 @@ See [JSON Schemas](../schema/planning.schema.json) and [synthetic examples](../e
 The CLI reads the indicated JSON as data, performs no external calls, and writes
 the result to stdout. Store exports privately if using non-synthetic data.
 
-| Tool             | Implemented calculation / boundary                                                                                                                                                          |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `flex-dates`     | Authorized date window, destination nights, group/service equivalence, known costs; changing the stay does not manufacture savings.                                                         |
-| `airports`       | Explicit airport set and supplied ground time/distance constraints; both limits apply. No guessed airport radius or traffic time.                                                           |
-| `connections`    | Offset-aware durations, separate-ticket/airport-change/overnight constraints, documented connection allowance, immigration/baggage/protection gaps. No guarantee of boarding.               |
-| `promotions`     | Purchase window, eligibility/application state and comparable final-offer difference. No invented coupon, stacked incompatible benefit or credit/card acquisition.                          |
-| `total-cost`     | Integer units × quantities; included/necessary/optional/conditional components, no duplicate IDs, totals by currency and explicit unknown required items.                                   |
-| `fare-scenarios` | Normal spend, change-fee/issuer/fare/tax/services calculation, unknown new fare, cash refund and restricted credit kept distinct. No expected-loss probability or clause-validity decision. |
-| `negotiation`    | Two factual enquiry drafts, optional comparison and material pending facts; no fabricated competitor, status, urgency or message sending.                                                   |
-| `hidden-city`    | Nominal supplied-price comparison and six separate documentary risk topics; no universal legal classification, sanctions forecast or concealment instructions.                              |
-| `group-split`    | Pseudonymous households/participants, explicit accepted beneficiary weights, integer-cent reconciliation, per-household ceilings/deficits, separate dated cash/card exposure.               |
+| Tool             | Implemented calculation / boundary                                                                                                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `flex-dates`     | Authorized date window, destination nights, group/service equivalence, known costs; changing the stay does not manufacture savings.                                                                                 |
+| `airports`       | Explicit airport set, supplied ground time/distance constraints and documented coverage of every required ground leg. Missing coverage keeps the comparison conditional. No guessed airport radius or traffic time. |
+| `connections`    | Offset-aware durations, separate-ticket/airport-change/overnight constraints, documented connection allowance, immigration/baggage/protection gaps. No guarantee of boarding.                                       |
+| `promotions`     | Purchase window, eligibility/application state and comparable final-offer difference. No invented coupon, stacked incompatible benefit or credit/card acquisition.                                                  |
+| `total-cost`     | Integer units × quantities; included/necessary/optional/conditional components, no duplicate IDs, totals by currency and explicit unknown required items.                                                           |
+| `fare-scenarios` | Normal spend, change-fee/issuer/fare/tax/services calculation, unknown new fare, cash refund and restricted credit kept distinct. No expected-loss probability or clause-validity decision.                         |
+| `negotiation`    | Two factual enquiry drafts, optional comparison and material pending facts; no fabricated competitor, status, urgency or message sending.                                                                           |
+| `hidden-city`    | Nominal supplied-price comparison and six separate documentary risk topics; no universal legal classification, sanctions forecast or concealment instructions.                                                      |
+| `group-split`    | Pseudonymous households/participants, explicit accepted beneficiary weights, integer-cent reconciliation, per-household ceilings/deficits, separate dated cash/card exposure.                                       |
 
 ## Money, sources and equivalence
 
@@ -48,6 +48,32 @@ capacity. The one-hour window is a conservative product comparison policy,
 not evidence that an offer remains available. Different dates can be compared by
 the flex-date tool only with equivalent destination nights and required services.
 No universal cheapest-market or best-price claim is produced.
+
+### Airport ground-cost scope
+
+An airport offer may declare `groundTransport` with `status` (`itemized`,
+`included`, `not_required` or `unknown`), `coversAllRequiredLegs` (boolean or
+`null`), `costIds`, `sourceIds` and a documentary `basis` (string or `null`).
+The all-legs declaration covers access at origin, onward transport at destination,
+airport changes/connections and return portions where included in the comparison.
+The application checks references and evidence, not whether a supplier's statement
+is true. Unknown coverage cannot be converted to zero by a narrative instruction.
+
+For complete scope, `coversAllRequiredLegs` must be `true`, with a nonblank basis
+and referenced source. Itemized costs must reference evidenced, priced items that
+are necessary or selected. Included transport must reference evidenced `included`
+items; it is not added twice. A documented `not_required` justification uses no
+cost IDs. Sources still obey the ordinary status, validity and freshness checks.
+
+The field is optional for input compatibility. Omission, partial/unknown coverage,
+unpriced required ground items or an unsubstantiated waiver produces
+`GROUND_TRANSPORT_COST_SCOPE_UNCONFIRMED`, a conditional airport row and no
+quantified saving. Both candidate and baseline need confirmed scope. Currency
+differences remain separate and do not manufacture a comparable saving.
+
+`cost.complete` describes the supplied cost items only; `totalScopeComplete`
+also incorporates airport ground scope. A known subtotal can reject a budget,
+but cannot establish feasibility while that scope remains unknown.
 
 ## Group allocation and cash
 

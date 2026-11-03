@@ -3,7 +3,7 @@
   "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
   "info": {
     "title": "Travel Reliability API",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "description": "Documentary travel contracts and evidence. Never sends a booking or complaint. Response domain types: schema/src/domain.ts. Regenerate from registered routes with npm run contracts:generate."
   },
   "servers": [
@@ -4818,6 +4818,71 @@
                     }
                   ]
                 },
+                "groundTransport": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "status",
+                    "coversAllRequiredLegs",
+                    "costIds",
+                    "sourceIds",
+                    "basis"
+                  ],
+                  "properties": {
+                    "status": {
+                      "enum": [
+                        "itemized",
+                        "included",
+                        "not_required",
+                        "unknown"
+                      ]
+                    },
+                    "coversAllRequiredLegs": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "costIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "minItems": 0,
+                      "maxItems": 100,
+                      "uniqueItems": true
+                    },
+                    "sourceIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "minItems": 0,
+                      "maxItems": 30,
+                      "uniqueItems": true
+                    },
+                    "basis": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 1000
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
+                },
                 "overnight": {
                   "type": "boolean"
                 },
@@ -5398,6 +5463,71 @@
                       "type": "null"
                     }
                   ]
+                },
+                "groundTransport": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "status",
+                    "coversAllRequiredLegs",
+                    "costIds",
+                    "sourceIds",
+                    "basis"
+                  ],
+                  "properties": {
+                    "status": {
+                      "enum": [
+                        "itemized",
+                        "included",
+                        "not_required",
+                        "unknown"
+                      ]
+                    },
+                    "coversAllRequiredLegs": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "costIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "minItems": 0,
+                      "maxItems": 100,
+                      "uniqueItems": true
+                    },
+                    "sourceIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "minItems": 0,
+                      "maxItems": 30,
+                      "uniqueItems": true
+                    },
+                    "basis": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 1000
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
                 },
                 "overnight": {
                   "type": "boolean"
@@ -5980,6 +6110,71 @@
                     }
                   ]
                 },
+                "groundTransport": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "status",
+                    "coversAllRequiredLegs",
+                    "costIds",
+                    "sourceIds",
+                    "basis"
+                  ],
+                  "properties": {
+                    "status": {
+                      "enum": [
+                        "itemized",
+                        "included",
+                        "not_required",
+                        "unknown"
+                      ]
+                    },
+                    "coversAllRequiredLegs": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "costIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "minItems": 0,
+                      "maxItems": 100,
+                      "uniqueItems": true
+                    },
+                    "sourceIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "minItems": 0,
+                      "maxItems": 30,
+                      "uniqueItems": true
+                    },
+                    "basis": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 1000
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
+                },
                 "overnight": {
                   "type": "boolean"
                 },
@@ -6560,6 +6755,71 @@
                       "type": "null"
                     }
                   ]
+                },
+                "groundTransport": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "status",
+                    "coversAllRequiredLegs",
+                    "costIds",
+                    "sourceIds",
+                    "basis"
+                  ],
+                  "properties": {
+                    "status": {
+                      "enum": [
+                        "itemized",
+                        "included",
+                        "not_required",
+                        "unknown"
+                      ]
+                    },
+                    "coversAllRequiredLegs": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "costIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "minItems": 0,
+                      "maxItems": 100,
+                      "uniqueItems": true
+                    },
+                    "sourceIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "minItems": 0,
+                      "maxItems": 30,
+                      "uniqueItems": true
+                    },
+                    "basis": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 1000
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
                 },
                 "overnight": {
                   "type": "boolean"
@@ -7149,6 +7409,71 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "groundTransport": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "status",
+                        "coversAllRequiredLegs",
+                        "costIds",
+                        "sourceIds",
+                        "basis"
+                      ],
+                      "properties": {
+                        "status": {
+                          "enum": [
+                            "itemized",
+                            "included",
+                            "not_required",
+                            "unknown"
+                          ]
+                        },
+                        "coversAllRequiredLegs": {
+                          "anyOf": [
+                            {
+                              "type": "boolean"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "costIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80
+                          },
+                          "minItems": 0,
+                          "maxItems": 100,
+                          "uniqueItems": true
+                        },
+                        "sourceIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80
+                          },
+                          "minItems": 0,
+                          "maxItems": 30,
+                          "uniqueItems": true
+                        },
+                        "basis": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 1000
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      }
                     },
                     "overnight": {
                       "type": "boolean"
@@ -8130,6 +8455,71 @@
                             }
                           ]
                         },
+                        "groundTransport": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "status",
+                            "coversAllRequiredLegs",
+                            "costIds",
+                            "sourceIds",
+                            "basis"
+                          ],
+                          "properties": {
+                            "status": {
+                              "enum": [
+                                "itemized",
+                                "included",
+                                "not_required",
+                                "unknown"
+                              ]
+                            },
+                            "coversAllRequiredLegs": {
+                              "anyOf": [
+                                {
+                                  "type": "boolean"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "costIds": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 80
+                              },
+                              "minItems": 0,
+                              "maxItems": 100,
+                              "uniqueItems": true
+                            },
+                            "sourceIds": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 80
+                              },
+                              "minItems": 0,
+                              "maxItems": 30,
+                              "uniqueItems": true
+                            },
+                            "basis": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 1000
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          }
+                        },
                         "overnight": {
                           "type": "boolean"
                         },
@@ -8715,6 +9105,71 @@
                   }
                 ]
               },
+              "groundTransport": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "coversAllRequiredLegs",
+                  "costIds",
+                  "sourceIds",
+                  "basis"
+                ],
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "itemized",
+                      "included",
+                      "not_required",
+                      "unknown"
+                    ]
+                  },
+                  "coversAllRequiredLegs": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "costIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "minItems": 0,
+                    "maxItems": 100,
+                    "uniqueItems": true
+                  },
+                  "sourceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "minItems": 0,
+                    "maxItems": 30,
+                    "uniqueItems": true
+                  },
+                  "basis": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 1000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              },
               "overnight": {
                 "type": "boolean"
               },
@@ -9120,6 +9575,71 @@
                     "type": "null"
                   }
                 ]
+              },
+              "groundTransport": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "coversAllRequiredLegs",
+                  "costIds",
+                  "sourceIds",
+                  "basis"
+                ],
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "itemized",
+                      "included",
+                      "not_required",
+                      "unknown"
+                    ]
+                  },
+                  "coversAllRequiredLegs": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "costIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "minItems": 0,
+                    "maxItems": 100,
+                    "uniqueItems": true
+                  },
+                  "sourceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "minItems": 0,
+                    "maxItems": 30,
+                    "uniqueItems": true
+                  },
+                  "basis": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 1000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
               },
               "overnight": {
                 "type": "boolean"

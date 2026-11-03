@@ -27,6 +27,21 @@ Country-pack review must follow: official text → commencement/amendments → e
 provision → factual prerequisites → consequence → exceptions → procedure. Each
 change requires regression tests for thresholds and temporal transitions.
 
+## Aggregate bus assistance: component review
+
+Rechecked the official ANTT text on 2026-11-02: article 181(2) conditions lodging
+on inability to continue that day; paragraph 4 permits its omission for a resident
+at the origin when return transport is assured. Article 182 treats full-refund
+choices and incidents/accidents/assaults separately. The current event contract
+does not establish all those facts. `BR-BUS-CONTINUITY` therefore always returns
+`needs_review`, including for nonresidents, and requests same-day continuity and
+residence/transfer evidence. Its aggregate message never confirms every component.
+This does not withdraw article 179 alternatives with otherwise established scope.
+
+`applicable` means only that the modeled prerequisites match declared facts; it is
+not a supplier obligation adjudicated by the software. Refund choice and unknown
+or active exceptional conditions retain their existing conservative review guard.
+
 ## CNPJ format checks
 
 The numeric/alphanumeric checksum follows the [Receita Federal/Serpro technical manual](https://www.gov.br/receitafederal/pt-br/centrais-de-conteudo/publicacoes/documentos-tecnicos/cnpj/manual-dv-cnpj.pdf), checked during the reference comparison. This is a mathematical format check: it does not establish an active registration, ownership, Cadastur status or supplier reliability.

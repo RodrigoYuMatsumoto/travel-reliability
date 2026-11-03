@@ -142,6 +142,44 @@ describe('dated Brazil rules', () => {
       urls.every((url) => !url.includes('/resolucoes/2016/') && !url.includes('datalegis.net')),
     ).toBe(true);
   });
+  it('never confirms aggregate bus lodging/transfer entitlement from incomplete component facts', () => {
+    const trip = demoTrip();
+    trip.services[0]!.kind = 'bus';
+    trip.services[0]!.regulatoryScope = 'br_interstate_regular_bus';
+    for (const residentAtOrigin of [true, false, null]) {
+      const advice = rightsFor(
+        trip,
+        event({ waitingMinutes: 181, residentAtOrigin }),
+        verifiedDate,
+      );
+      expect(advice.find((entry) => entry.ruleId === 'BR-BUS-CONTINUITY')).toMatchObject({
+        status: 'needs_review',
+        evidenceCodes: expect.arrayContaining(['SAME_DAY_CONTINUITY', 'RESIDENCE_AND_TRANSFER']),
+      });
+      expect(advice.find((entry) => entry.ruleId === 'BR-BUS-ALTERNATIVES')!.status).toBe(
+        'applicable',
+      );
+    }
+    expect(
+      rightsFor(trip, event({ waitingMinutes: 180 }), verifiedDate).some(
+        (entry) => entry.ruleId === 'BR-BUS-CONTINUITY',
+      ),
+    ).toBe(false);
+  });
+  it('preserves review of bus refund choices and exceptional-event conditions', () => {
+    const trip = demoTrip();
+    trip.services[0]!.kind = 'bus';
+    trip.services[0]!.regulatoryScope = 'br_interstate_regular_bus';
+    for (const patch of [
+      { refundChoice: 'refund' as const },
+      { refundChoice: 'unknown' as const },
+      { exceptionalConditions: 'active' as const },
+      { exceptionalConditions: 'unknown' as const },
+    ]) {
+      const advice = rightsFor(trip, event({ waitingMinutes: 181, ...patch }), verifiedDate);
+      expect(advice.every((entry) => entry.status === 'needs_review')).toBe(true);
+    }
+  });
   it('requires review for unknown exceptions or stale rule packs', () => {
     const trip = demoTrip();
     trip.services[0]!.regulatoryScope = 'br_air_transport';

@@ -324,6 +324,71 @@
                   }
                 ]
               },
+              "groundTransport": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "coversAllRequiredLegs",
+                  "costIds",
+                  "sourceIds",
+                  "basis"
+                ],
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "itemized",
+                      "included",
+                      "not_required",
+                      "unknown"
+                    ]
+                  },
+                  "coversAllRequiredLegs": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "costIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "minItems": 0,
+                    "maxItems": 100,
+                    "uniqueItems": true
+                  },
+                  "sourceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "minItems": 0,
+                    "maxItems": 30,
+                    "uniqueItems": true
+                  },
+                  "basis": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 1000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              },
               "overnight": {
                 "type": "boolean"
               },
@@ -904,6 +969,71 @@
                     "type": "null"
                   }
                 ]
+              },
+              "groundTransport": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "coversAllRequiredLegs",
+                  "costIds",
+                  "sourceIds",
+                  "basis"
+                ],
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "itemized",
+                      "included",
+                      "not_required",
+                      "unknown"
+                    ]
+                  },
+                  "coversAllRequiredLegs": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "costIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "minItems": 0,
+                    "maxItems": 100,
+                    "uniqueItems": true
+                  },
+                  "sourceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "minItems": 0,
+                    "maxItems": 30,
+                    "uniqueItems": true
+                  },
+                  "basis": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 1000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
               },
               "overnight": {
                 "type": "boolean"
@@ -1486,6 +1616,71 @@
                   }
                 ]
               },
+              "groundTransport": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "coversAllRequiredLegs",
+                  "costIds",
+                  "sourceIds",
+                  "basis"
+                ],
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "itemized",
+                      "included",
+                      "not_required",
+                      "unknown"
+                    ]
+                  },
+                  "coversAllRequiredLegs": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "costIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "minItems": 0,
+                    "maxItems": 100,
+                    "uniqueItems": true
+                  },
+                  "sourceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "minItems": 0,
+                    "maxItems": 30,
+                    "uniqueItems": true
+                  },
+                  "basis": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 1000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              },
               "overnight": {
                 "type": "boolean"
               },
@@ -2066,6 +2261,71 @@
                     "type": "null"
                   }
                 ]
+              },
+              "groundTransport": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "status",
+                  "coversAllRequiredLegs",
+                  "costIds",
+                  "sourceIds",
+                  "basis"
+                ],
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "itemized",
+                      "included",
+                      "not_required",
+                      "unknown"
+                    ]
+                  },
+                  "coversAllRequiredLegs": {
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "costIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "minItems": 0,
+                    "maxItems": 100,
+                    "uniqueItems": true
+                  },
+                  "sourceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "minItems": 0,
+                    "maxItems": 30,
+                    "uniqueItems": true
+                  },
+                  "basis": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 1000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
               },
               "overnight": {
                 "type": "boolean"
@@ -2655,6 +2915,71 @@
                         "type": "null"
                       }
                     ]
+                  },
+                  "groundTransport": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "status",
+                      "coversAllRequiredLegs",
+                      "costIds",
+                      "sourceIds",
+                      "basis"
+                    ],
+                    "properties": {
+                      "status": {
+                        "enum": [
+                          "itemized",
+                          "included",
+                          "not_required",
+                          "unknown"
+                        ]
+                      },
+                      "coversAllRequiredLegs": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "costIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80
+                        },
+                        "minItems": 0,
+                        "maxItems": 100,
+                        "uniqueItems": true
+                      },
+                      "sourceIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80
+                        },
+                        "minItems": 0,
+                        "maxItems": 30,
+                        "uniqueItems": true
+                      },
+                      "basis": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 1000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
                   },
                   "overnight": {
                     "type": "boolean"
@@ -3636,6 +3961,71 @@
                           }
                         ]
                       },
+                      "groundTransport": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "status",
+                          "coversAllRequiredLegs",
+                          "costIds",
+                          "sourceIds",
+                          "basis"
+                        ],
+                        "properties": {
+                          "status": {
+                            "enum": [
+                              "itemized",
+                              "included",
+                              "not_required",
+                              "unknown"
+                            ]
+                          },
+                          "coversAllRequiredLegs": {
+                            "anyOf": [
+                              {
+                                "type": "boolean"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "costIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 80
+                            },
+                            "minItems": 0,
+                            "maxItems": 100,
+                            "uniqueItems": true
+                          },
+                          "sourceIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 80
+                            },
+                            "minItems": 0,
+                            "maxItems": 30,
+                            "uniqueItems": true
+                          },
+                          "basis": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 1000
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        }
+                      },
                       "overnight": {
                         "type": "boolean"
                       },
@@ -4221,6 +4611,71 @@
                 }
               ]
             },
+            "groundTransport": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status",
+                "coversAllRequiredLegs",
+                "costIds",
+                "sourceIds",
+                "basis"
+              ],
+              "properties": {
+                "status": {
+                  "enum": [
+                    "itemized",
+                    "included",
+                    "not_required",
+                    "unknown"
+                  ]
+                },
+                "coversAllRequiredLegs": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "costIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "minItems": 0,
+                  "maxItems": 100,
+                  "uniqueItems": true
+                },
+                "sourceIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "minItems": 0,
+                  "maxItems": 30,
+                  "uniqueItems": true
+                },
+                "basis": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
             "overnight": {
               "type": "boolean"
             },
@@ -4626,6 +5081,71 @@
                   "type": "null"
                 }
               ]
+            },
+            "groundTransport": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status",
+                "coversAllRequiredLegs",
+                "costIds",
+                "sourceIds",
+                "basis"
+              ],
+              "properties": {
+                "status": {
+                  "enum": [
+                    "itemized",
+                    "included",
+                    "not_required",
+                    "unknown"
+                  ]
+                },
+                "coversAllRequiredLegs": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "costIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "minItems": 0,
+                  "maxItems": 100,
+                  "uniqueItems": true
+                },
+                "sourceIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "minItems": 0,
+                  "maxItems": 30,
+                  "uniqueItems": true
+                },
+                "basis": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 1000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
             },
             "overnight": {
               "type": "boolean"

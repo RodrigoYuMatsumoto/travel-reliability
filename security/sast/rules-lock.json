@@ -1,0 +1,21 @@
+{
+  "format": "travel-reliability-semgrep-rules-lock/1",
+  "engine": "1.183.0",
+  "recordedAt": "2026-11-02",
+  "configs": [
+    {
+      "id": "p/security-audit",
+      "url": "https://semgrep.dev/c/p/security-audit",
+      "file": "security-audit.yaml",
+      "bytes": 492566,
+      "sha256": "83d7cde9157b3c79cc5cfaea26e7bd2ba9c740f2ba07635ad475b2585556c32d"
+    },
+    {
+      "id": "p/owasp-top-ten",
+      "url": "https://semgrep.dev/c/p/owasp-top-ten",
+      "file": "owasp-top-ten.yaml",
+      "bytes": 1499313,
+      "sha256": "bf47233edef6c70e8db5e5d51898d5305c732fa395a40746a5ed88bb71b6e8bd"
+    }
+  ]
+}

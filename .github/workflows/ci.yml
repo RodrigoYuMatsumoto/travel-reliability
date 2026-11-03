@@ -55,6 +55,8 @@ jobs:
         run: npm run schema:types && npm run contracts:generate && git diff --exit-code -- schema api/openapi.json examples
       - run: npm run privacy:history
       - run: npm audit --audit-level=high
+      - name: Record deterministic synthetic execution and payload evidence
+        run: mkdir -p .local/validation && npm run --silent benchmark > .local/validation/benchmark.json
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
@@ -72,4 +74,6 @@ jobs:
           path: |
             playwright-report/
             sbom.cdx.json
+            .local/validation/benchmark.json
+          include-hidden-files: true
           retention-days: 7

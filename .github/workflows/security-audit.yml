@@ -19,8 +19,12 @@ jobs:
         with: { persist-credentials: false }
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with: { version: 0.11.32, python-version: '3.12' }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with: { node-version: 24 }
       - name: Regress fail-closed security summary gates
         run: python -m unittest discover -s security/tests
+      - name: Verify pinned public rule configuration before reading source
+        run: python security/sast/prepare-rules.py
       - name: Local Semgrep scan without source upload or metrics
         env:
           SEMGREP_SEND_METRICS: 'off'
@@ -28,10 +32,10 @@ jobs:
           SEMGREP_APP_TOKEN: ''
         run: |
           mkdir -p .local/security-audit/sast
-          uvx --from semgrep==1.183.0 semgrep scan --config p/security-audit --config p/owasp-top-ten --metrics off --no-git-ignore --json --output .local/security-audit/sast/semgrep-raw.json api/src agent web/src ingest/travel_ingest scripts
+          uvx --from semgrep==1.183.0 semgrep scan --config .local/security-audit/rules/security-audit.yaml --config .local/security-audit/rules/owasp-top-ten.yaml --no-rewrite-rule-ids --metrics off --disable-version-check --no-git-ignore --jobs 2 --json --output .local/security-audit/sast/semgrep-raw.json api/src agent web/src ingest/travel_ingest scripts
       - name: Gate Semgrep and emit sanitized summary
         if: always()
-        run: python security/sast/summarize.py semgrep .local/security-audit/sast/semgrep-raw.json .local/security-audit/sast/semgrep-summary.json
+        run: python security/sast/summarize.py semgrep .local/security-audit/sast/semgrep-raw.json .local/security-audit/sast/semgrep-summary.json --triage security/sast/triage.json --rules-lock security/sast/rules-lock.json
       - name: Bandit production Python scan
         if: always()
         run: uvx bandit==1.9.4 --recursive ingest/travel_ingest --format json --output .local/security-audit/sast/bandit-raw.json

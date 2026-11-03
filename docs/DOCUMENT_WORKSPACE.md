@@ -120,5 +120,16 @@ sem afirmar recuperação automática de toda falha possível.
 
 Testes usam somente pastas TEMP sintéticas, fora de qualquer checkout Git ancestral
 (caso contrário a própria guarda as rejeita), e executam cópia, movimento, rollback,
-replay, CLI, adulteração, expiração, colisões e ataques de caminho. Nenhuma pasta
-pessoal, conta de fornecedor ou reserva real foi acessada na validação.
+replay, CLI, adulteração, expiração, colisões e ataques de caminho. O runner
+`node scripts/test-isolated.mjs` seleciona uma base segura: primeiro o TEMP do
+sistema e, se houver `.git` ancestral, uma pasta privada sintética na unidade do
+projeto. `TRAVEL_TEST_TEMP_ROOT` permite ao operador escolher outra base explícita;
+uma escolha insegura é rejeitada. TEMP/TMP/TMPDIR são alterados somente no processo
+filho e descendentes, nunca globalmente. O runner valida a identidade e o marcador
+do diretório criado antes de removê-lo e não modifica repositórios ancestrais.
+
+Se todas as bases disponíveis estiverem dentro de checkouts Git, o runner falha
+com orientação para uma raiz externa ou ambiente realmente isolado. Um repositório
+bare no TEMP bloqueia descoberta pelo Git CLI, mas não remove a ancestralidade
+física verificada pela guarda; não é usado como contorno. Nenhuma pasta pessoal,
+conta de fornecedor ou reserva real foi acessada na validação.

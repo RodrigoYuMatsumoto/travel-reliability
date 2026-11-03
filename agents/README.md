@@ -68,7 +68,7 @@ Nomes de schema: `brief`, `trip`, os nove IDs de calculadores, `catalog`, `catal
 
 ### Funções internacionais e leitura configurada
 
-Na versão 0.4, o servidor anuncia treze ferramentas. Além das sete acima:
+Na versão 0.6, o servidor anuncia treze ferramentas. Além das sete acima:
 
 | Ferramenta                   | Argumentos                            | Resultado e limite                                                                                                                                |
 | ---------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |

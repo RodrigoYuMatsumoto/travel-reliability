@@ -108,6 +108,24 @@ review. Current templates pin major image lines for readability and therefore
 require an operator-controlled digest policy for reproducible production supply
 chains.
 
+For v0.6 and later, follow the complete [nine-asset release procedure](PACKAGING.md#complete-nine-asset-release-v06-and-later).
+Collect actual CI outcomes for the final main-branch commit, bind the frozen B.9
+objects through a private hash-checked receipt, and assemble a new directory with
+`scripts/release-bundle.py assemble --require-stable`. A missing independent
+review can produce an explicit offline candidate, never a stable-eligible report.
+The CLI cannot publish or turn authentication into authority.
+
+After publication, download all nine files into an empty directory and use the
+same script's `verify` action with expected version/commit and the public GitHub
+release metadata. The read-only release workflow repeats this check and stores
+only the sanitized result. Retain the approved private evidence under the
+operator's actual retention/access policy, not in public release assets.
+
+To reproduce a bundle byte for byte, preserve its six base assets, frozen CI
+record and private receipt/object bytes. Fresh SBOM serial numbers or generation
+times are not evidence of a source-code change; compare package identity,
+versions, hashes and dependency graph, and record which SBOM was assembled.
+
 ## CI object storage
 
 The integration job uses a disposable SeaweedFS 4.51 S3 endpoint pinned by image digest and bound to runner loopback. Readiness is checked with an authenticated ListBuckets request; tests then create, store, read and delete actual ciphertext objects. This is a real object-store integration, not a substituted SDK mock. The former Docker Hub MinIO image was removed upstream and is not used.

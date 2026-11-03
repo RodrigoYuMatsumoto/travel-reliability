@@ -96,6 +96,44 @@ export function costOf(offer: Offer) {
     finalTotals: unknown.length ? null : totals,
   };
 }
+function groundTransportCoverage(offer: Offer) {
+  const coverage = offer.groundTransport;
+  const incomplete = { complete: false, reason: 'GROUND_TRANSPORT_COST_SCOPE_UNCONFIRMED' };
+  if (!coverage) return incomplete;
+  const costIds = new Set(offer.costs.map((item) => item.id));
+  const sourceIds = new Set(offer.sources.map((source) => source.id));
+  requireCondition(
+    coverage.costIds.every((id) => costIds.has(id)),
+    'GROUND_TRANSPORT_COST_NOT_FOUND',
+    422,
+  );
+  requireCondition(
+    coverage.sourceIds.every((id) => sourceIds.has(id)),
+    'GROUND_TRANSPORT_SOURCE_NOT_FOUND',
+    422,
+  );
+  if (coverage.status === 'unknown') return incomplete;
+  if (
+    coverage.coversAllRequiredLegs !== true ||
+    coverage.sourceIds.length === 0 ||
+    !coverage.basis?.trim()
+  )
+    return incomplete;
+  if (coverage.status === 'not_required')
+    return coverage.costIds.length === 0 ? { complete: true, reason: null } : incomplete;
+  const costs = offer.costs.filter((item) => coverage.costIds.includes(item.id));
+  const evidenced =
+    costs.length > 0 &&
+    costs.every(
+      (item) =>
+        item.sourceIds.length > 0 &&
+        (coverage.status === 'included'
+          ? item.treatment === 'included'
+          : item.unitMinor !== null &&
+            (item.treatment === 'necessary' || (item.selected && item.treatment !== 'included'))),
+    );
+  return evidenced ? { complete: true, reason: null } : incomplete;
+}
 function difference(
   base: Offer | undefined,
   candidate: Offer,
@@ -168,6 +206,7 @@ function evaluateOffers(input: ComparisonInput, tool: ToolId) {
     );
   const base = input.offers.find((o) => o.id === input.baselineId);
   const rows = input.offers.map((offer) => {
+    const ground = tool === 'airports' ? groundTransportCoverage(offer) : null;
     const failures: string[] = [],
       pending: string[] = [],
       cost = costOf(offer);
@@ -192,6 +231,7 @@ function evaluateOffers(input: ComparisonInput, tool: ToolId) {
     if (offer.sources.some((s) => Date.parse(s.observedAt) > Date.parse(input.evaluatedAt)))
       pending.push('SOURCE_TIMESTAMP_IN_FUTURE');
     if (!cost.complete) pending.push('REQUIRED_COST_UNKNOWN');
+    if (ground && !ground.complete) pending.push(ground.reason!);
     if (input.stayNights !== null && nights !== input.stayNights)
       (nights === null ? pending : failures).push('STAY_NOT_EQUIVALENT');
     if (tool === 'flex-dates') {
@@ -271,6 +311,7 @@ function evaluateOffers(input: ComparisonInput, tool: ToolId) {
         failures.push('KNOWN_SUBTOTAL_EXCEEDS_BUDGET');
       if (
         !cost.complete ||
+        (ground !== null && !ground.complete) ||
         Object.keys(cost.knownTotals).length !== 1 ||
         cost.knownTotals[input.budgetCurrency ?? ''] === undefined
       )
@@ -285,9 +326,14 @@ function evaluateOffers(input: ComparisonInput, tool: ToolId) {
       nights,
       durationMinutes,
       cost,
+      totalScopeComplete: cost.complete && (ground?.complete ?? true),
+      groundTransportCoverage: ground,
       difference: failures.length
         ? { savingsMinor: null, reason: 'INELIGIBLE_OFFER' }
-        : difference(base, offer, input.evaluatedAt, tool !== 'flex-dates'),
+        : tool === 'airports' &&
+            (!ground!.complete || (base && !groundTransportCoverage(base).complete))
+          ? { savingsMinor: null, reason: 'GROUND_TRANSPORT_COST_SCOPE_UNCONFIRMED' }
+          : difference(base, offer, input.evaluatedAt, tool !== 'flex-dates'),
       status: failures.length ? 'ineligible' : pending.length ? 'conditional' : 'documented',
       failures: [...new Set(failures)],
       pending: [...new Set(pending)],

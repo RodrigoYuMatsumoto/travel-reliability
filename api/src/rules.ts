@@ -9,6 +9,7 @@ interface Rule {
   departureOnly?: boolean;
   overnightOrAssistance?: boolean;
   nationalTerritoryOnly?: boolean;
+  componentConditionsUnmodeled?: boolean;
   validFrom: string;
   validTo: string | null;
   article: string;
@@ -55,6 +56,8 @@ export function rightsFor(
       (rule.overnightOrAssistance && event.residentAtOrigin !== false) ||
       // The contract does not record where a wait happened; a territorial limit stays open.
       rule.nationalTerritoryOnly === true ||
+      // Aggregate advice cannot certify lodging/transfer facts absent from the event contract.
+      rule.componentConditionsUnmodeled === true ||
       (service.kind === 'bus' && event.phase === 'unknown');
     result.push({
       ruleId: rule.id,

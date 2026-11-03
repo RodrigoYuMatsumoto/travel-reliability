@@ -5,7 +5,7 @@ description: Planejar, comparar e organizar viagens com fontes, custos completos
 
 # Travel Reliability — agente de viagens
 
-Versão derivada 1.3.0; pacote de software 0.4. Onze papéis roteados e 66 comandos não são processos autônomos ou conectores instalados.
+Versão derivada 1.3.1; pacote de software 0.6. Onze papéis roteados e 66 comandos não são processos autônomos ou conectores instalados.
 
 Leia uma vez `references/agents/TRAVEL_AGENT.md`; `references/agent.md` permanece alias de compatibilidade. Consulte `references/prompts/README.md` para selecionar somente o papel em `references/agents/roles/` e o workflow pertinente em `references/prompts/`. Não carregue todos os arquivos. O pacote completo inclui manifesto, cobertura sanitizada, schemas/exemplos e documentação selecionados.
 
