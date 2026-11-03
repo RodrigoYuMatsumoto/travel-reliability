@@ -78,7 +78,10 @@ class RulesetContentDrift(ValueError):
 
 
 def validate_bytes(entry, data):
-    candidate = normalized_rule_order(data) if entry.get("normalization") == "whole-rule-order-only/1" else data
+    try:
+        candidate = normalized_rule_order(data) if entry.get("normalization") == "whole-rule-order-only/1" else data
+    except ValueError as error:
+        raise RulesetContentDrift(entry, data) from error
     if len(data) != entry["bytes"] or hashlib.sha256(candidate).hexdigest() != entry["sha256"] or not data.lstrip().startswith(b"rules:"):
         raise RulesetContentDrift(entry, data)
     return candidate
