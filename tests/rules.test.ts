@@ -73,6 +73,31 @@ describe('dated Brazil rules', () => {
     trip.services[0]!.country = 'US';
     expect(rightsFor(trip, event(), verifiedDate)).toHaveLength(0);
   });
+  it('preserves the article 27(2) overnight exception without treating the assistance flag as full proof', () => {
+    const trip = demoTrip();
+    trip.services[0]!.regulatoryScope = 'br_air_transport';
+    for (const [occurredAt, ruleId] of [
+      ['2026-10-25T12:00:00Z', 'BR-AIR-LODGING-LEGACY'],
+      ['2026-10-26T12:00:00Z', 'BR-AIR-LODGING-2026'],
+    ] as const) {
+      const reported = event({ occurredAt, waitingMinutes: 241, specialAssistance: true });
+      expect(
+        rightsFor(trip, reported, verifiedDate).find((r) => r.ruleId === ruleId),
+      ).toMatchObject({
+        status: 'needs_review',
+      });
+      expect(
+        rightsFor(trip, { ...reported, specialAssistance: false }, verifiedDate).some(
+          (r) => r.ruleId === ruleId,
+        ),
+      ).toBe(false);
+      expect(
+        rightsFor(trip, { ...reported, waitingMinutes: 240 }, verifiedDate).some(
+          (r) => r.ruleId === ruleId,
+        ),
+      ).toBe(false);
+    }
+  });
   it('does not apply the future information wording before its effective date', () => {
     const trip = demoTrip();
     trip.services[0]!.regulatoryScope = 'br_air_transport';
@@ -84,6 +109,13 @@ describe('dated Brazil rules', () => {
     );
     expect(after).toContain('BR-AIR-INFORMATION-20261125');
     expect(after).not.toContain('BR-AIR-INFORMATION-LEGACY');
+    expect(
+      rightsFor(trip, event({ occurredAt: '2026-11-25T12:00:00Z' }), verifiedDate).find(
+        (r) => r.ruleId === 'BR-AIR-INFORMATION-20261125',
+      )!.sourceUrl,
+    ).toBe(
+      'https://www.anac.gov.br/assuntos/legislacao/legislacao-1/resolucoes/2026/resolucao-819',
+    );
   });
   it('keeps food and lodging assistance for events before the 2026 wording', () => {
     const trip = demoTrip();

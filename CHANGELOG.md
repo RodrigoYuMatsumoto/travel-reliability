@@ -3,8 +3,10 @@
 ## 0.6.0 - 2026-11-02
 
 - Airport comparisons require an explicit sourced terrestrial-cost scope; incomplete legacy input remains conditional with unknown savings. Interstate-bus continuity stays under review where the contract cannot distinguish lodging, residence and transfer conditions.
+- Preserved the air-assistance overnight exception while requiring review when the assistance flag cannot establish qualification and accommodation exceptions. Completed historical communication, bus-scope and future effective-date references without claiming unsupported event coverage.
 - Added a verified, reversible Codex installer for the complete skill, nine shortcuts and ten-tool offline MCP allowlist. Existing settings and older versioned runtimes are preserved.
 - Normalized SBOM identity from project metadata rather than checkout directory names, pinned SAST rule bytes, and retained the reproduced Windows child-process finding with exact source-bound triage and boundary regressions.
+- Restricted the synthetic-email privacy exemption to exact reserved domains; longer lookalike domains remain subject to detection.
 - Added complete nine-asset release assembly, source/blob and manifest verification, private hash-bound independent-review receipts and a read-only post-publication verification workflow. A missing review or CI record fails stable eligibility.
 - Added opt-in bounded official locality/weather readers, explicit assisted integration alternatives, and a synthetic nine-calculator execution/payload benchmark. No commercial supplier access, paid inference, real traveler pilot or universal token-savings claim is implied.
 - Updated support policy, installation/release/security documentation and the current catalog/skill metadata. Validation results belong to the exact-commit release report; historical checkpoints remain intact.

@@ -73,8 +73,10 @@ export interface DisruptionEvent {
     | 'refund_requested'
     | 'refund_received';
   occurredAt: string;
+  /** Declared elapsed wait from scheduled departure/interruption; not an independently verified timer. */
   waitingMinutes: number | null;
   overnight: boolean;
+  /** Potentially qualifying assistance condition; not full proof of status or accommodation exceptions. */
   specialAssistance: boolean;
   providerResponsibility: 'yes' | 'no' | 'unknown';
   description: string;
