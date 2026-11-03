@@ -90,6 +90,29 @@ def prepare(lock, output, fetch=download, check_only=False):
     return {"status": "PASS", "engine": lock["engine"], "configs": [{"id": item["id"], "sha256": item["sha256"], "bytes": item["bytes"]} for item in entries]}
 
 
+def failure_diagnostic(error):
+    """Expose a bounded failure category, never URLs, payloads or local paths."""
+    if isinstance(error, HTTPError):
+        return {"reasonCode": "REGISTRY_HTTP_ERROR", "httpStatus": error.code}
+    if isinstance(error, URLError):
+        name = type(error.reason).__name__
+        known = {"SSLCertVerificationError", "SSLError", "TimeoutError", "ConnectionRefusedError", "ConnectionResetError", "gaierror", "OSError"}
+        return {"reasonCode": "REGISTRY_NETWORK_ERROR", "reasonClass": name if name in known else "NetworkError"}
+    if isinstance(error, TimeoutError):
+        return {"reasonCode": "REGISTRY_TIMEOUT"}
+    if isinstance(error, ValueError):
+        known = {
+            "UNTRUSTED_RULESET_URL", "RULESET_SIZE_LIMIT", "INVALID_RULESET_LOCK",
+            "INVALID_RULESET_COVERAGE", "INVALID_RULESET_SOURCE", "INVALID_RULESET_DIGEST",
+            "RULESET_CONTENT_DRIFT", "UNSAFE_RULESET_CACHE", "RULESET_CACHE_MISSING",
+        }
+        code = str(error)
+        return {"reasonCode": code if code in known else "INVALID_RULESET_DATA"}
+    if isinstance(error, OSError):
+        return {"reasonCode": "RULESET_CACHE_IO_ERROR", "errno": error.errno}
+    return {"reasonCode": "INVALID_RULESET_DATA"}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=ROOT / ".local/security-audit/rules")
@@ -98,8 +121,8 @@ def main():
     try:
         lock = json.loads((Path(__file__).parent / "rules-lock.json").read_text(encoding="utf-8"))
         result = prepare(lock, args.output, check_only=args.check_only)
-    except (OSError, ValueError, TypeError, KeyError, HTTPError, URLError):
-        print(json.dumps({"status": "INCOMPLETE", "error": "RULESET_LOCK_VALIDATION_FAILED"}))
+    except (OSError, ValueError, TypeError, KeyError, HTTPError, URLError) as error:
+        print(json.dumps({"status": "INCOMPLETE", "error": "RULESET_LOCK_VALIDATION_FAILED", **failure_diagnostic(error)}))
         return 2
     print(json.dumps(result))
     return 0

@@ -1,12 +1,16 @@
 """Exact rule bytes and narrow source-bound triage, without registry requests."""
 
 from copy import deepcopy
+from contextlib import redirect_stdout
 import hashlib
 import importlib.util
+import io
 import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
+from urllib.error import HTTPError, URLError
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -76,6 +80,28 @@ class RulesLockTests(unittest.TestCase):
         for url in ("http://semgrep.dev/c/p/security-audit", "https://semgrep.dev/c/p/security-audit?token=synthetic", "https://semgrep.dev.example.invalid/c/p/security-audit"):
             with self.subTest(url=url), self.assertRaises(ValueError):
                 rules.valid_url(url)
+
+    def test_failure_diagnostics_remain_specific_without_disclosing_values(self):
+        marker = "synthetic-private-diagnostic-never-publish"
+        cases = [
+            (HTTPError("https://example.invalid/" + marker, 403, marker, {}, None), {"reasonCode": "REGISTRY_HTTP_ERROR", "httpStatus": 403}),
+            (URLError(ConnectionRefusedError(marker)), {"reasonCode": "REGISTRY_NETWORK_ERROR", "reasonClass": "ConnectionRefusedError"}),
+            (URLError(marker), {"reasonCode": "REGISTRY_NETWORK_ERROR", "reasonClass": "NetworkError"}),
+            (TimeoutError(marker), {"reasonCode": "REGISTRY_TIMEOUT"}),
+            (ValueError("RULESET_CONTENT_DRIFT"), {"reasonCode": "RULESET_CONTENT_DRIFT"}),
+            (ValueError("UNTRUSTED_RULESET_URL"), {"reasonCode": "UNTRUSTED_RULESET_URL"}),
+            (ValueError(marker), {"reasonCode": "INVALID_RULESET_DATA"}),
+            (PermissionError(13, marker, marker), {"reasonCode": "RULESET_CACHE_IO_ERROR", "errno": 13}),
+        ]
+        for error, expected in cases:
+            with self.subTest(reason=expected["reasonCode"]):
+                output = io.StringIO()
+                with patch("sys.argv", ["prepare-rules.py", "--check-only"]), patch.object(rules, "prepare", side_effect=error), redirect_stdout(output):
+                    self.assertEqual(rules.main(), 2)
+                report = json.loads(output.getvalue())
+                self.assertEqual(report, {"status": "INCOMPLETE", "error": "RULESET_LOCK_VALIDATION_FAILED", **expected})
+                self.assertNotIn(marker, output.getvalue())
+                self.assertNotIn("https://", output.getvalue())
 
 
 class SourceBoundTriageTests(unittest.TestCase):
