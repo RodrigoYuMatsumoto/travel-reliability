@@ -587,8 +587,13 @@ def install(source_archive, skill_archive, checksums, codex_home, skills_home, n
                 environment = {key: value for key, value in os.environ.items() if key.upper() in {
                     "PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "USERPROFILE", "HOME", "COMSPEC", "PATHEXT",
                 }}
-                environment["NPM_CONFIG_USERCONFIG"] = os.devnull
-                environment["NPM_CONFIG_GLOBALCONFIG"] = os.devnull
+                # npm rejects one identity loaded as both global and user config,
+                # including NUL on Windows. Two owned empty files isolate both.
+                for scope in ("USER", "GLOBAL"):
+                    isolated_config = stage / ("npm-" + scope.lower() + ".conf")
+                    with isolated_config.open("xb") as handle:
+                        handle.write(b"\n")
+                    environment["NPM_CONFIG_" + scope + "CONFIG"] = str(isolated_config)
                 environment["NPM_CONFIG_CACHE"] = str(stage / "npm-cache")
                 with (backup / "npm-ci.log").open("wb") as log:
                     subprocess.run(command + ["ci", "--ignore-scripts", "--no-fund", "--no-audit", "--registry=https://registry.npmjs.org"],

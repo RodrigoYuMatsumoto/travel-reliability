@@ -291,11 +291,19 @@ class InstallerTests(unittest.TestCase):
         npm = self.node.parent / "node_modules/npm/bin/npm-cli.js"
         npm.parent.mkdir(parents=True)
         npm.write_bytes(b"// Fixture")
+        def isolated_npm(command, **kwargs):
+            if "--version" in command:
+                return subprocess.CompletedProcess([], 0, stdout="v24.14.0\n")
+            environment = kwargs["env"]
+            user_config = Path(environment["NPM_CONFIG_USERCONFIG"])
+            global_config = Path(environment["NPM_CONFIG_GLOBALCONFIG"])
+            self.assertNotEqual(user_config, global_config)
+            self.assertEqual(user_config.parent, global_config.parent)
+            self.assertEqual(user_config.read_bytes(), b"\n")
+            self.assertEqual(global_config.read_bytes(), b"\n")
+            return subprocess.CompletedProcess([], 0)
         with patch.dict(os.environ, {"NPM_TOKEN": "synthetic-secret", "SYNTHETIC_SECRET": "private"}):
-            with patch.object(installer.subprocess, "run", side_effect=[
-                subprocess.CompletedProcess([], 0, stdout="v24.14.0\n"),
-                subprocess.CompletedProcess([], 0),
-            ]) as run:
+            with patch.object(installer.subprocess, "run", side_effect=isolated_npm) as run:
                 self.install(dependencies=True)
         command = run.call_args_list[1].args[0]
         environment = run.call_args_list[1].kwargs["env"]
@@ -303,8 +311,8 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("--registry=https://registry.npmjs.org", command)
         self.assertNotIn("NPM_TOKEN", environment)
         self.assertNotIn("SYNTHETIC_SECRET", environment)
-        self.assertEqual(environment["NPM_CONFIG_USERCONFIG"], os.devnull)
-        self.assertEqual(environment["NPM_CONFIG_GLOBALCONFIG"], os.devnull)
+        self.assertNotEqual(environment["NPM_CONFIG_USERCONFIG"], os.devnull)
+        self.assertNotEqual(environment["NPM_CONFIG_GLOBALCONFIG"], os.devnull)
 
     def test_rejects_links_inside_existing_skill_before_mutation(self):
         linked = self.skills / "travel-agent" / "linked"
