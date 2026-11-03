@@ -19,7 +19,7 @@ VERSION = "0.6.0"
 COMMIT = "a" * 40
 TREE = "b" * 40
 BASELINE = "c" * 40
-CALCULATORS = ["flex-dates", "airports", "connections", "promotions", "total-cost", "fare-scenarios", "negotiation", "hidden-city", "group-split"]
+CALCULATORS = ["flex-dates", "airports", "connections", "promotions", "total-cost", "fare-scenarios", "negotiation", "hidden-city", "group-split", "loyalty-arbitrage", "multimodal-stitching"]
 
 
 def zip_bytes(files):
@@ -40,7 +40,7 @@ class ReleaseFixture:
         self.names = bundle.asset_names(VERSION)
         commands = [{"id": name, "calculatorId": name, "path": f"prompts/{index:02d}_{name.replace('-', '_')}.md"} for index, name in enumerate(CALCULATORS, 1)]
         self.catalog = {"version": VERSION, "agents": [{"path": "agents/TRAVEL_AGENT.md"}], "commands": commands, "contracts": {"trip": "schema/trip.schema.json"}}
-        self.counts = {"agents": 1, "workflows": 9, "calculators": 9}
+        self.counts = {"agents": 1, "workflows": len(CALCULATORS), "calculators": len(CALCULATORS)}
         selected = {"LICENSE": b"Synthetic test license\n", "NOTICE": b"Synthetic test notice\n", "agents/TRAVEL_AGENT.md": b"Synthetic instructions\n", "agents/manifest.json": bundle.json_bytes(self.catalog), "schema/trip.schema.json": b"{}\n", "schema/operator-profile.schema.json": b"{}\n", "examples/operator-profile.json": b"{}\n", "docs/OPERATOR_PROFILE.md": b"Synthetic setup\n", "docs/UNICODE_EXPORTS.md": b"Synthetic Unicode guidance\n"}
         selected.update({item["path"]: b"Synthetic documentary workflow\n" for item in commands})
         self.source_files = dict(selected)

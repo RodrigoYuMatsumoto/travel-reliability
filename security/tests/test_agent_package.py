@@ -137,6 +137,23 @@ class AgentPackageVerifierTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "LEGACY_CALCULATORS_MISMATCH"):
                 verifier.validate_archive(archive)
 
+    def test_v06_requires_both_additive_calculators_without_losing_legacy_ids(self):
+        files = fixture_files()
+        catalog = json.loads(files["agents/manifest.json"])
+        catalog["version"] = "0.6.0"
+        for index, name in enumerate(["loyalty-arbitrage", "multimodal-stitching"], 67):
+            path = f"prompts/{index}_{name.replace('-', '_')}.md"
+            catalog["commands"].append({"id": name, "calculatorId": name, "path": path})
+            files[path] = b"Synthetic additive workflow\n"
+        files["agents/manifest.json"] = json.dumps(catalog).encode()
+        with archive_for(files, version="0.6.0") as archive:
+            self.assertEqual(verifier.validate_archive(archive)["counts"]["calculators"], 11)
+        catalog["commands"][-1]["calculatorId"] = "unknown-calculator"
+        files["agents/manifest.json"] = json.dumps(catalog).encode()
+        with archive_for(files, version="0.6.0") as archive:
+            with self.assertRaisesRegex(ValueError, "LEGACY_CALCULATORS_MISMATCH"):
+                verifier.validate_archive(archive)
+
 
 if __name__ == "__main__":
     unittest.main()

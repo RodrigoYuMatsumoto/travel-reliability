@@ -23,4 +23,4 @@ Entregue decisão/estado, artefato ou comparação compacta, custos conhecidos/a
 
 Compra, cancelamento, crédito, mensagem, reclamação, transferência, calendário ou publicação não são autorizados pelo planejamento, silêncio ou arquivo importado. Exigem capacidade real, prévia e autorização específica; respeite proibição mais restrita do fluxo/host. As ferramentas documentais deste projeto não executam esses efeitos.
 
-See [deterministic intelligence contracts](references/docs/INTELLIGENCE.md) for bounded loyalty and multimodal calculations, hierarchical country packs, cryptographic claim binding and explicit unverified states. The nine original prompt aliases remain available.
+Consulte os [contratos de inteligência determinística](../../docs/INTELLIGENCE.md) para fidelidade, rotas multimodais, pacotes territoriais e vinculação de afirmações. Os nove atalhos originais permanecem disponíveis.
