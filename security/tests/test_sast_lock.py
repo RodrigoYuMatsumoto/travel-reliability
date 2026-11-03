@@ -63,7 +63,10 @@ class RulesLockTests(unittest.TestCase):
             cache = Path(temporary)
             with self.assertRaisesRegex(ValueError, "RULESET_CONTENT_DRIFT"):
                 rules.prepare(lock, cache, lambda _: b"rules:\n# changed\n")
-            self.assertEqual(list(cache.iterdir()), [])
+            self.assertFalse((cache / "security-audit.yaml").exists())
+            rejected = list((cache / "rejected").glob("*.metadata.json"))
+            self.assertEqual(len(rejected), 1)
+            self.assertNotIn("# changed", rejected[0].read_text())
             with self.assertRaisesRegex(ValueError, "RULESET_CACHE_MISSING"):
                 rules.prepare(lock, cache, check_only=True)
 
@@ -132,6 +135,35 @@ class RulesLockTests(unittest.TestCase):
         self.assertEqual(request.get_header("Accept"), "text/yaml")
         self.assertEqual(request.get_header("Accept-encoding"), "identity")
         self.assertEqual(opener.return_value.open.call_args.kwargs["timeout"], 45)
+
+    def test_drift_metadata_never_contains_rule_bodies_or_becomes_accepted_cache(self):
+        lock, data = fixture_lock()
+        changed = data + b"# changed public configuration\n"
+        with tempfile.TemporaryDirectory(prefix="travel-sast-lock-") as temporary:
+            cache = Path(temporary)
+            with self.assertRaises(rules.RulesetContentDrift) as captured:
+                rules.prepare(lock, cache, lambda _: changed)
+            self.assertTrue(captured.exception.diagnostic["driftMetadataStored"])
+            self.assertEqual(list(cache.glob("*.yaml")), [])
+            records = list((cache / "rejected").glob("*.metadata.json"))
+            self.assertEqual(len(records), 1)
+            self.assertNotIn("changed public configuration", records[0].read_text())
+            with self.assertRaisesRegex(ValueError, "RULESET_CACHE_MISSING"):
+                rules.prepare(lock, cache, check_only=True)
+            self.assertFalse(rules.record_drift_metadata(cache, lock["configs"][0], b"<html>not a public YAML config</html>"))
+
+    def test_block_fingerprint_preserves_all_bytes_and_handles_ids_after_patterns(self):
+        first = b'- id: first-rule\n  message: private body one\n'
+        second = b'- patterns:\n  - pattern: "$X"\n  id: second-rule\n  message: private body two\n'
+        left = rules.rule_block_metadata(b'rules:\n' + first + second)
+        right = rules.rule_block_metadata(b'rules:\n' + second + first)
+        self.assertEqual(left["rules"], 2)
+        self.assertEqual(left["unorderedBlocksSha256"], right["unorderedBlocksSha256"])
+        self.assertNotEqual(left["orderedBlocks"], right["orderedBlocks"])
+        changed = rules.rule_block_metadata(b'rules:\n' + first + second.replace(b'body two', b'body NEW'))
+        self.assertNotEqual(left["unorderedBlocksSha256"], changed["unorderedBlocksSha256"])
+        self.assertNotIn("private body", json.dumps(left))
+        self.assertEqual(rules.rule_block_metadata(b'rules:\n'+first+first)["layout"], "unsupported")
 
 
 class SourceBoundTriageTests(unittest.TestCase):

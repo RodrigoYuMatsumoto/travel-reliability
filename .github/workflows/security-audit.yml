@@ -49,6 +49,15 @@ jobs:
           path: .local/security-audit/sast/*-summary.json
           include-hidden-files: true
           retention-days: 7
+      - name: Retain payload-free rule fingerprints for bounded drift analysis
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: failure()
+        with:
+          name: sast-rule-drift-metadata
+          path: .local/security-audit/rules/rejected/*.metadata.json
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
 
   fuzz:
     name: Fuzzing (bounded mutation)

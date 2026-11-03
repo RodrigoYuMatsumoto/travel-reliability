@@ -80,6 +80,49 @@ def validate_bytes(entry, data):
         raise RulesetContentDrift(entry, data)
 
 
+def rule_block_metadata(data):
+    """Fingerprint whole top-level blocks; never expose their contents."""
+    starts = [match.start() for match in re.finditer(rb"(?m)^- ", data)]
+    if not starts or len(starts) > 2000 or data[:starts[0]].strip() != b"rules:":
+        return {"layout": "unsupported"}
+    rows = []
+    ids = set()
+    for index, start in enumerate(starts):
+        block = data[start:starts[index + 1] if index + 1 < len(starts) else len(data)]
+        found = re.findall(rb"(?m)^(?:- |  )id: ([A-Za-z0-9_.-]{1,300})\r?$", block)
+        if len(found) != 1 or found[0] in ids:
+            return {"layout": "unsupported"}
+        ids.add(found[0])
+        rows.append({"id": found[0].decode("ascii"), "bytes": len(block), "sha256": hashlib.sha256(block).hexdigest()})
+    encoded = json.dumps(sorted(rows, key=lambda item: item["id"]), sort_keys=True, separators=(",", ":")).encode()
+    return {"layout": "whole-top-level-rule-blocks/1", "rules": len(rows), "uniqueIds": len(ids),
+            "prefixSha256": hashlib.sha256(data[:starts[0]]).hexdigest(),
+            "unorderedBlocksSha256": hashlib.sha256(encoded).hexdigest(), "orderedBlocks": rows}
+
+
+def record_drift_metadata(output, entry, data):
+    """Keep metadata only; rule bodies may not be redistributed as CI artifacts."""
+    if not data.lstrip().startswith(b"rules:") or len(data) > LIMIT:
+        return False
+    directory = output / "rejected"
+    if directory.is_symlink():
+        raise ValueError("UNSAFE_RULESET_CACHE")
+    directory.mkdir(exist_ok=True, mode=0o700)
+    actual = hashlib.sha256(data).hexdigest()
+    target = directory / (entry["id"].split("/")[1] + "." + actual + ".metadata.json")
+    if target.is_symlink():
+        raise ValueError("UNSAFE_RULESET_CACHE")
+    report = {"format": "travel-reliability-rule-drift-metadata/1", "rulesetId": entry["id"],
+              "rawSha256": actual, "bytes": len(data), **rule_block_metadata(data)}
+    encoded = (json.dumps(report, indent=2) + "\n").encode()
+    if not target.exists():
+        with target.open("xb") as stream:
+            stream.write(encoded)
+    elif target.read_bytes() != encoded:
+        raise ValueError("UNSAFE_RULESET_CACHE")
+    return True
+
+
 def prepare(lock, output, fetch=download, check_only=False):
     entries = validate_lock(lock)
     output.mkdir(parents=True, exist_ok=True)
@@ -95,7 +138,11 @@ def prepare(lock, output, fetch=download, check_only=False):
         if check_only:
             raise ValueError("RULESET_CACHE_MISSING")
         data = fetch(entry["url"])
-        validate_bytes(entry, data)
+        try:
+            validate_bytes(entry, data)
+        except RulesetContentDrift as error:
+            error.diagnostic["driftMetadataStored"] = record_drift_metadata(output, entry, data)
+            raise
         handle, temporary = tempfile.mkstemp(prefix=".rules-", dir=output)
         try:
             with os.fdopen(handle, "wb") as stream:
