@@ -48,6 +48,8 @@ import { DocumentWorkspace, documentWorkspaceInputSchema } from './document-work
 import { extensionDraftSchema, createExtensionDraft } from './extension-draft.js';
 import { createPackageExtractor, PACKAGE_EXTRACTOR_LIMITS } from './package-extractor.js';
 import { packageObservationSchema, packageSites } from '../schema/src/package-observation.js';
+import { discoverPackages } from './package-discovery.js';
+import { packageDiscoverySchema } from '../schema/src/package-discovery.js';
 
 export interface TravelServerOptions {
   /** Constructed by reviewed operator code; never accepted as a tool argument. */
@@ -139,6 +141,7 @@ export function createTravelServer(supplied: TravelServerOptions = {}): McpServe
     while (calculations.size > 100) calculations.delete(calculations.keys().next().value!);
   };
   const intelligenceSchemas: Record<string, object> = {
+    'package-discovery': packageDiscoverySchema,
     'loyalty-graph': loyaltyGraphSchema,
     'country-pack-query': countryPackQuerySchema,
     'local-ecosystem': localEcosystemSchema,
@@ -280,6 +283,20 @@ export function createTravelServer(supplied: TravelServerOptions = {}): McpServe
       result(() => {
         bounded(input);
         return createExtensionDraft(input);
+      }),
+  );
+  server.registerTool(
+    'travel_discover_packages',
+    {
+      description:
+        'Find curated local agency reference pages for explicit origin and independent date windows. Offline paginated discovery only; no page fetch, quote, account or booking. Read package-discovery schema and inspect one selected source at a time.',
+      inputSchema: z.strictObject({ input: z.record(z.string(), z.unknown()) }),
+      annotations,
+    },
+    ({ input }) =>
+      result(() => {
+        bounded(input);
+        return discoverPackages(input);
       }),
   );
   server.registerTool(
@@ -475,7 +492,7 @@ export function createTravelServer(supplied: TravelServerOptions = {}): McpServe
           .max(2048)
           .regex(/^https:\/\//),
         observedAt: z.string().max(40),
-        retrieval: z.enum(['static_html', 'rendered_dom']),
+        retrieval: z.enum(['fixture', 'static_html', 'rendered_dom']),
         site: z.enum(packageSites).optional(),
         mode: z.enum(['detail', 'listing']).default('detail'),
       }),
@@ -485,6 +502,8 @@ export function createTravelServer(supplied: TravelServerOptions = {}): McpServe
       asyncResult(async () => ({
         mode,
         extraction: 'literal_unconfirmed',
+        inputTrust: 'caller_supplied_unverified',
+        retrievalAssertion: 'caller_declared_not_browser_attestation',
         result: await extractPackage({ html, url, observedAt, retrieval, site, mode }),
       })),
   );

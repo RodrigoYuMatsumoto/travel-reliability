@@ -355,6 +355,119 @@
         }
       }
     },
+    "/schema/package-discovery.json": {
+      "get": {
+        "operationId": "get__schema_package_discovery_json",
+        "summary": "GET /schema/package-discovery.json",
+        "tags": [
+          "schema"
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation result; see generated TypeScript domain interfaces and route implementation for response fields."
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted for bounded asynchronous extraction"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Permission, origin or CSRF failure"
+          },
+          "409": {
+            "description": "Version conflict or conflicting field; resolve before retrying"
+          },
+          "422": {
+            "description": "Invalid input or incomplete prerequisites"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Capacity or dependency unavailable"
+          }
+        }
+      }
+    },
+    "/v1/package-discovery": {
+      "post": {
+        "operationId": "post__v1_package_discovery",
+        "summary": "POST /v1/package-discovery",
+        "tags": [
+          "v1"
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation result; see generated TypeScript domain interfaces and route implementation for response fields."
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Accepted for bounded asynchronous extraction"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Permission, origin or CSRF failure"
+          },
+          "409": {
+            "description": "Version conflict or conflicting field; resolve before retrying"
+          },
+          "422": {
+            "description": "Invalid input or incomplete prerequisites"
+          },
+          "429": {
+            "description": "Rate limited"
+          },
+          "503": {
+            "description": "Capacity or dependency unavailable"
+          }
+        },
+        "security": [
+          {
+            "demoSession": []
+          },
+          {
+            "productionSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "x-workspace-id",
+            "in": "header",
+            "required": false,
+            "description": "An authorized shared workspace; membership is checked server-side.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-csrf-token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/package-discovery"
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/tools/{tool}": {
       "post": {
         "operationId": "post__v1_tools_tool_",
@@ -4838,6 +4951,13 @@
                   }
                 ]
               },
+              "breakfastRequirement": {
+                "enum": [
+                  "hotel_included",
+                  "provided_or_budgeted",
+                  "not_required"
+                ]
+              },
               "roomType": {
                 "enum": [
                   "private",
@@ -4895,7 +5015,7 @@
             "type": "array",
             "uniqueItems": true,
             "minItems": 6,
-            "maxItems": 9,
+            "maxItems": 14,
             "items": {
               "enum": [
                 "outbound_bus",
@@ -4906,7 +5026,12 @@
                 "local_transfers",
                 "taxes",
                 "mandatory_activities",
-                "other_meals"
+                "other_meals",
+                "outbound_flight",
+                "return_flight",
+                "flight_baggage",
+                "flight_seats",
+                "airport_transfers"
               ]
             }
           },
@@ -5003,6 +5128,12 @@
                     "independent"
                   ]
                 },
+                "transportMode": {
+                  "enum": [
+                    "bus",
+                    "flight"
+                  ]
+                },
                 "origin": {
                   "type": "string",
                   "minLength": 1,
@@ -5012,6 +5143,18 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 300
+                },
+                "destinationTimeZone": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
                 "yearConfirmed": {
                   "type": "boolean"
@@ -5171,6 +5314,18 @@
                         "boolean",
                         "null"
                       ]
+                    },
+                    "externalBreakfasts": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -5286,6 +5441,46 @@
                         "not_required",
                         "unknown"
                       ]
+                    },
+                    "outbound_flight": {
+                      "enum": [
+                        "included",
+                        "itemized",
+                        "not_required",
+                        "unknown"
+                      ]
+                    },
+                    "return_flight": {
+                      "enum": [
+                        "included",
+                        "itemized",
+                        "not_required",
+                        "unknown"
+                      ]
+                    },
+                    "flight_baggage": {
+                      "enum": [
+                        "included",
+                        "itemized",
+                        "not_required",
+                        "unknown"
+                      ]
+                    },
+                    "flight_seats": {
+                      "enum": [
+                        "included",
+                        "itemized",
+                        "not_required",
+                        "unknown"
+                      ]
+                    },
+                    "airport_transfers": {
+                      "enum": [
+                        "included",
+                        "itemized",
+                        "not_required",
+                        "unknown"
+                      ]
                     }
                   },
                   "required": [
@@ -5348,6 +5543,31 @@
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 300
+                    },
+                    "outbound_flight": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 300
+                    },
+                    "return_flight": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 300
+                    },
+                    "flight_baggage": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 300
+                    },
+                    "flight_seats": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 300
+                    },
+                    "airport_transfers": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 300
                     }
                   },
                   "required": []
@@ -5375,12 +5595,18 @@
                           "local_transfers",
                           "taxes",
                           "mandatory_activities",
-                          "other_meals"
+                          "other_meals",
+                          "outbound_flight",
+                          "return_flight",
+                          "flight_baggage",
+                          "flight_seats",
+                          "airport_transfers"
                         ]
                       },
                       "unit": {
                         "enum": [
                           "person",
+                          "person_breakfast",
                           "room_night",
                           "room_stay",
                           "group"
@@ -12520,6 +12746,91 @@
           "evaluatedAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "package-discovery": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://travel-reliability.example/schema/package-discovery.json",
+        "title": "Bounded offline package discovery plan",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "origin",
+          "windows",
+          "destination"
+        ],
+        "properties": {
+          "origin": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[^0-9@<>\\x00-\\x1f\\x7f]+$"
+          },
+          "destination": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "pattern": "^[^0-9@<>\\x00-\\x1f\\x7f]+$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "windows": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "startDate",
+                "endDate"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_-]{1,40}$"
+                },
+                "startDate": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "endDate": {
+                  "type": "string",
+                  "format": "date"
+                }
+              }
+            }
+          },
+          "providerIds": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "atrativa",
+                "niel",
+                "viajantes-do-valle",
+                "augustus"
+              ]
+            }
+          },
+          "cursor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
           }
         }
       }

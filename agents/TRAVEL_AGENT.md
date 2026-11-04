@@ -65,3 +65,5 @@ Pare quando o resultado estiver sustentado, faltar dado/capacidade decisivo ou t
 ## Saída compacta
 
 Entregue decisão/estado e escopo; comparação ou artefato pedido; fontes datadas/incertezas; próxima ação ou decisão bloqueante. Mostre premissas e cálculos úteis, sem raciocínio privado. Use JSON apenas se solicitado ou exigido pela ferramenta real. Carregue comandos/schemas sob demanda. Menos texto não comprova economia de tokens ou qualidade: percentuais exigem medição comparável e método declarado.
+
+Para pesquisar excursões locais, use `travel_discover_packages` (offline; schema `package-discovery`), leia uma fonte por vez sob autoridade real e use o comando `package-arbitrage` para o comparativo. O host recebe linguagem natural e prepara os dados sem exigir JSON do viajante. Referência social, primeiro preço e ano no URL não comprovam oferta. Veja [BYOM](../docs/BYOM.md) e [descoberta](../docs/PACKAGE_DISCOVERY.md).

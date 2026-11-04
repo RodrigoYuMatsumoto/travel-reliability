@@ -1,6 +1,6 @@
 import type { ComparisonInput, Offer, Source, ToolId } from '../../schema/src/planning';
 import { loyaltyExample, multimodalExample } from './intelligence-examples';
-import { groundTransportExample } from './ground-transport-example';
+import { packageComparisonExample } from './ground-transport-example';
 import { packageArbitrageExample } from './package-arbitrage-example';
 const source: Source = {
   id: 'source-a',
@@ -92,8 +92,8 @@ export const toolLabels: Record<ToolId, [string, string]> = {
   'hidden-city': ['08 · Riscos de hidden-city', '08 · Hidden-city risks'],
   'group-split': ['09 · Grupo e rateio', '09 · Groups & cost allocation'],
   'ground-transport': [
-    '12 · Excursão ou ônibus + hospedagem',
-    '12 · Coach package or bus + lodging',
+    '12 · Pacote ou ônibus/avião + hospedagem',
+    '12 · Package or bus/flight + lodging',
   ],
   'package-arbitrage': [
     '13 · Pacote regional × compra avulsa',
@@ -101,7 +101,7 @@ export const toolLabels: Record<ToolId, [string, string]> = {
   ],
 };
 export const planningExamples: Record<ToolId, unknown> = {
-  'ground-transport': groundTransportExample,
+  'ground-transport': packageComparisonExample,
   'package-arbitrage': packageArbitrageExample,
   'loyalty-arbitrage': loyaltyExample,
   'multimodal-stitching': multimodalExample,

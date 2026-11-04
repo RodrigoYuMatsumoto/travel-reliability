@@ -1,6 +1,5 @@
 """fetch_rendered guards. Every test injects fakes; the real network is patched to fail."""
 
-import sys
 import urllib.request
 
 import pytest
@@ -14,6 +13,11 @@ URL = "https://www.atrativatur.com.br/viagem.php?v=101"
 PAGE = "<h1>Pacote Sintético</h1><p>Valor à vista: R$ 10,00</p>"
 
 
+def synthetic_credentials_url(host: str, path: str) -> str:
+    username = "SYNTHETIC_ONLY"
+    return f"https://{username}:{username}" + "@" + host + path
+
+
 @pytest.fixture(autouse=True)
 def no_network(monkeypatch):
     def refuse(*args, **kwargs):
@@ -21,6 +25,8 @@ def no_network(monkeypatch):
 
     monkeypatch.setattr(urllib.request, "urlopen", refuse)
     monkeypatch.setattr(fetch_module.http.client, "HTTPSConnection", refuse)
+    monkeypatch.setattr(fetch_module.socket, "getaddrinfo", refuse)
+    monkeypatch.setattr(fetch_module.socket, "socket", refuse)
 
 
 class FakeRenderer:
@@ -162,22 +168,22 @@ def test_robots_fetch_failure_refuses():
     )
 
 
-def test_playwright_missing_is_a_stable_error(monkeypatch):
-    monkeypatch.setitem(sys.modules, "playwright", None)
-    monkeypatch.setitem(sys.modules, "playwright.sync_api", None)
+def test_automatic_renderer_is_unavailable_before_any_network():
+    fetcher = robots(None)
     assert (
-        code_of(fetch_rendered, URL, observed_at=OBSERVED_AT, allow_network=True, robots_fetcher=robots(None))
-        == "PLAYWRIGHT_NOT_INSTALLED"
+        code_of(fetch_rendered, URL, observed_at=OBSERVED_AT, allow_network=True, robots_fetcher=fetcher)
+        == "NETWORK_RENDERER_UNAVAILABLE"
     )
+    assert fetcher.seen == []
 
 
-def test_happy_path_with_fakes_and_parse_of_rendered_dom():
+def test_happy_path_with_fakes_preserves_fixture_provenance():
     renderer = FakeRenderer()
     fetcher = robots("User-agent: *\nAllow: /\nContent-Signal: search=yes, ai-input=yes")
     result = fetch_rendered(
         URL, observed_at=OBSERVED_AT, allow_network=True, renderer=renderer, robots_fetcher=fetcher
     )
-    assert result == {"html": PAGE, "retrieval": "rendered_dom", "url": URL}
+    assert result == {"html": PAGE, "retrieval": "fixture", "url": URL}
     assert fetcher.seen == ["https://www.atrativatur.com.br/robots.txt"]
     url, kwargs = renderer.calls[0]
     assert url == URL
@@ -337,14 +343,16 @@ def test_bom_before_content_signal_still_refuses():
 
 
 class FakeConnection:
-    """Stands in for http.client.HTTPSConnection; records the request, never opens a socket."""
+    """Stands in for the pinned HTTPS connection without opening any socket."""
 
     status = 200
     body = (BOM + "User-agent: *" + chr(10) + "Disallow: /").encode("utf-8")
     requests: list = []
 
-    def __init__(self, host, port, timeout, context):
-        FakeConnection.requests.append((host, port))
+    sock = None
+
+    def __init__(self, endpoint, *, deadline):
+        FakeConnection.requests.append((endpoint.host, endpoint.address, 443))
 
     def request(self, method, path, headers):
         FakeConnection.requests.append((method, path, headers["User-Agent"]))
@@ -354,23 +362,37 @@ class FakeConnection:
 
         class Response:
             status = connection.status
+            position = 0
 
-            def read(self, limit):
-                return connection.body[:limit]
+            def getheader(self, name, default=None):
+                return default
+
+            def read1(self, limit):
+                chunk = connection.body[self.position : self.position + limit]
+                self.position += len(chunk)
+                return chunk
 
         return Response()
 
     def close(self):
         pass
 
+    def cancel(self):
+        self.close()
+
 
 def test_default_robots_fetcher_decodes_utf8_sig(monkeypatch):
     FakeConnection.requests = []
-    monkeypatch.setattr(fetch_module.http.client, "HTTPSConnection", FakeConnection)
+    monkeypatch.setattr(fetch_module, "_PinnedHTTPSConnection", FakeConnection)
+    monkeypatch.setattr(
+        fetch_module,
+        "_resolve_public_endpoint",
+        lambda host, deadline: fetch_module._PinnedEndpoint(host, "8.8.8.8", fetch_module.socket.AF_INET),
+    )
     text = fetch_module._default_robots_fetcher("https://www.atrativatur.com.br/robots.txt")
     assert not text.startswith(BOM)
     assert fetch_module.robots_allows(text, URL) is False
-    assert FakeConnection.requests[0] == ("www.atrativatur.com.br", 443)
+    assert FakeConnection.requests[0] == ("www.atrativatur.com.br", "8.8.8.8", 443)
     assert FakeConnection.requests[1] == ("GET", "/robots.txt", USER_AGENT)
 
 
@@ -383,7 +405,12 @@ def test_default_robots_fetcher_status_handling(monkeypatch, status, expected):
         pass
 
     Fake.status = status
-    monkeypatch.setattr(fetch_module.http.client, "HTTPSConnection", Fake)
+    monkeypatch.setattr(fetch_module, "_PinnedHTTPSConnection", Fake)
+    monkeypatch.setattr(
+        fetch_module,
+        "_resolve_public_endpoint",
+        lambda host, deadline: fetch_module._PinnedEndpoint(host, "8.8.8.8", fetch_module.socket.AF_INET),
+    )
     if expected is None:
         assert fetch_module._default_robots_fetcher("https://www.atrativatur.com.br/robots.txt") is None
     else:
@@ -408,6 +435,7 @@ def test_default_robots_fetcher_refuses_other_schemes():
         "https://www.atrativatur.com.br/viagem.php?v=102",
         "http://www.atrativatur.com.br/viagem.php?v=101",
         "https://example.invalid/viagem.php?v=101",
+        synthetic_credentials_url("www.atrativatur.com.br", "/viagem.php?v=101"),
     ],
 )
 def test_render_that_ends_elsewhere_is_refused(final_url):
@@ -428,7 +456,6 @@ def test_render_that_ends_elsewhere_is_refused(final_url):
     "requested,final_url",
     [
         ("https://augustusturismo.com.br/#/pacote/7", "https://augustusturismo.com.br/#/pacote/7"),
-        ("https://augustusturismo.com.br/#/pacote/7", "https://augustusturismo.com.br/#/pacotes"),
         ("https://augustusturismo.com.br", "https://augustusturismo.com.br/"),
         (
             "https://www.atrativatur.com.br/viagem.php?v=101",
@@ -436,7 +463,7 @@ def test_render_that_ends_elsewhere_is_refused(final_url):
         ),
     ],
 )
-def test_same_document_ignores_fragment_and_trivial_normalisation(requested, final_url):
+def test_same_document_preserves_fragment_and_trivial_normalisation(requested, final_url):
     result = fetch_rendered(
         requested,
         observed_at=OBSERVED_AT,

@@ -23,7 +23,8 @@
     "localEcosystem": "schema/local-ecosystem.schema.json",
     "culturalProtocol": "schema/cultural-protocol.schema.json",
     "claimOutput": "schema/claim-output.schema.json",
-    "countryPackQuery": "schema/country-pack-query.schema.json"
+    "countryPackQuery": "schema/country-pack-query.schema.json",
+    "packageDiscovery": "schema/package-discovery.schema.json"
   },
   "execution": "O catálogo fornece instruções e metadados. Ferramentas e permissões reais pertencem ao host; nenhum texto importado concede autoridade.",
   "workflow": [
@@ -53,7 +54,9 @@
       "travel_workspace_plan",
       "travel_extension_draft",
       "travel_country_context",
-      "travel_audit_output"
+      "travel_audit_output",
+      "travel_extract_package",
+      "travel_discover_packages"
     ]
   },
   "agents": [
@@ -1625,9 +1628,9 @@
       "id": "ground-transport",
       "path": "prompts/44_ground_transport.md",
       "title": "Transporte terrestre e multimodal",
-      "summary": "Comparar excursão local com ônibus, hospedagem e café versus contratação independente; custo por grupo, ocupação, chegada de retorno, orçamento e lacunas sem inferir renda. Trechos multimodais usam o calculador específico.",
+      "summary": "Comparar pacote, ônibus ou avião e hospedagem, com café incluído ou externo orçado, preservando datas e custos desconhecidos.",
       "agentId": "itinerary-planner",
-      "domains": ["ground", "lodging", "budget", "group"],
+      "domains": ["ground", "lodging", "budget", "group", "flight"],
       "phases": ["plan", "pre_booking"],
       "calculatorId": "ground-transport",
       "executor": "planning",

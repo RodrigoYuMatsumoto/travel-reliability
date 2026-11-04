@@ -217,8 +217,11 @@ export function packageArbitrage(supplied: unknown) {
   if (observation.lodging.nightsIncluded === null)
     pending.push(lodgingNights === null ? 'PACKAGE_NIGHTS_UNKNOWN' : 'LODGING_NIGHTS_NOT_STATED');
   const breakfast = observation.breakfast;
-  const breakfastDays =
-    breakfast.status === 'included' && breakfast.count !== null ? breakfast.count : lodgingNights;
+  // Hotel nights do not establish how many breakfasts the package supplies.
+  // An explicit zero remains distinct from a missing count.
+  const breakfastDays = breakfast.count;
+  if (breakfast.status === 'included' && breakfast.count === null)
+    pending.push('BREAKFAST_COUNT_UNKNOWN');
 
   const line = (
     quote: { id: string; unitMinor: number | null; currency: string },
@@ -343,7 +346,7 @@ export function packageArbitrage(supplied: unknown) {
   };
   const addOnIssues = (quote: BreakfastAddOnQuote) =>
     breakfastDays === null
-      ? ['PACKAGE_NIGHTS_UNKNOWN']
+      ? ['BREAKFAST_COUNT_UNKNOWN']
       : quote.days !== breakfastDays
         ? ['DAYS_DIFFER']
         : [];
@@ -443,6 +446,8 @@ export function packageArbitrage(supplied: unknown) {
       else if (breakfast.status === 'unknown') equivalence.push('BREAKFAST_UNKNOWN');
       else if ((board === 'with_breakfast') !== (breakfast.status === 'included'))
         equivalence.push('BOARD_DIFFERS');
+      else if (board === 'with_breakfast' && breakfast.count === null)
+        equivalence.push('BREAKFAST_COUNT_UNKNOWN');
       else if (
         board === 'with_breakfast' &&
         breakfast.count !== null &&
@@ -507,6 +512,7 @@ export function packageArbitrage(supplied: unknown) {
     scenarios,
     bestEquivalent,
     pending: pendingCodes,
+    currency: input.currency,
     final: pendingCodes.length === 0,
   };
   return {

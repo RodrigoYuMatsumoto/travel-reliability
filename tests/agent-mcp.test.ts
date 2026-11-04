@@ -167,6 +167,7 @@ describe('official MCP stdio transport', () => {
         'travel_catalog',
         'travel_check_trip',
         'travel_country_context',
+        'travel_discover_packages',
         'travel_extension_draft',
         'travel_extract_package',
         'travel_global_context',

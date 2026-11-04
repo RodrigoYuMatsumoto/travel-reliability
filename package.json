@@ -46,7 +46,8 @@
     "security:fuzz:ecosystem": "node --import tsx security/fuzz/ecosystem.ts --seed 20261031 --cases 2000 --seconds 120 && uv run --project ingest python security/fuzz/email_import.py --seed 20261031 --cases 384 --seconds 120",
     "benchmark": "node --import tsx scripts/benchmark-documentary.ts",
     "sources": "node --import tsx scripts/public-sources.ts",
-    "release:bundle": "uv run --no-project --python 3.12 python scripts/release-bundle.py"
+    "release:bundle": "uv run --no-project --python 3.12 python scripts/release-bundle.py",
+    "packages": "node --import tsx scripts/packages.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1160.0",

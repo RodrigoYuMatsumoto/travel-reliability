@@ -16,6 +16,7 @@ import { connectorRequestSchema, reconciliationSchema } from '../agent/connector
 import { documentWorkspaceInputSchema } from '../agent/document-workspace.js';
 import { extensionDraftSchema } from '../agent/extension-draft.js';
 import { operatorProfileSchema } from '../agent/operator-profile.js';
+import { packageDiscoverySchema } from '../schema/src/package-discovery.js';
 import {
   loyaltyGraphSchema,
   localEcosystemSchema,
@@ -26,6 +27,7 @@ import {
 const json = async (path: string, value: unknown) =>
   writeFile(path, JSON.stringify(value, null, 2) + '\n');
 for (const [name, schema] of Object.entries({
+  'package-discovery': packageDiscoverySchema,
   'loyalty-graph': loyaltyGraphSchema,
   'local-ecosystem': localEcosystemSchema,
   'cultural-protocol': culturalProtocolSchema,
@@ -180,6 +182,8 @@ for (const route of context.apiRoutes) {
   if (['post', 'put'].includes(method)) {
     if (path === '/v1/trips' || (method === 'put' && path === '/v1/trips/{id}'))
       body = { $ref: '#/components/schemas/TripContract' };
+    else if (path === '/v1/package-discovery')
+      body = { $ref: '#/components/schemas/package-discovery' };
     else if (path === '/v1/tools/{tool}')
       body = { anyOf: toolIds.map((id) => ({ $ref: '#/components/schemas/' + id })) };
     else {
@@ -248,7 +252,12 @@ await json('api/openapi.json', {
       productionSession: { type: 'apiKey', in: 'cookie', name: '__Host-tr_session' },
       webhookSignature: { type: 'apiKey', in: 'header', name: 'x-tr-signature' },
     },
-    schemas: { TripContract: trip, ...inputSchemas, ...planningSchemas },
+    schemas: {
+      TripContract: trip,
+      ...inputSchemas,
+      ...planningSchemas,
+      'package-discovery': packageDiscoverySchema,
+    },
   },
 });
 await context.app.close();
