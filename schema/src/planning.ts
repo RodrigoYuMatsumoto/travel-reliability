@@ -2,6 +2,7 @@
 import { localeSchema } from './locale.js';
 import { loyaltyArbitrageSchema, multimodalStitchingSchema } from './intelligence.js';
 import { groundTransportSchema } from './ground-transport.js';
+import { packageArbitrageSchema } from './package-arbitrage.js';
 export const toolIds = [
   'flex-dates',
   'airports',
@@ -15,6 +16,7 @@ export const toolIds = [
   'ground-transport',
   'loyalty-arbitrage',
   'multimodal-stitching',
+  'package-arbitrage',
 ] as const;
 export type ToolId = (typeof toolIds)[number];
 export interface Source {
@@ -314,6 +316,7 @@ export const planningSchemas: Record<ToolId, object> = {
   'ground-transport': groundTransportSchema,
   'loyalty-arbitrage': loyaltyArbitrageSchema,
   'multimodal-stitching': multimodalStitchingSchema,
+  'package-arbitrage': packageArbitrageSchema,
   'flex-dates': comparison,
   airports: comparison,
   connections: comparison,

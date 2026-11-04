@@ -96,6 +96,13 @@
           }
         }
       }
+    },
+    "bundledTours": {
+      "type": "array",
+      "maxItems": 30,
+      "items": {
+        "$ref": "#/$defs/bundledTour"
+      }
     }
   },
   "$defs": {
@@ -594,6 +601,33 @@
             "type": "string",
             "pattern": "^[A-Z]{2}$"
           }
+        },
+        "bundle": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Marks a service as a component of a bundled tour listed in bundledTours.",
+          "required": [
+            "tourId",
+            "role"
+          ],
+          "properties": {
+            "tourId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "role": {
+              "enum": [
+                "transport",
+                "lodging",
+                "breakfast",
+                "transfer",
+                "activity",
+                "fee",
+                "other"
+              ]
+            }
+          }
         }
       }
     },
@@ -626,6 +660,163 @@
             "provider_policy",
             "operational_assumption"
           ]
+        }
+      }
+    },
+    "bundledTour": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "A closed package (bundled tour) offered by an agency, kept as an observation with the result of the package-arbitrage calculator. It never confirms a booking.",
+      "required": [
+        "id",
+        "provider",
+        "sourceUrl",
+        "observedAt",
+        "observationSha256",
+        "price",
+        "comparison"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "provider": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "sourceUrl": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000,
+          "pattern": "^https://"
+        },
+        "observedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "observationSha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "price": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "amountMinor",
+            "currency",
+            "basis",
+            "qualifier"
+          ],
+          "properties": {
+            "amountMinor": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 9000000000000
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$"
+            },
+            "basis": {
+              "enum": [
+                "per_person",
+                "per_room",
+                "per_group",
+                "unknown"
+              ]
+            },
+            "qualifier": {
+              "enum": [
+                "exact",
+                "from",
+                "unknown"
+              ]
+            }
+          }
+        },
+        "comparison": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "calculator",
+            "evaluatedAt",
+            "classification",
+            "packageTotalMinor",
+            "unbundledTotalMinor",
+            "deltaMinor",
+            "receiptSha256"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "not_compared",
+                "final",
+                "pending"
+              ]
+            },
+            "calculator": {
+              "const": "package-arbitrage"
+            },
+            "evaluatedAt": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            },
+            "classification": {
+              "enum": [
+                "agency_premium",
+                "agency_discount",
+                "parity",
+                "not_computable",
+                null
+              ]
+            },
+            "packageTotalMinor": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 9000000000000
+            },
+            "unbundledTotalMinor": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 9000000000000
+            },
+            "deltaMinor": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": -9000000000000,
+              "maximum": 9000000000000
+            },
+            "receiptSha256": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
         }
       }
     }

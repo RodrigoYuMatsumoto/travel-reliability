@@ -3,14 +3,17 @@
 from __future__ import annotations
 
 import io
+import json
 import math
 import re
+import unicodedata
 import warnings
 import zipfile
 from email import policy
 from email.message import EmailMessage
 from email.parser import BytesParser
 from html import unescape
+from importlib.resources import files
 from typing import Any
 
 from defusedxml import ElementTree
@@ -27,12 +30,22 @@ MAX_MIME_PARTS = 256
 MAX_MIME_DEPTH = 32
 Image.MAX_IMAGE_PIXELS = 25_000_000
 warnings.simplefilter("error", Image.DecompressionBombWarning)
-INJECTION_MARKERS = re.compile(
-    r"ignore\s+(?:all\s+)?(?:previous|system|instru)|(?:system|developer)\s*prompt|"
-    r"(?:execute|run)\s+(?:python|shell|bash)|(?:exfiltrat|ignoreRobotsText)|"
-    r"(?:ignorar|ignore)\s+(?:as\s+)?instru[çc][õo]es",
-    re.I,
+# Canonical marker list shared with the Node API (api/src/untrusted-markers.ts is a checked copy).
+# It lives inside the package directory, so the worker image's COPY of travel_ingest carries it.
+UNTRUSTED_MARKERS: dict[str, Any] = json.loads(
+    files("travel_ingest").joinpath("untrusted_markers.json").read_text(encoding="utf-8")
 )
+INJECTION_MARKERS = re.compile(
+    "|".join(f"(?:{pattern})" for pattern in UNTRUSTED_MARKERS["patterns"]),
+    re.I if UNTRUSTED_MARKERS["caseInsensitive"] else 0,
+)
+UNTRUSTED_INSTRUCTION_WARNING: str = UNTRUSTED_MARKERS["warning"]
+
+
+def has_untrusted_instruction(text: str) -> bool:
+    """Flag instruction-like markers after the normalization the shared marker file declares."""
+    normalized = unicodedata.normalize(UNTRUSTED_MARKERS["normalization"], text)
+    return INJECTION_MARKERS.search(normalized) is not None
 
 
 class ExtractionError(ValueError):
@@ -165,8 +178,8 @@ def _text_pages(data: bytes, media_type: str, warnings: list[str]) -> list[tuple
     if len(text) > MAX_TEXT:
         raise ExtractionError("TEXT_LIMIT")
     if media_type == "text/html":
-        if INJECTION_MARKERS.search(text):
-            warnings.append("UNTRUSTED_INSTRUCTION_DETECTED")
+        if has_untrusted_instruction(text):
+            warnings.append(UNTRUSTED_INSTRUCTION_WARNING)
         text, html_warnings = visible_html_text(text)
         warnings.extend(html_warnings)
     elif media_type not in ("text/plain", "application/json"):
@@ -185,8 +198,8 @@ def extract(data: bytes, media_type: str) -> dict[str, Any]:
     for number, text, method in pages:
         if len(facts) < 30:
             facts.extend(literal_facts(text, number)[:30 - len(facts)])
-        if INJECTION_MARKERS.search(text):
-            warnings.append("UNTRUSTED_INSTRUCTION_DETECTED")
+        if has_untrusted_instruction(text):
+            warnings.append(UNTRUSTED_INSTRUCTION_WARNING)
         if re.search(r"[\u200b-\u200f\u2060\U000e0000-\U000e007f]", text):
             warnings.append("INVISIBLE_CHARACTERS_REQUIRE_REVIEW")
         for line_number, line in enumerate(text.splitlines(), 1):

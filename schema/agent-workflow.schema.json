@@ -82,7 +82,8 @@
         "border-entry-plan",
         "travel-purpose-plan",
         "loyalty-arbitrage",
-        "multimodal-stitching"
+        "multimodal-stitching",
+        "package-arbitrage"
       ]
     },
     "language": {
@@ -246,7 +247,8 @@
             "border-entry-plan",
             "travel-purpose-plan",
             "loyalty-arbitrage",
-            "multimodal-stitching"
+            "multimodal-stitching",
+            "package-arbitrage"
           ]
         },
         "suppliedFields": {

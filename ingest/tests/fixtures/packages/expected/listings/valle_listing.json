@@ -1,0 +1,20 @@
+[
+  {
+    "departureDate": null,
+    "priceFromMinor": 34567,
+    "title": "DEZEMBRO (24/12 a 27/12) Destino Sintético (UF) (03 dias/02 noites)",
+    "url": "https://valle.example.invalid/home/dezembro-destino-sintetico-p1001"
+  },
+  {
+    "departureDate": null,
+    "priceFromMinor": 45678,
+    "title": "JANEIRO (09/01 a 11/01) Outro Destino Sintético (UF) (03 dias/02 noites)",
+    "url": "https://valle.example.invalid/home/janeiro-outro-destino-sintetico-p1002"
+  },
+  {
+    "departureDate": "2027-02-13",
+    "priceFromMinor": 56789,
+    "title": "CARNAVAL 13/02/2027 Terceiro Destino Sintético",
+    "url": "https://valle.example.invalid/home/carnaval-terceiro-destino-p1003"
+  }
+]

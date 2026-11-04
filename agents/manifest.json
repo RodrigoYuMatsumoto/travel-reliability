@@ -2490,6 +2490,40 @@
         "Próxima verificação humana"
       ],
       "suggestedCapabilities": []
+    },
+    {
+      "id": "package-arbitrage",
+      "path": "prompts/69_regional_package_arbitrage.md",
+      "title": "Arbitragem de pacotes regionais",
+      "summary": "Extrair do link de uma excursão regional o destino, as datas, o modal, a hospedagem, o café e o preço publicado, e comparar com ônibus e/ou avião mais hospedagem com e sem café comprados à parte, evidenciando ágio ou deságio da agência sem inventar preços.",
+      "agentId": "itinerary-planner",
+      "domains": ["ground", "lodging", "budget"],
+      "phases": ["plan", "pre_booking"],
+      "calculatorId": "package-arbitrage",
+      "executor": "planning",
+      "requiredInputs": [
+        {
+          "id": "package_page",
+          "pt": "Link e página do pacote da agência, já obtida pelo host",
+          "en": "Agency package link and page already obtained by the host"
+        },
+        {
+          "id": "party_profile",
+          "pt": "Composição pseudônima, quartos e preço de crianças",
+          "en": "Pseudonymous party, rooms and child pricing"
+        },
+        {
+          "id": "unbundled_quotes",
+          "pt": "Transporte, hospedagem com e sem café e extras equivalentes, com fontes datadas",
+          "en": "Transport, lodging with and without breakfast and equivalent extras, with dated sources"
+        }
+      ],
+      "outputs": [
+        "Arbitragem de pacotes regionais",
+        "Ágio ou deságio por cenário, equivalência e pendências",
+        "Citações da página e fontes das cotações"
+      ],
+      "suggestedCapabilities": ["web_research"]
     }
   ]
 }

@@ -1,0 +1,20 @@
+[
+  {
+    "departureDate": "2026-12-26",
+    "priceFromMinor": 123456,
+    "title": "Réveillon em Destino Sintético (UF)",
+    "url": "https://atrativa.example.invalid/viagem.php?v=101"
+  },
+  {
+    "departureDate": "2027-02-13",
+    "priceFromMinor": 98765,
+    "title": "Carnaval em Outro Destino Sintético",
+    "url": "https://atrativa.example.invalid/viagem.php?v=102"
+  },
+  {
+    "departureDate": null,
+    "priceFromMinor": null,
+    "title": "Roteiro Sintético sem data",
+    "url": "https://atrativa.example.invalid/viagem.php?v=103"
+  }
+]

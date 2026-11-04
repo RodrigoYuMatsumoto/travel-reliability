@@ -1,0 +1,127 @@
+{
+  "boardingCities": [],
+  "breakfast": {
+    "count": 3,
+    "status": "partial"
+  },
+  "days": null,
+  "departure": {
+    "date": "2026-12-26",
+    "time": "20:00",
+    "yearStated": true
+  },
+  "destination": null,
+  "evidence": [
+    {
+      "field": "title",
+      "quote": "Réveillon em Destino Sintético (UF)"
+    },
+    {
+      "field": "departure.date",
+      "quote": "Saída: sexta-feira, 26/12/26 às 20:00"
+    },
+    {
+      "field": "departure.time",
+      "quote": "Saída: sexta-feira, 26/12/26 às 20:00"
+    },
+    {
+      "field": "returnArrival.date",
+      "quote": "Chegada: segunda-feira, 29/12/26 às 06:30"
+    },
+    {
+      "field": "returnArrival.time",
+      "quote": "Chegada: segunda-feira, 29/12/26 às 06:30"
+    },
+    {
+      "field": "lodging.name",
+      "quote": "Acomodação: Hotel Exemplo Sintético"
+    },
+    {
+      "field": "price.amountMinor",
+      "quote": "Valor à vista: R$ 1.234,56"
+    },
+    {
+      "field": "price.qualifier",
+      "quote": "Valor à vista: R$ 1.234,56"
+    },
+    {
+      "field": "price.installments",
+      "quote": "Valor à prazo: 8x de R$154,32"
+    },
+    {
+      "field": "included",
+      "quote": "INCLUSO: - Passagem Ida e Volta em Ônibus Leito Turismo +3 NOITES DE Hospedagem + 3 Café da Manhã"
+    },
+    {
+      "field": "excluded",
+      "quote": "NÃO INCLUSOS -Café da manhã do sábado - Taxa de turismo municipal - Passeios opcionais"
+    },
+    {
+      "field": "modal",
+      "quote": "Passagem Ida e Volta em Ônibus Leito Turismo"
+    },
+    {
+      "field": "breakfast.status",
+      "quote": "Café da manhã do sábado"
+    },
+    {
+      "field": "breakfast.count",
+      "quote": "3 Café da Manhã"
+    },
+    {
+      "field": "lodging.nightsIncluded",
+      "quote": "3 NOITES DE Hospedagem"
+    }
+  ],
+  "excluded": [
+    "Café da manhã do sábado",
+    "Taxa de turismo municipal",
+    "Passeios opcionais"
+  ],
+  "included": [
+    "Passagem Ida e Volta em Ônibus Leito Turismo",
+    "3 NOITES DE Hospedagem",
+    "3 Café da Manhã",
+    "Seguro viagem"
+  ],
+  "lodging": {
+    "name": "Hotel Exemplo Sintético",
+    "nightsIncluded": 3
+  },
+  "mandatoryFees": [],
+  "modal": "bus",
+  "nights": null,
+  "price": {
+    "amountMinor": 123456,
+    "basis": "unknown",
+    "currency": "BRL",
+    "installments": {
+      "amountMinor": 15432,
+      "count": 8
+    },
+    "qualifier": "exact"
+  },
+  "returnArrival": {
+    "date": "2026-12-29",
+    "time": "06:30",
+    "yearStated": true
+  },
+  "returnDeparture": {
+    "date": null,
+    "time": null,
+    "yearStated": false
+  },
+  "schemaVersion": "package-observation/1",
+  "source": {
+    "contentSha256": "c29f9e6e5948817648ee7aa89ae540a1ae684d876a18c89caf1d01351f90b3d5",
+    "observedAt": "2026-11-04T12:00:00-03:00",
+    "retrieval": "fixture",
+    "site": "atrativa",
+    "url": "https://atrativa.example.invalid/viagem.php?v=101"
+  },
+  "title": "Réveillon em Destino Sintético (UF)",
+  "warnings": [
+    "CONTACT_DATA_DROPPED",
+    "PRICE_BASIS_UNKNOWN"
+  ]
+}

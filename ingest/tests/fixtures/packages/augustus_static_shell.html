@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Agência Sintética Augustus</title>
+<script>
+  // Demonstration data shipped with the app shell. Prices are fictitious.
+  const PACOTES_DEMO = [
+    { id: 7, nome: "Pacote Demonstração Alfa", destino: "Destino Demo", saida: "15/01/2027", chegada: "19/01/2027",
+      transporte: "Ônibus", hotel: "Hotel Demo Alfa", regime: "Café da manhã", preco: "R$ 999,99", parcelas: "12x de R$ 83,33" },
+    { id: 8, nome: "Pacote Demonstração Beta", destino: "Destino Demo Beta", saida: "20/02/2027", chegada: "22/02/2027",
+      transporte: "Aéreo", hotel: "Hotel Demo Beta", regime: "Pensão completa", preco: "R$ 111,11", parcelas: "10x de R$ 11,11" }
+  ];
+  document.title = "Valor por pessoa R$ 999,99";
+</script>
+</head>
+<body>
+<div id="app"><p class="loading">Carregando pacotes...</p></div>
+<noscript><p>Ative o JavaScript para ver os pacotes.</p></noscript>
+<script src="/assets/app.js"></script>
+</body>
+</html>

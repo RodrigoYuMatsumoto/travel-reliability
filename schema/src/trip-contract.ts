@@ -28,6 +28,10 @@ export interface TripContract {
     date: string;
     reason: string;
   }[];
+  /**
+   * @maxItems 30
+   */
+  bundledTours?: BundledTour[];
 }
 export interface Traveler {
   id: string;
@@ -437,6 +441,13 @@ export interface Service {
         string,
         string
       ];
+  /**
+   * Marks a service as a component of a bundled tour listed in bundledTours.
+   */
+  bundle?: {
+    tourId: string;
+    role: "transport" | "lodging" | "breakfast" | "transfer" | "activity" | "fee" | "other";
+  };
 }
 export interface Time {
   local: string;
@@ -459,4 +470,30 @@ export interface Dependency {
   to: string;
   minimumMinutes: number;
   basis: "traveler_preference" | "provider_policy" | "operational_assumption";
+}
+/**
+ * A closed package (bundled tour) offered by an agency, kept as an observation with the result of the package-arbitrage calculator. It never confirms a booking.
+ */
+export interface BundledTour {
+  id: string;
+  provider: string;
+  sourceUrl: string | null;
+  observedAt: string;
+  observationSha256: string | null;
+  price: {
+    amountMinor: number | null;
+    currency: string;
+    basis: "per_person" | "per_room" | "per_group" | "unknown";
+    qualifier: "exact" | "from" | "unknown";
+  };
+  comparison: {
+    status: "not_compared" | "final" | "pending";
+    calculator: "package-arbitrage";
+    evaluatedAt: string | null;
+    classification: "agency_premium" | "agency_discount" | "parity" | "not_computable" | null;
+    packageTotalMinor: number | null;
+    unbundledTotalMinor: number | null;
+    deltaMinor: number | null;
+    receiptSha256: string | null;
+  };
 }

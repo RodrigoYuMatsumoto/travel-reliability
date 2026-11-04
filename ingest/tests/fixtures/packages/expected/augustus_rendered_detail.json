@@ -1,0 +1,110 @@
+{
+  "boardingCities": [],
+  "breakfast": {
+    "count": null,
+    "status": "included"
+  },
+  "days": 5,
+  "departure": {
+    "date": "2027-01-15",
+    "time": null,
+    "yearStated": true
+  },
+  "destination": "Destino Sintético",
+  "evidence": [
+    {
+      "field": "title",
+      "quote": "Pacote Destino Sintético"
+    },
+    {
+      "field": "destination",
+      "quote": "Destino: Destino Sintético"
+    },
+    {
+      "field": "days",
+      "quote": "5 dias | 4 noites"
+    },
+    {
+      "field": "nights",
+      "quote": "5 dias | 4 noites"
+    },
+    {
+      "field": "departure.date",
+      "quote": "Data de saída: 15/01/2027"
+    },
+    {
+      "field": "returnArrival.date",
+      "quote": "Data de chegada: 19/01/2027"
+    },
+    {
+      "field": "modal",
+      "quote": "Transporte: Ônibus"
+    },
+    {
+      "field": "lodging.name",
+      "quote": "Hotel: Hotel Exemplo Sintético"
+    },
+    {
+      "field": "breakfast.status",
+      "quote": "Regime: Café da manhã"
+    },
+    {
+      "field": "price.amountMinor",
+      "quote": "Valor por pessoa R$ 456,78 ou 12x de R$ 38,07"
+    },
+    {
+      "field": "price.qualifier",
+      "quote": "Valor por pessoa R$ 456,78 ou 12x de R$ 38,07"
+    },
+    {
+      "field": "price.basis",
+      "quote": "Valor por pessoa R$ 456,78 ou 12x de R$ 38,07"
+    },
+    {
+      "field": "price.installments",
+      "quote": "ou 12x de R$ 38,07"
+    }
+  ],
+  "excluded": [],
+  "included": [],
+  "lodging": {
+    "name": "Hotel Exemplo Sintético",
+    "nightsIncluded": null
+  },
+  "mandatoryFees": [],
+  "modal": "bus",
+  "nights": 4,
+  "price": {
+    "amountMinor": 45678,
+    "basis": "per_person",
+    "currency": "BRL",
+    "installments": {
+      "amountMinor": 3807,
+      "count": 12
+    },
+    "qualifier": "exact"
+  },
+  "returnArrival": {
+    "date": "2027-01-19",
+    "time": null,
+    "yearStated": true
+  },
+  "returnDeparture": {
+    "date": null,
+    "time": null,
+    "yearStated": false
+  },
+  "schemaVersion": "package-observation/1",
+  "source": {
+    "contentSha256": "a4b598c640c4d996df0cc8086a2e9f2ac7b7653a4348b4e233e5700f44d1d6ca",
+    "observedAt": "2026-11-04T12:00:00-03:00",
+    "retrieval": "rendered_dom",
+    "site": "augustus",
+    "url": "https://augustus.example.invalid/#/pacote/7"
+  },
+  "title": "Pacote Destino Sintético",
+  "warnings": [
+    "RETURN_DATE_MAY_BE_COMPUTED",
+    "YEAR_MAY_BE_SITE_ADJUSTED"
+  ]
+}

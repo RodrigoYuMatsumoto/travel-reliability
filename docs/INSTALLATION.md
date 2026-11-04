@@ -79,8 +79,8 @@ and skills. Old versioned runtimes remain available to existing sessions.
 
 Dependencies come from the locked public npm graph with lifecycle scripts disabled.
 The MCP launches Node directly, avoiding npm output on the JSON-RPC channel. Only
-ten local tools are allowed; source synchronization and workspace inventory/plans
-stay excluded. No supplier, mailbox, document root or credential is configured.
+twelve local tools are allowed; source synchronization, workspace inventory/plans and the
+package extractor (it needs the local Python worker) stay excluded. No supplier, mailbox, document root or credential is configured.
 
 `--codex-home`, `--skills-home` and `--node` support explicit local destinations;
 network paths and links are rejected. Reopen the Codex session if the host does

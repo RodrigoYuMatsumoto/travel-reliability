@@ -1260,6 +1260,869 @@
         "maxResults"
       ]
     },
+    "package-arbitrage": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "evaluatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "party": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "adults": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "children": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "childrenPayAdultPrice": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "rooms": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          "required": [
+            "adults",
+            "children",
+            "childrenPayAdultPrice",
+            "rooms"
+          ]
+        },
+        "package": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "schemaVersion": {
+              "const": "package-observation/1"
+            },
+            "source": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "format": "uri",
+                  "pattern": "^https://",
+                  "maxLength": 2048
+                },
+                "site": {
+                  "enum": [
+                    "atrativa",
+                    "niel",
+                    "valle",
+                    "augustus",
+                    "generic"
+                  ]
+                },
+                "observedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "retrieval": {
+                  "enum": [
+                    "fixture",
+                    "static_html",
+                    "rendered_dom"
+                  ]
+                },
+                "contentSha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "url",
+                "site",
+                "observedAt",
+                "retrieval",
+                "contentSha256"
+              ]
+            },
+            "title": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "destination": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "modal": {
+              "enum": [
+                "bus",
+                "air",
+                "mixed",
+                "unknown"
+              ]
+            },
+            "departure": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "date": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "time": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "yearStated": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "date",
+                "time",
+                "yearStated"
+              ]
+            },
+            "returnDeparture": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "date": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "time": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "yearStated": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "date",
+                "time",
+                "yearStated"
+              ]
+            },
+            "returnArrival": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "date": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "time": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "yearStated": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "date",
+                "time",
+                "yearStated"
+              ]
+            },
+            "days": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 60
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "nights": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 60
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "lodging": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "nightsIncluded": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 60
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "name",
+                "nightsIncluded"
+              ]
+            },
+            "breakfast": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "status": {
+                  "enum": [
+                    "included",
+                    "excluded",
+                    "partial",
+                    "unknown"
+                  ]
+                },
+                "count": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 120
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "count"
+              ]
+            },
+            "price": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "amountMinor": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "currency": {
+                  "type": "string",
+                  "pattern": "^[A-Z]{3}$"
+                },
+                "basis": {
+                  "enum": [
+                    "per_person",
+                    "per_room",
+                    "per_group",
+                    "unknown"
+                  ]
+                },
+                "qualifier": {
+                  "enum": [
+                    "exact",
+                    "from",
+                    "unknown"
+                  ]
+                },
+                "installments": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "count": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 60
+                        },
+                        "amountMinor": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "count",
+                        "amountMinor"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "amountMinor",
+                "currency",
+                "basis",
+                "qualifier",
+                "installments"
+              ]
+            },
+            "mandatoryFees": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "amountMinor": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "basis": {
+                    "enum": [
+                      "per_person",
+                      "per_group",
+                      "unknown"
+                    ]
+                  },
+                  "payment": {
+                    "enum": [
+                      "in_package",
+                      "paid_locally",
+                      "unknown"
+                    ]
+                  }
+                },
+                "required": [
+                  "label",
+                  "amountMinor",
+                  "basis",
+                  "payment"
+                ]
+              }
+            },
+            "included": {
+              "type": "array",
+              "maxItems": 40,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              }
+            },
+            "excluded": {
+              "type": "array",
+              "maxItems": 40,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              }
+            },
+            "boardingCities": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              }
+            },
+            "evidence": {
+              "type": "array",
+              "maxItems": 60,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "field": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "quote": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 240
+                  }
+                },
+                "required": [
+                  "field",
+                  "quote"
+                ]
+              }
+            },
+            "warnings": {
+              "type": "array",
+              "uniqueItems": true,
+              "maxItems": 30,
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+              }
+            }
+          },
+          "required": [
+            "schemaVersion",
+            "source",
+            "title",
+            "destination",
+            "modal",
+            "departure",
+            "returnDeparture",
+            "returnArrival",
+            "days",
+            "nights",
+            "lodging",
+            "breakfast",
+            "price",
+            "mandatoryFees",
+            "included",
+            "excluded",
+            "boardingCities",
+            "evidence",
+            "warnings"
+          ]
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+              },
+              "url": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uri",
+                    "pattern": "^https://",
+                    "maxLength": 2048
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "observedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "status": {
+                "enum": [
+                  "observed",
+                  "indicative",
+                  "declared"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "url",
+              "observedAt",
+              "status"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 100
+        },
+        "quotes": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "transport": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+                  },
+                  "mode": {
+                    "enum": [
+                      "bus",
+                      "air"
+                    ]
+                  },
+                  "coverage": {
+                    "enum": [
+                      "round_trip",
+                      "outbound",
+                      "return"
+                    ]
+                  },
+                  "unit": {
+                    "enum": [
+                      "person",
+                      "group"
+                    ]
+                  },
+                  "unitMinor": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "currency": {
+                    "type": "string",
+                    "pattern": "^[A-Z]{3}$"
+                  },
+                  "sourceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+                    },
+                    "uniqueItems": true,
+                    "maxItems": 30
+                  },
+                  "baggageIncluded": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "mode",
+                  "coverage",
+                  "unit",
+                  "unitMinor",
+                  "currency",
+                  "sourceIds",
+                  "baggageIncluded"
+                ]
+              },
+              "minItems": 0,
+              "maxItems": 30
+            },
+            "lodging": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+                  },
+                  "board": {
+                    "enum": [
+                      "breakfast",
+                      "room_only"
+                    ]
+                  },
+                  "unit": {
+                    "enum": [
+                      "room_night",
+                      "room_stay"
+                    ]
+                  },
+                  "unitMinor": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "currency": {
+                    "type": "string",
+                    "pattern": "^[A-Z]{3}$"
+                  },
+                  "nights": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 60
+                  },
+                  "rooms": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50
+                  },
+                  "sourceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+                    },
+                    "uniqueItems": true,
+                    "maxItems": 30
+                  }
+                },
+                "required": [
+                  "id",
+                  "board",
+                  "unit",
+                  "unitMinor",
+                  "currency",
+                  "nights",
+                  "rooms",
+                  "sourceIds"
+                ]
+              },
+              "minItems": 0,
+              "maxItems": 30
+            },
+            "breakfastAddOn": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+                  },
+                  "unit": {
+                    "enum": [
+                      "person_day"
+                    ]
+                  },
+                  "unitMinor": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "currency": {
+                    "type": "string",
+                    "pattern": "^[A-Z]{3}$"
+                  },
+                  "days": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 60
+                  },
+                  "sourceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+                    },
+                    "uniqueItems": true,
+                    "maxItems": 30
+                  }
+                },
+                "required": [
+                  "id",
+                  "unit",
+                  "unitMinor",
+                  "currency",
+                  "days",
+                  "sourceIds"
+                ]
+              },
+              "minItems": 0,
+              "maxItems": 10
+            },
+            "extras": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+                  },
+                  "category": {
+                    "enum": [
+                      "transfer",
+                      "tax",
+                      "activity",
+                      "meal",
+                      "other"
+                    ]
+                  },
+                  "unit": {
+                    "enum": [
+                      "person",
+                      "group"
+                    ]
+                  },
+                  "unitMinor": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "quantity": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1000
+                  },
+                  "currency": {
+                    "type": "string",
+                    "pattern": "^[A-Z]{3}$"
+                  },
+                  "sourceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+                    },
+                    "uniqueItems": true,
+                    "maxItems": 30
+                  },
+                  "mirrorsPackageInclusion": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "id",
+                  "category",
+                  "unit",
+                  "unitMinor",
+                  "quantity",
+                  "currency",
+                  "sourceIds",
+                  "mirrorsPackageInclusion"
+                ]
+              },
+              "minItems": 0,
+              "maxItems": 40
+            }
+          },
+          "required": [
+            "transport",
+            "lodging",
+            "breakfastAddOn",
+            "extras"
+          ]
+        }
+      },
+      "required": [
+        "evaluatedAt",
+        "currency",
+        "party",
+        "package",
+        "sources",
+        "quotes"
+      ]
+    },
     "flex-dates": {
       "type": "object",
       "additionalProperties": false,

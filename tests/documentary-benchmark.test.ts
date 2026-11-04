@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { benchmarkDocumentary, nearestRankPercentile } from '../scripts/benchmark-documentary.js';
+import { toolIds } from '../schema/src/planning.js';
 
 describe('documentary benchmark evidence', () => {
   it('executes all calculators, rejects missing input, and distinguishes bytes from tokens', () => {
     const report = benchmarkDocumentary(2);
-    expect(report.calculators).toHaveLength(12);
-    expect(report.executions).toBe(24);
+    // Every registered calculator is benchmarked; the count follows the registry.
+    expect(report.calculators).toHaveLength(toolIds.length);
+    expect(report.executions).toBe(toolIds.length * 2);
     expect(report.latencyMethod).toMatchObject({
       percentile: 'nearest-rank',
       samplesPerCalculator: 2,
