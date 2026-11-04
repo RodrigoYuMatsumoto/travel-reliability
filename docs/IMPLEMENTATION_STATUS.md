@@ -1,6 +1,11 @@
 # Delivery evidence - 0.5.0 candidate
 
-## Current local checkpoint - 2026-11-01
+This file preserves historical v0.5/v0.4 evidence. It is not the current catalog
+inventory or validation report. The v0.6 integration is described in the
+[hybrid checkpoint](HYBRID_INTEGRATION_2026-11-04.md); its exact-commit CI and
+review state are tracked in [PR #10](https://github.com/RodrigoYuMatsumoto/travel-reliability/pull/10).
+
+## Historical local checkpoint - 2026-11-01
 
 Version 0.5.0 corrects defects found while auditing the published v0.4.0 on a
 second Windows workstation. Contract-visible behavior changes are listed in the

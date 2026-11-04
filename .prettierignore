@@ -23,6 +23,7 @@ schema/country-pack-query.schema.json
 schema/cultural-protocol.schema.json
 schema/local-ecosystem.schema.json
 schema/loyalty-graph.schema.json
+schema/package-discovery.schema.json
 schema/src/trip-contract.ts
 examples/*.json
 prompts/*.md

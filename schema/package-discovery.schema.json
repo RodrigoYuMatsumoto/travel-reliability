@@ -4,7 +4,11 @@
   "title": "Bounded offline package discovery plan",
   "type": "object",
   "additionalProperties": false,
-  "required": ["origin", "windows", "destination"],
+  "required": [
+    "origin",
+    "windows",
+    "destination"
+  ],
   "properties": {
     "origin": {
       "type": "string",
@@ -32,7 +36,11 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "startDate", "endDate"],
+        "required": [
+          "id",
+          "startDate",
+          "endDate"
+        ],
         "properties": {
           "id": {
             "type": "string",
@@ -55,7 +63,12 @@
       "maxItems": 4,
       "uniqueItems": true,
       "items": {
-        "enum": ["atrativa", "niel", "viajantes-do-valle", "augustus"]
+        "enum": [
+          "atrativa",
+          "niel",
+          "viajantes-do-valle",
+          "augustus"
+        ]
       }
     },
     "cursor": {
