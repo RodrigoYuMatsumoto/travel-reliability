@@ -19,7 +19,7 @@ O contrato entre as duas partes é a observação `package-observation/1` (`sche
 | Augustus Turismo   | `augustusturismo.com.br`    | Aplicação em JavaScript. O HTML estático traz pacotes de demonstração e **não é evidência**: é preciso a página renderizada. O site pode calcular a data de volta e ajustar o ano das datas |
 | Outros             | qualquer outro host         | Leitura genérica e conservadora, com mais campos nulos                                                                                                                                      |
 
-Instagram não é suportado: a página exige login, e os termos de uso não permitem coleta automática.
+Instagram é apenas uma pista de descoberta. Este extrator não implementa coleta de perfis, acesso autenticado ou mensagens; conteúdo público fornecido pelo operador continua sujeito às permissões e condições aplicáveis.
 
 ## Como obter a página
 
@@ -30,7 +30,15 @@ Instagram não é suportado: a página exige login, e os termos de uso não perm
    uv run --project ingest python -m travel_ingest.packages parse --html-file pagina.html --url https://... --observed-at 2026-11-04T09:00:00-03:00 --retrieval static_html
    ```
 
-3. **Pelo operador, com rede autorizada.** O subcomando `fetch` exige `--allow-network` e só aceita os quatro hosts suportados. Ele confere o robots.txt para o agente `TravelReliabilityPackageReader` e recusa o site que declarar `Content-Signal: ai-input=no`. A renderização usa o Playwright para Python, que não é dependência obrigatória e precisa ser instalado à parte, junto com o navegador.
+3. **Renderização automática: indisponível por segurança.** O subcomando `fetch` valida `--allow-network`, host e data, mas retorna `NETWORK_RENDERER_UNAVAILABLE` **antes de DNS, robots.txt ou abertura de navegador**. Instalar Playwright não remove esse bloqueio. A leitura assistida pelo host e o comando offline `parse` continuam disponíveis.
+
+### Segurança da renderização
+
+A renderização automática anterior permitia subrequisições arbitrárias da página. Ela foi removida. Um filtro de recursos ou uma regra DNS isolada não demonstram contenção completa de redirecionamentos, requisições de escrita, protocolos não HTTP, downloads e processos de navegador. A reativação exige homologação hermética de egress: GET HTTPS na origem aprovada, DNS público fixado, certificado TLS do hostname original, navegação/produto exatos (incluindo o fragmento SPA), bloqueio de demais destinos, métodos, service workers, downloads e WebSockets, com limites globais de tempo e bytes. Enquanto isso não for demonstrado, o comportamento é falhar fechado, sem tráfego.
+
+Os callbacks Python injetados diretamente em testes precisam vir em par (`renderer` e `robots_fetcher`) e produzem `retrieval: fixture`; não são configuração exposta no CLI/MCP nem comprovação de coleta. Um fragmento diferente do solicitado é recusado como outro produto. Os testes usam exclusivamente dados sintéticos e mocks, sem acessar agências ou serviços locais.
+
+A primitiva separada de robots.txt aceita somente `/robots.txt` HTTPS dos hosts permitidos, verifica **todos** os IPs resolvidos e conecta diretamente a um IP público aprovado, mantendo hostname/SNI e validação de certificado. Não segue redirects, não descomprime respostas, limita o corpo a 512 KiB e aplica prazo total de 10 segundos com interrupção do socket. Ela preserva as regras RFC 9309 e `Content-Signal: ai-input=no`, mas **não é chamada** pelo renderer automático bloqueado. Isso constitui uma proteção implementada e testada em isolamento; não uma homologação de navegador em rede real.
 
 Para descobrir viagens parecidas, use o modo `listing` sobre a página de listagem ou catálogo da agência. Ele devolve os links, os títulos, a data de saída e o preço “a partir de”, quando estiverem visíveis.
 

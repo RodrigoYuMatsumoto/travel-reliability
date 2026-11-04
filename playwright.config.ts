@@ -6,6 +6,8 @@ const origin = `http://127.0.0.1:${port}`;
 export default defineConfig({
   testDir: './tests/browser',
   fullyParallel: false,
+  // Keep local and CI resource use predictable against the same rate-limited app.
+  workers: 2,
   retries: process.env.CI ? 1 : 0,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: { baseURL: origin, trace: 'retain-on-failure' },

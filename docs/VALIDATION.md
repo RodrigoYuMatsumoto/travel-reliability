@@ -38,3 +38,36 @@ sources, household cash exposure, source conflicts, hostile document text,
 unapproved connector/workspace reads, offline exports and derivative erasure.
 CI and focused regressions cover their coded invariants; they do not replace
 independent review or a measured human pilot.
+
+## Regional package observation mutation campaign
+
+`uv run --project ingest python security/fuzz/regional_packages.py --seed 20261104 --cases 400 --seconds 90`
+exercises the adopted `travel_ingest.packages.parse_package` implementation and
+its `package-observation/1` contract. No second regional extractor is installed.
+Four existing synthetic detail fixtures supply the parser layouts; seeded
+mutations alter principal amounts, optional prices, hidden/script text, years,
+breakfast variants, formats, source metadata and actual return dates.
+
+The campaign verifies caller/source/hash binding, evidence quotes against the
+input corpus, contract validity, absence of injected/private text, and preservation
+of unknown or non-authoritative states. An inferred date must not acquire
+`yearStated: true`. An Augustus static shell must not become a rendered offer.
+Space-grouped amounts are tested according to the adopted parser's supported
+grammar; malformed amounts cannot become a partial price. Optional prices and
+installments must not replace the principal price.
+
+The supervising process imposes a wall deadline and accepts only bounded
+metadata with complete counters. The report contains seed, counts, safe failure
+codes, campaign digest and fingerprints of parser sources and fixtures. It never
+contains HTML, prices, contacts or observations. Python socket entry points are
+denied during the campaign; this is not an OS sandbox. No real source, account,
+LLM or browser is contacted. Offline URL validation is not supplier authentication
+or the online fetcher's host policy. Native parser years, retrieval flags and
+source limitations still govern the Node calculator.
+
+Six harness controls cover determinism, false verification, unexpected output,
+incomplete/extended reports, malformed metadata and process timeout. When locked
+ingest dependencies are unavailable, their standard-library discovery reports a
+skip; the dedicated CI fuzz stage runs them through the ingest interpreter before
+the 400-case campaign. UI browser tests, fetch integration, container isolation,
+and independent B.9 review remain separate evidence.

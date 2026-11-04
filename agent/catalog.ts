@@ -120,6 +120,7 @@ export const catalogSchema = {
           'culturalProtocol',
           'claimOutput',
           'countryPackQuery',
+          'packageDiscovery',
         ].map((name) => [name, { type: 'string', pattern: '^schema/[a-z0-9-]+\\.schema\\.json$' }]),
       ),
     },
@@ -134,7 +135,7 @@ export const catalogSchema = {
         entrypoint: { const: 'scripts/agent-mcp.mjs' },
         requires: text,
         includedInManualKit: { const: false },
-        tools: list({ type: 'string', pattern: '^travel_[a-z_]+$' }, 16),
+        tools: list({ type: 'string', pattern: '^travel_[a-z_]+$' }, 20),
       },
     },
     agents: {

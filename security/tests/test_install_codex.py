@@ -124,7 +124,7 @@ class InstallerTests(unittest.TestCase):
         self.assertFalse(self.runtime.exists())
         records = list(self.codex.glob("backups/*/rollback.json"))
         self.assertTrue(records)
-        self.assertTrue(all(json.loads(path.read_text())["status"] == "RESTORED" for path in records))
+        self.assertTrue(all(json.loads(path.read_text(encoding="utf-8"))["status"] == "RESTORED" for path in records))
 
     def existing_version_sentinel(self):
         self.runtime.mkdir(parents=True)
@@ -211,7 +211,7 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(record["version"], "0.6.0")
         self.assertEqual(record["channel"], "versioned")
         self.assertEqual(record["runtimeKey"], "v0.6.0")
-        cfg = tomllib.loads(self.config.read_text())
+        cfg = tomllib.loads(self.config.read_text(encoding="utf-8"))
         self.assertEqual(len(cfg["mcp_servers"]), 19)
         previous = tomllib.loads(old_config().decode())
         for number in range(18):
@@ -340,7 +340,7 @@ class InstallerTests(unittest.TestCase):
             self.install()
         self.assertEqual(len(blocked), 1)
         self.assertTrue(blocked[0][0] == errno.EACCES or blocked[0][1] == 32)
-        cfg = tomllib.loads(self.config.read_text())
+        cfg = tomllib.loads(self.config.read_text(encoding="utf-8"))
         for number in range(18):
             self.assertEqual(cfg["mcp_servers"][f"other_{number}"]["command"], "synthetic")
         self.assertEqual(cfg["mcp_servers"]["travel-reliability"]["enabled_tools"], installer.TOOLS)
@@ -360,11 +360,11 @@ class InstallerTests(unittest.TestCase):
 
     def test_release_manifest_commit_binding_is_checked(self):
         path = self.root / "release-manifest.json"
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
         data["commit"] = "b" * 40
         path.write_text(json.dumps(data))
         sums = self.inputs[2]
-        text = sums.read_text().splitlines()
+        text = sums.read_text(encoding="utf-8").splitlines()
         text[-1] = installer.digest(path.read_bytes()) + "  release-manifest.json"
         sums.write_text("\n".join(text) + "\n")
         with self.assertRaisesRegex(ValueError, "RELEASE_SOURCE_BINDING"):
@@ -434,6 +434,7 @@ class ConfigurationTests(unittest.TestCase):
             "travel_catalog", "travel_workflow", "travel_settle_expenses", "travel_prepare_brief",
             "travel_schema", "travel_plan", "travel_check_trip", "travel_global_context",
             "travel_reconcile_bookings", "travel_extension_draft", "travel_country_context", "travel_audit_output",
+            "travel_discover_packages", "travel_extract_package",
         ])
 
     def test_old_catalog_does_not_enable_unadvertised_or_sensitive_tools(self):
@@ -442,6 +443,30 @@ class ConfigurationTests(unittest.TestCase):
         ]}}).encode()}
         self.assertEqual(installer.allowed_tools(source), ["travel_catalog", "travel_plan"])
         self.assertEqual(installer.allowed_tools({}), [])
+        legacy_ten = [
+            "travel_catalog", "travel_workflow", "travel_settle_expenses", "travel_prepare_brief",
+            "travel_schema", "travel_plan", "travel_check_trip", "travel_global_context",
+            "travel_reconcile_bookings", "travel_extension_draft",
+        ]
+        legacy_twelve = [*legacy_ten, "travel_country_context", "travel_audit_output"]
+        current_fourteen = [*legacy_twelve, "travel_discover_packages", "travel_extract_package"]
+        sensitive = [
+            "travel_sync_sources", "travel_workspace_inventory", "travel_workspace_plan",
+            "travel_document_workspace", "travel_read_source", "untrusted_tool",
+        ]
+        for advertised in [legacy_ten, legacy_twelve, current_fourteen]:
+            with self.subTest(advertised_count=len(advertised)):
+                # Catalog order and duplicates cannot expand the fixed allowlist.
+                manifest = {"optionalRuntime": {"tools": [*reversed(advertised), *sensitive, *advertised]}}
+                enabled = installer.allowed_tools({"agents/manifest.json": json.dumps(manifest).encode("utf-8")})
+                self.assertEqual(enabled, advertised)
+                self.assertEqual(len(enabled), len(set(enabled)))
+                self.assertFalse(set(enabled).intersection(sensitive))
+        for invalid in [None, "travel_plan", ["travel_plan", 1]]:
+            with self.subTest(invalid_advertised=invalid):
+                manifest = {"optionalRuntime": {"tools": invalid}}
+                with self.assertRaisesRegex(ValueError, "INVALID_ADVERTISED_TOOL_LIST"):
+                    installer.allowed_tools({"agents/manifest.json": json.dumps(manifest).encode("utf-8")})
 
     def test_appending_preserves_original_bytes_and_bom(self):
         original = b"\xef\xbb\xbf" + b'title = "synthetic"\r\n[other]\r\nvalue = 4\r\n'
@@ -524,7 +549,7 @@ class SkillSourceBindingTests(unittest.TestCase):
             }
             path = root / "release-manifest.json"
             path.write_text(json.dumps(release), encoding="utf-8")
-            lines = inputs[2].read_text().splitlines()
+            lines = inputs[2].read_text(encoding="utf-8").splitlines()
             lines[-1] = installer.digest(path.read_bytes()) + "  release-manifest.json"
             inputs[2].write_text("\n".join(lines) + "\n")
             self.assertEqual(installer.verify_inputs(*inputs)[:2], ("0.6.0", COMMIT))
@@ -544,7 +569,7 @@ class SkillSourceBindingTests(unittest.TestCase):
             manifest["files"][0]["sha256"] = installer.digest(files["SKILL.md"])
             files["PACKAGE-MANIFEST.json"] = json.dumps(manifest).encode()
             value = archive(inputs[1], [("travel-agent/" + name, body) for name, body in files.items()])
-            lines = inputs[2].read_text().splitlines()
+            lines = inputs[2].read_text(encoding="utf-8").splitlines()
             lines[1] = value + "  " + inputs[1].name
             inputs[2].write_text("\n".join(lines) + "\n")
             with self.assertRaisesRegex(ValueError, "SKILL_CONTENT_PROJECTION_REJECTED"):

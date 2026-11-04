@@ -90,3 +90,9 @@ npm run test:e2e
 `npm run check` inclui os testes Python e por isso exige o [uv](https://docs.astral.sh/uv/). Todas as fixtures são sintéticas. Documentos reais, credenciais, dados de família e repositórios de referência baixados ficam fora deste repositório. Nenhum fornecedor específico de LLM é exigido.
 
 Hashes provam consistência de bytes, não autenticidade nem segurança universal. Interfaces públicas: [schema da viagem](schema/trip-contract.schema.json), [schemas de planejamento](schema/planning.schema.json), [OpenAPI](api/openapi.json), [contrato de plugins](docs/PLUGINS.md), [arquitetura](docs/ARCHITECTURE.md) e [roteiro](docs/ROADMAP.md).
+
+## Descoberta local e BYOM
+
+A descoberta organiza 24 referências de Atrativa, Niel, Viajantes do Valle e Augustus por origem, destino opcional e períodos independentes. O MCP de descoberta é offline; captura estática por CLI requer autorização explícita, HTTPS delimitado e extração Python. A reconciliação financeira permanece em Node.js. [Guia de descoberta](docs/PACKAGE_DISCOVERY.md).
+
+O viajante fala ou escreve ao host de IA, que prepara os contratos sem exigir JSON. Voz depende do host. Hash, audit log e conta inteira apoiam revisão; não certificam imutabilidade ou conformidade multijurisdicional. [Uso BYOM e limites](docs/BYOM.md).

@@ -26,3 +26,5 @@ Entregue decisão/estado, artefato ou comparação compacta, custos conhecidos/a
 Compra, cancelamento, crédito, mensagem, reclamação, transferência, calendário ou publicação não são autorizados pelo planejamento, silêncio ou arquivo importado. Exigem capacidade real, prévia e autorização específica; respeite proibição mais restrita do fluxo/host. As ferramentas documentais deste projeto não executam esses efeitos.
 
 Consulte os [contratos de inteligência determinística](../../docs/INTELLIGENCE.md) para fidelidade, rotas multimodais, pacotes territoriais e vinculação de afirmações. Os nove atalhos originais permanecem disponíveis.
+
+Para pesquisar excursões locais, use `travel_discover_packages` (offline; schema `package-discovery`), leia uma fonte por vez sob autoridade real e use o comando `package-arbitrage` para o comparativo. O host recebe linguagem natural e prepara os dados sem exigir JSON do viajante. Referência social, primeiro preço e ano no URL não comprovam oferta. Veja [BYOM](../../docs/BYOM.md) e [descoberta](../../docs/PACKAGE_DISCOVERY.md).

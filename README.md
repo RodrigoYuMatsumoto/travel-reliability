@@ -1,6 +1,6 @@
 # Travel Reliability
 
-**An international travel agency ecosystem for your own LLM: multimodal journeys, explicit costs, traceable sources and private evidence.**
+**An international travel agency ecosystem for BYOM (Bring Your Own Model): multimodal journeys, explicit costs, traceable sources and private evidence.**
 
 [Português](README.pt-BR.md) · [Use your AI](#use-your-ai-no-installation) · [Command catalog](prompts/README.md) · [Agent audit](docs/AGENT_AUDIT.md) · [Optional local app](#optional-local-app) · [Security](SECURITY.md) · [Architecture](docs/ARCHITECTURE.md) · [Delivery evidence](docs/IMPLEMENTATION_STATUS.md)
 
@@ -11,6 +11,22 @@ Version 0.6 is a release candidate, not yet published. It adds a [verified Codex
 The agent distinguishes quoted facts, verified conditions and unknowns. It does not acquire browsing or provider access merely by reading a prompt, and the documentary tools never invent inventory or submit a transaction. Purchases, cancellations and messages require specific traveler authorization and a real authorized execution capability.
 
 There is no default country or provider. Country-specific rules remain scoped plugins, and an unsupported jurisdiction stays unverified. [International context](docs/GLOBAL_CONTEXT.md), [account/email connectors](docs/CONNECTORS.md), [document operations](docs/DOCUMENT_WORKSPACE.md) and [extension drafts](docs/EXTENSIONS.md) describe executable capabilities and operator prerequisites. No particular LLM vendor is required.
+
+## Architecture and workflows
+
+The operational interface can be ordinary text, or voice when supported by the chosen host. The host maps the request to one selected workflow; the traveler need not write JSON or load the entire catalog. The same structured record supports review of costs, source coverage, versions and evidence exports. [BYOM usage and audit boundaries](docs/BYOM.md) distinguish supported capabilities from deployment goals.
+
+- **Operational edge:** natural-language intake, progressive instructions and explicit unknowns; no model or browser capability is assumed.
+- **Audit layer:** integer financial reconciliation, versioned records and hash manifests help detect changes. They do not make storage immutable or certify legal compliance.
+- **Deterministic execution:** code checks supported inputs and calculations. An unsupported price, eligibility condition or supplier assertion remains unverified.
+- **Operator-bound workspace:** reviewed plans and explicit CLI authorization govern file changes. Document text cannot authorize actions.
+- **Scoped localization:** country rules are plugins; legal coverage and effective dates must be checked separately.
+
+## Find local packages and compare complete costs
+
+The optional [agency discovery](docs/PACKAGE_DISCOVERY.md) flow accepts an origin, independent date windows and an optional destination. Its initial regional catalog contains the supplied Atrativa, Niel, Viajantes do Valle and Augustus references. Social profiles and dynamic pages are research leads, not current quotes or supplier endorsements. The default MCP discovery is offline; the separate CLI reader requires explicit network approval and accepts fixed source IDs only.
+
+Use `ground-transport` to compare **agency package, bus + hotel and flight + hotel**, including hotel breakfast or explicitly priced outside breakfasts. Account for both transport legs, baggage, seats, airport transfers, hotel nights, taxes and mandatory extras. [The comparison contract](docs/GROUND_TRANSPORT.md) keeps incomplete costs and non-equivalent savings unresolved.
 
 ## Use your AI: no installation
 

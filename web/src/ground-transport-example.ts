@@ -199,3 +199,116 @@ export const groundTransportExample: GroundTransportInput = {
   sources: [source],
   offers: [packageOffer, independent],
 };
+
+// The legacy two-offer example above remains unchanged for compatibility.
+// These five additional documentary scenarios are entirely synthetic.
+const flightIncluded: GroundOffer = {
+  ...structuredClone(independent),
+  id: 'synthetic-flight-hotel-included',
+  provider: 'Synthetic Flights and Hotel with Breakfast',
+  transportMode: 'flight',
+  destinationTimeZone: 'America/Recife',
+  departureAt: '2030-06-13T08:00:00-03:00',
+  arrivalAtDestination: '2030-06-13T11:00:00-03:00',
+  returnDepartureAt: '2030-06-16T15:00:00-03:00',
+  returnToOriginAt: '2030-06-16T18:00:00-03:00',
+  lodging: { ...independent.lodging, externalBreakfasts: 0 },
+  coverage: {
+    ...independent.coverage,
+    outbound_bus: 'not_required',
+    return_bus: 'not_required',
+    outbound_flight: 'itemized',
+    return_flight: 'itemized',
+    flight_baggage: 'included',
+    flight_seats: 'not_required',
+    airport_transfers: 'itemized',
+  },
+  notRequiredReasons: {
+    ...independent.notRequiredReasons,
+    outbound_bus: 'This synthetic choice uses flights rather than coaches.',
+    return_bus: 'This synthetic choice uses flights rather than coaches.',
+    flight_seats: 'No separately paid seat-selection service is required in this synthetic scope.',
+  },
+  costs: [
+    ...independent.costs.map((cost) =>
+      cost.category === 'outbound_bus' || cost.category === 'return_bus'
+        ? {
+            ...cost,
+            id: cost.category === 'outbound_bus' ? 'flight-out' : 'flight-return',
+            category:
+              cost.category === 'outbound_bus'
+                ? ('outbound_flight' as const)
+                : ('return_flight' as const),
+            unitMinor: 20000,
+          }
+        : { ...cost },
+    ),
+    {
+      id: 'airport-transfers',
+      category: 'airport_transfers',
+      unit: 'group',
+      quantity: 1,
+      unitMinor: 10000,
+      currency: 'BRL',
+      treatment: 'necessary',
+      selected: true,
+      sourceIds: [source.id],
+    },
+  ],
+};
+const flightExternal: GroundOffer = {
+  ...structuredClone(flightIncluded),
+  id: 'synthetic-flight-hotel-external',
+  provider: 'Synthetic Flights and Hotel plus Separate Breakfast Budget',
+  lodging: {
+    ...flightIncluded.lodging,
+    breakfast: 'excluded',
+    includedBreakfasts: 0,
+    externalBreakfasts: 3,
+  },
+  costs: flightIncluded.costs.map((cost) =>
+    cost.category === 'lodging'
+      ? { ...cost, unitMinor: 15000 }
+      : cost.category === 'breakfast'
+        ? { ...cost, unit: 'person_breakfast', quantity: 6, unitMinor: 1500 }
+        : { ...cost },
+  ),
+};
+const incompleteFlight: GroundOffer = {
+  ...structuredClone(flightExternal),
+  id: 'synthetic-flight-unquoted-breakfast',
+  provider: 'Synthetic Flights with Unquoted External Breakfast',
+  costs: flightExternal.costs.map((cost) =>
+    cost.category === 'breakfast' ? { ...cost, unitMinor: null } : { ...cost },
+  ),
+};
+export const packageComparisonExample: GroundTransportInput = {
+  ...structuredClone(groundTransportExample),
+  travelerProfile: {
+    ...groundTransportExample.travelerProfile,
+    breakfastRequirement: 'provided_or_budgeted',
+  },
+  requiredCategories: [
+    ...groundTransportExample.requiredCategories,
+    'outbound_flight',
+    'return_flight',
+    'flight_baggage',
+    'flight_seats',
+    'airport_transfers',
+  ],
+  offers: [
+    {
+      ...structuredClone(packageOffer),
+      transportMode: 'bus',
+      lodging: { ...packageOffer.lodging, externalBreakfasts: 0 },
+    },
+    {
+      ...structuredClone(independent),
+      transportMode: 'bus',
+      lodging: { ...independent.lodging, externalBreakfasts: 0 },
+    },
+    flightIncluded,
+    flightExternal,
+    incompleteFlight,
+  ],
+};

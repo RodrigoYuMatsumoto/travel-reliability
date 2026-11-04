@@ -28,7 +28,7 @@ TOOLS = [
     "travel_catalog", "travel_workflow", "travel_settle_expenses",
     "travel_prepare_brief", "travel_schema", "travel_plan", "travel_check_trip",
     "travel_global_context", "travel_reconcile_bookings", "travel_extension_draft",
-    "travel_country_context", "travel_audit_output",
+    "travel_country_context", "travel_audit_output", "travel_discover_packages", "travel_extract_package",
 ]
 ALIASES = {
     "travel-flex-dates": "01_datas_flexiveis.md",

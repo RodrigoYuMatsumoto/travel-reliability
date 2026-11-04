@@ -137,6 +137,13 @@
                 }
               ]
             },
+            "breakfastRequirement": {
+              "enum": [
+                "hotel_included",
+                "provided_or_budgeted",
+                "not_required"
+              ]
+            },
             "roomType": {
               "enum": [
                 "private",
@@ -194,7 +201,7 @@
           "type": "array",
           "uniqueItems": true,
           "minItems": 6,
-          "maxItems": 9,
+          "maxItems": 14,
           "items": {
             "enum": [
               "outbound_bus",
@@ -205,7 +212,12 @@
               "local_transfers",
               "taxes",
               "mandatory_activities",
-              "other_meals"
+              "other_meals",
+              "outbound_flight",
+              "return_flight",
+              "flight_baggage",
+              "flight_seats",
+              "airport_transfers"
             ]
           }
         },
@@ -302,6 +314,12 @@
                   "independent"
                 ]
               },
+              "transportMode": {
+                "enum": [
+                  "bus",
+                  "flight"
+                ]
+              },
               "origin": {
                 "type": "string",
                 "minLength": 1,
@@ -311,6 +329,18 @@
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 300
+              },
+              "destinationTimeZone": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "yearConfirmed": {
                 "type": "boolean"
@@ -470,6 +500,18 @@
                       "boolean",
                       "null"
                     ]
+                  },
+                  "externalBreakfasts": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -585,6 +627,46 @@
                       "not_required",
                       "unknown"
                     ]
+                  },
+                  "outbound_flight": {
+                    "enum": [
+                      "included",
+                      "itemized",
+                      "not_required",
+                      "unknown"
+                    ]
+                  },
+                  "return_flight": {
+                    "enum": [
+                      "included",
+                      "itemized",
+                      "not_required",
+                      "unknown"
+                    ]
+                  },
+                  "flight_baggage": {
+                    "enum": [
+                      "included",
+                      "itemized",
+                      "not_required",
+                      "unknown"
+                    ]
+                  },
+                  "flight_seats": {
+                    "enum": [
+                      "included",
+                      "itemized",
+                      "not_required",
+                      "unknown"
+                    ]
+                  },
+                  "airport_transfers": {
+                    "enum": [
+                      "included",
+                      "itemized",
+                      "not_required",
+                      "unknown"
+                    ]
                   }
                 },
                 "required": [
@@ -647,6 +729,31 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 300
+                  },
+                  "outbound_flight": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  },
+                  "return_flight": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  },
+                  "flight_baggage": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  },
+                  "flight_seats": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  },
+                  "airport_transfers": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
                   }
                 },
                 "required": []
@@ -674,12 +781,18 @@
                         "local_transfers",
                         "taxes",
                         "mandatory_activities",
-                        "other_meals"
+                        "other_meals",
+                        "outbound_flight",
+                        "return_flight",
+                        "flight_baggage",
+                        "flight_seats",
+                        "airport_transfers"
                       ]
                     },
                     "unit": {
                       "enum": [
                         "person",
+                        "person_breakfast",
                         "room_night",
                         "room_stay",
                         "group"

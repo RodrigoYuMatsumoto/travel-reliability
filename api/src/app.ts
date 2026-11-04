@@ -44,6 +44,8 @@ import tripSchema from '../../schema/trip-contract.schema.json' with { type: 'js
 import { redactDocument } from './document-erasure.js';
 import { LLMExtractor, policyPrivacyReview } from './llm.js';
 import { plan } from './planning.js';
+import { discoverPackages } from '../../agent/package-discovery.js';
+import { packageDiscoverySchema } from '../../schema/src/package-discovery.js';
 import { summarizeComparisons } from './review-comparison.js';
 import { planningSchemas } from '../../schema/src/planning.js';
 import { APP_VERSION } from './version.js';
@@ -252,6 +254,8 @@ export async function buildApp(config = loadConfig(), dependencies: Dependencies
     $schema: 'https://json-schema.org/draft/2020-12/schema',
     $defs: planningSchemas,
   }));
+  app.get('/schema/package-discovery.json', async () => packageDiscoverySchema);
+  app.post('/v1/package-discovery', async (request) => discoverPackages(request.body));
   app.post<{ Params: { tool: string } }>('/v1/tools/:tool', async (request) =>
     plan(request.params.tool, request.body),
   );

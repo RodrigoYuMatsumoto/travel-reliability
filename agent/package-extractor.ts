@@ -87,12 +87,22 @@ const BOOTSTRAP = (directory: string) =>
 export function createPackageExtractor(
   options: {
     timeoutMs?: number;
+    /** Trusted operator configuration only. MCP retains the default 200 KiB boundary. */
+    maxHtmlBytes?: number;
     /** Trusted operator configuration only. Never a page, document or MCP argument. */
     interpreterPath?: string;
   } = {},
 ) {
   const timeoutMs = options.timeoutMs ?? 15000;
-  if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 60000)
+  const maxHtmlBytes = options.maxHtmlBytes ?? PACKAGE_EXTRACTOR_LIMITS.htmlBytes;
+  if (
+    !Number.isInteger(timeoutMs) ||
+    timeoutMs < 1 ||
+    timeoutMs > 60000 ||
+    !Number.isInteger(maxHtmlBytes) ||
+    maxHtmlBytes < 1 ||
+    maxHtmlBytes > 1_000_000
+  )
     throw new AppError('INVALID_PACKAGE_EXTRACTOR_CONFIG', 422);
   const directory = fileURLToPath(new URL('../ingest/', import.meta.url));
   const configuredInterpreter =
@@ -128,7 +138,7 @@ export function createPackageExtractor(
     if (
       typeof request.html !== 'string' ||
       !request.html.length ||
-      Buffer.byteLength(request.html) > PACKAGE_EXTRACTOR_LIMITS.htmlBytes
+      Buffer.byteLength(request.html) > maxHtmlBytes
     )
       throw new AppError('PACKAGE_HTML_REJECTED', 422);
     if (!/^https:\/\//.test(request.url) || request.url.length > 2048)

@@ -549,6 +549,12 @@ function App() {
                   {tab === 'planning' && (
                     <PlanningWorkbench
                       locale={locale}
+                      discover={(input) =>
+                        api('/v1/package-discovery', {
+                          method: 'POST',
+                          body: JSON.stringify(input),
+                        })
+                      }
                       execute={(tool, value) =>
                         api(`/v1/tools/${tool}`, { method: 'POST', body: JSON.stringify(value) })
                       }
