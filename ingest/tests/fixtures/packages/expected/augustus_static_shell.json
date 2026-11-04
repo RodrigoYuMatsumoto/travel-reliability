@@ -1,0 +1,54 @@
+{
+  "boardingCities": [],
+  "breakfast": {
+    "count": null,
+    "status": "unknown"
+  },
+  "days": null,
+  "departure": {
+    "date": null,
+    "time": null,
+    "yearStated": false
+  },
+  "destination": null,
+  "evidence": [],
+  "excluded": [],
+  "included": [],
+  "lodging": {
+    "name": null,
+    "nightsIncluded": null
+  },
+  "mandatoryFees": [],
+  "modal": "unknown",
+  "nights": null,
+  "price": {
+    "amountMinor": null,
+    "basis": "unknown",
+    "currency": "BRL",
+    "installments": null,
+    "qualifier": "unknown"
+  },
+  "returnArrival": {
+    "date": null,
+    "time": null,
+    "yearStated": false
+  },
+  "returnDeparture": {
+    "date": null,
+    "time": null,
+    "yearStated": false
+  },
+  "schemaVersion": "package-observation/1",
+  "source": {
+    "contentSha256": "0655c62cc7b8b50ca04abee77a2780f0c716bc6290b4567e8282b9e9d1ea7604",
+    "observedAt": "2026-11-04T12:00:00-03:00",
+    "retrieval": "static_html",
+    "site": "augustus",
+    "url": "https://augustus.example.invalid/#/pacote/7"
+  },
+  "title": null,
+  "warnings": [
+    "RENDER_REQUIRED",
+    "STATIC_SHELL_NOT_EVIDENCE"
+  ]
+}

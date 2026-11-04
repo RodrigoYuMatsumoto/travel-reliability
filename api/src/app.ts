@@ -222,13 +222,19 @@ export async function buildApp(config = loadConfig(), dependencies: Dependencies
   const validateReferences = async (w: string, trip: TripContract) => {
     for (const s of trip.services) await evidenceExists(w, trip.id, s.documentIds);
   };
-  const reportFor = async (w: string, id: string, requestText = '') => {
+  const reportFor = async (
+    w: string,
+    id: string,
+    requestText = '',
+    // The bundle passes its own single read so the manifest and the files cannot diverge.
+    documents?: Awaited<ReturnType<typeof documentsFor>>,
+  ) => {
     const trip = await tripFor(w, id),
       events = await eventsFor(w, id);
     return dossier(
       trip.data,
       assess(trip.data, events),
-      (await documentsFor(w, id)).map((d) => d.data),
+      (documents ?? (await documentsFor(w, id))).map((d) => d.data),
       events,
       requestText,
     );
@@ -711,10 +717,11 @@ export async function buildApp(config = loadConfig(), dependencies: Dependencies
       activeBundles++;
       try {
         const body = input<{ passphrase: string; request: string }>('bundle', request.body),
-          report = await reportFor(workspace(request), request.params.id, body.request);
+          documents = await documentsFor(workspace(request), request.params.id),
+          report = await reportFor(workspace(request), request.params.id, body.request, documents);
         const files = [];
         let bytes = 0;
-        for (const doc of await documentsFor(workspace(request), request.params.id)) {
+        for (const doc of documents) {
           bytes += doc.data.bytes;
           requireCondition(bytes <= 40 * 1024 * 1024, 'BUNDLE_SIZE_LIMIT', 413);
           files.push({

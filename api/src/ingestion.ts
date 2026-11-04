@@ -10,6 +10,17 @@ import type { Config } from './config.js';
 import { Vault, sha256 } from './crypto.js';
 import { AppError, requireCondition } from './errors.js';
 import { literalFacts } from './literal-facts.js';
+import { hasUntrustedInstruction, UNTRUSTED_MARKERS } from './untrusted-markers.js';
+
+/** Key and AAD scope of an original document blob, distinct from its record scope. */
+export const documentBlobScope = (workspace: string, id: string) =>
+  `${workspace}/blob/document/${id}`;
+/**
+ * Scope of blobs written before the split. It equals the document record scope, so it is only
+ * read, never written.
+ */
+export const legacyDocumentBlobScope = (workspace: string, id: string) =>
+  `${workspace}/document/${id}`;
 
 export const MEDIA_TYPES = new Set([
   'application/pdf',
@@ -39,12 +50,7 @@ export function extractText(data: Buffer): Extraction {
   requireCondition(text.length <= 150000, 'TEXT_LIMIT', 413);
   const warnings: string[] = [],
     fields: ExtractedField[] = [];
-  if (
-    /ignore\s+(all\s+)?(previous|system|instru)|system\s*prompt|execute\s+(python|shell)|exfiltrat|ignoreRobotsText/i.test(
-      text,
-    )
-  )
-    warnings.push('UNTRUSTED_INSTRUCTION_DETECTED');
+  if (hasUntrustedInstruction(text)) warnings.push(UNTRUSTED_MARKERS.warning);
   if (/[\u200b-\u200f\u2060\u{e0000}-\u{e007f}]/u.test(text))
     warnings.push('INVISIBLE_CHARACTERS_REQUIRE_REVIEW');
   for (const [index, line] of text.split(/\r?\n/).entries()) {
@@ -264,7 +270,11 @@ export class Ingestion {
             parserVersion: '1.0.0',
             derivedFrom: null,
           };
-        await this.blobs.put(workspace, id, this.vault.seal(`${workspace}/document/${id}`, bytes));
+        await this.blobs.put(
+          workspace,
+          id,
+          this.vault.seal(documentBlobScope(workspace, id), bytes),
+        );
         writtenId = id;
         await this.records.put(workspace, 'document', id, document, null);
         const job: Job = {
@@ -312,10 +322,7 @@ export class Ingestion {
       controller = new AbortController();
     this.controllers.set(controllerKey, controller);
     try {
-      const bytes = this.vault.open(
-        `${workspace}/document/${record.id}`,
-        await this.blobs.get(workspace, record.id),
-      );
+      const bytes = this.openBlob(workspace, record.id, await this.blobs.get(workspace, record.id));
       requireCondition(sha256(bytes) === record.data.sha256, 'INTEGRITY_CHECK_FAILED', 409);
       let extracted: Extraction;
       if (['text/plain', 'application/json'].includes(record.data.mediaType))
@@ -411,11 +418,21 @@ export class Ingestion {
     await this.wait();
   }
   async original(workspace: string, doc: EvidenceDocument) {
-    const plain = this.vault.open(
-      `${workspace}/document/${doc.id}`,
-      await this.blobs.get(workspace, doc.id),
-    );
+    const plain = this.openBlob(workspace, doc.id, await this.blobs.get(workspace, doc.id));
     requireCondition(sha256(plain) === doc.sha256, 'INTEGRITY_CHECK_FAILED', 409);
     return plain;
+  }
+  /**
+   * Opens a document blob under its own scope, falling back to the legacy shared scope for blobs
+   * already in durable storage. Callers still compare the plaintext with the document SHA-256,
+   * so a sealed record placed in the blob store cannot pass as the original.
+   */
+  private openBlob(workspace: string, id: string, sealed: Buffer): Buffer {
+    try {
+      return this.vault.open(documentBlobScope(workspace, id), sealed);
+    } catch (error) {
+      if (!(error instanceof AppError) || error.code !== 'INTEGRITY_CHECK_FAILED') throw error;
+      return this.vault.open(legacyDocumentBlobScope(workspace, id), sealed);
+    }
   }
 }

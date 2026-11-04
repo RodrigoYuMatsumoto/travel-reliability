@@ -39,7 +39,7 @@ describe('source-derived portable catalog', () => {
   });
   it('retains the nine calculator contracts while exposing workflows and a separate settlement executor', () => {
     expect(catalog.agents).toHaveLength(11);
-    expect(catalog.commands).toHaveLength(68);
+    expect(catalog.commands).toHaveLength(69);
     expect(catalog.defaultLanguage).toBe('host');
     expect(catalog.license).toBe('MIT');
     expect(

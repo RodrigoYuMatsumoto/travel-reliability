@@ -5,7 +5,7 @@ O pacote de instruções dispensa instalação local. O [manifesto](manifest.jso
 ## Uso manual
 
 1. Abra [TRAVEL_AGENT.md](TRAVEL_AGENT.md), escolha **Raw** e copie para as instruções do projeto ou conversa da sua IA.
-2. Selecione um papel e um [comando](../prompts/README.md) pertinentes. Carregue só esses arquivos; não anexe os 68 comandos a cada turno.
+2. Selecione um papel e um [comando](../prompts/README.md) pertinentes. Carregue só esses arquivos; não anexe os 69 comandos a cada turno.
 3. Informe objetivo, restrições mínimas e capacidades reais do host. Use pseudônimos, sem documentos, localizadores ou pagamento.
 4. Preserve a decisão do viajante. Instruções não fornecem pesquisa, inventário, arquivos privados ou autorização para agir.
 
@@ -61,23 +61,26 @@ Adapte a estrutura externa à documentação do host. O wrapper independe do dir
 | `travel_settle_expenses` | `input` conforme schema `expenses`                                      | Reconcilia despesas, pagamentos e saldos; sugestões não transferem dinheiro.                      |
 | `travel_prepare_brief`   | `input` conforme schema `brief`                                         | Identifica contexto mínimo e próximos fluxos, sem inventar oferta.                                |
 | `travel_schema`          | `name` do contrato fixo                                                 | Retorna schema local; não resolve URL remota.                                                     |
-| `travel_plan`            | `tool`: um dos nove IDs originais; `input` compatível                   | Cálculo documental determinístico; sem inventário de fornecedor.                                  |
+| `travel_plan`            | `tool`: um dos treze IDs de calculadores; `input` compatível            | Cálculo documental determinístico; sem inventário de fornecedor.                                  |
 | `travel_check_trip`      | `trip`: Trip Contract                                                   | Validação e checklists; não autentica documento nem confirma reserva.                             |
 
-Nomes de schema: `brief`, `trip`, os nove IDs de calculadores, `catalog`, `catalog-query`, `workflow`, `workflow/<id>` e `expenses`. Consulte o schema pertinente antes de construir argumentos; texto de prompt não é automaticamente JSON válido.
+Nomes de schema: `brief`, `trip`, os treze IDs de calculadores, `package-observation`, `catalog`, `catalog-query`, `workflow`, `workflow/<id>` e `expenses`. Consulte o schema pertinente antes de construir argumentos; texto de prompt não é automaticamente JSON válido.
 
 ### Funções internacionais e leitura configurada
 
-Na versão 0.6, o servidor anuncia treze ferramentas. Além das sete acima:
+Na versão 0.6, o servidor anuncia dezesseis ferramentas. Além das sete acima:
 
-| Ferramenta                   | Argumentos                            | Resultado e limite                                                                                                                                |
-| ---------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `travel_global_context`      | `input` conforme `global-context`     | Contexto territorial/multimodal, fusos, moedas e lacunas; não consulta geocodificação, câmbio ou direitos.                                        |
-| `travel_reconcile_bookings`  | `input` conforme `reconciliation`     | Compara observações normalizadas; conflito não é apagado e concordância não autentica reserva.                                                    |
-| `travel_sync_sources`        | `input` conforme `connector-request`  | Leitura dos registros autorizados pelo operador; desabilitada sem registry configurado. Não aceita credenciais nem instala adapter por argumento. |
-| `travel_workspace_inventory` | Objeto vazio `{}`                     | Inventaria somente o workspace vinculado pelo operador, sem argumento de caminho; nomes ficam ocultos por padrão.                                 |
-| `travel_workspace_plan`      | `input` conforme `document-workspace` | Dry-run com digest/validade; não salva, aplica ou aprova o plano. Preview privado e aplicação ficam no canal do operador.                         |
-| `travel_extension_draft`     | `input` conforme `extension-draft`    | Produz textos completos revisáveis; não escreve, instala, executa ou concede ferramentas.                                                         |
+| Ferramenta                   | Argumentos                               | Resultado e limite                                                                                                                                     |
+| ---------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `travel_global_context`      | `input` conforme `global-context`        | Contexto territorial/multimodal, fusos, moedas e lacunas; não consulta geocodificação, câmbio ou direitos.                                             |
+| `travel_reconcile_bookings`  | `input` conforme `reconciliation`        | Compara observações normalizadas; conflito não é apagado e concordância não autentica reserva.                                                         |
+| `travel_sync_sources`        | `input` conforme `connector-request`     | Leitura dos registros autorizados pelo operador; desabilitada sem registry configurado. Não aceita credenciais nem instala adapter por argumento.      |
+| `travel_workspace_inventory` | Objeto vazio `{}`                        | Inventaria somente o workspace vinculado pelo operador, sem argumento de caminho; nomes ficam ocultos por padrão.                                      |
+| `travel_workspace_plan`      | `input` conforme `document-workspace`    | Dry-run com digest/validade; não salva, aplica ou aprova o plano. Preview privado e aplicação ficam no canal do operador.                              |
+| `travel_extension_draft`     | `input` conforme `extension-draft`       | Produz textos completos revisáveis; não escreve, instala, executa ou concede ferramentas.                                                              |
+| `travel_country_context`     | `input` conforme `country-pack-query`    | Resolve pacotes de país, subdivisão e cidade como dados passivos; não executa regra jurídica nem consulta externa.                                     |
+| `travel_audit_output`        | `input` conforme `claim-output`          | Confere afirmações estruturadas contra recibos de cálculo deste processo e o registro de evidências; sem registro do operador, fatos ficam bloqueados. |
+| `travel_extract_package`     | `html`, `url`, `observedAt`, `retrieval` | Extrai fatos literais de uma página de pacote regional já obtida pelo host (até 200 KiB); não busca a página, não confirma preço nem reserva.          |
 
 O perfil padrão é offline. Os tools de sincronização/workspace existem para
 instalações explicitamente configuradas; colar JSON em uma conversa não cria
@@ -116,7 +119,7 @@ Esse pedido pode retornar lacunas; não é cotação ou reserva. Capacidades e c
 
 ## Recursos, prompts e compatibilidade
 
-Recursos: `travel://agent` continua sendo o coordenador; `travel://agent/<agent-id>` expõe os onze papéis; `travel://prompt/<workflow-id>` expõe os 68 comandos. Não são URLs para abrir no navegador comum nem caminhos arbitrários.
+Recursos: `travel://agent` continua sendo o coordenador; `travel://agent/<agent-id>` expõe os onze papéis; `travel://prompt/<workflow-id>` expõe os 69 comandos. Não são URLs para abrir no navegador comum nem caminhos arbitrários.
 
 Prompts MCP: alias legado `travel_agent`; papéis em `travel_role_<agent_id_com_underscores>`; comandos em `travel_<workflow_id_com_underscores>`. Exemplos: `travel_role_itinerary_planner` e `travel_compare_lodging`. Aliases não criam papéis adicionais. A interface efetivamente exibida depende do cliente.
 

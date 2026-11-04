@@ -46,6 +46,8 @@ import {
 } from './connectors.js';
 import { DocumentWorkspace, documentWorkspaceInputSchema } from './document-workspace.js';
 import { extensionDraftSchema, createExtensionDraft } from './extension-draft.js';
+import { createPackageExtractor, PACKAGE_EXTRACTOR_LIMITS } from './package-extractor.js';
+import { packageObservationSchema, packageSites } from '../schema/src/package-observation.js';
 
 export interface TravelServerOptions {
   /** Constructed by reviewed operator code; never accepted as a tool argument. */
@@ -142,6 +144,7 @@ export function createTravelServer(supplied: TravelServerOptions = {}): McpServe
     'local-ecosystem': localEcosystemSchema,
     'cultural-protocol': culturalProtocolSchema,
     'claim-output': claimOutputSchema,
+    'package-observation': packageObservationSchema,
   };
   const options = Object.freeze({
     connectors: supplied.connectors,
@@ -459,6 +462,31 @@ export function createTravelServer(supplied: TravelServerOptions = {}): McpServe
         pruneCalculations();
         return auditClaims(input, loyaltyGraph.evidence as EvidenceReference[], calculations);
       }),
+  );
+  const extractPackage = createPackageExtractor();
+  server.registerTool(
+    'travel_extract_package',
+    {
+      description: `Extract literal fields (destination, dates, bus or air, lodging, breakfast, published price, fees) from HTML of a regional agency package page that the host already obtained. Offline: no fetch, no booking, no price invention; unknown values stay null and every value carries a quote. Up to ${PACKAGE_EXTRACTOR_LIMITS.htmlBytes} bytes; remove scripts and styles except application/ld+json first. Instagram is not supported. Feed the result to travel_plan with tool package-arbitrage.`,
+      inputSchema: z.strictObject({
+        html: z.string().min(1).max(PACKAGE_EXTRACTOR_LIMITS.htmlBytes),
+        url: z
+          .string()
+          .max(2048)
+          .regex(/^https:\/\//),
+        observedAt: z.string().max(40),
+        retrieval: z.enum(['static_html', 'rendered_dom']),
+        site: z.enum(packageSites).optional(),
+        mode: z.enum(['detail', 'listing']).default('detail'),
+      }),
+      annotations,
+    },
+    ({ html, url, observedAt, retrieval, site, mode }) =>
+      asyncResult(async () => ({
+        mode,
+        extraction: 'literal_unconfirmed',
+        result: await extractPackage({ html, url, observedAt, retrieval, site, mode }),
+      })),
   );
   server.registerTool(
     'travel_check_trip',

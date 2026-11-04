@@ -1,0 +1,149 @@
+{
+  "boardingCities": [
+    "Cidade Sintética A",
+    "Cidade Sintética B"
+  ],
+  "breakfast": {
+    "count": null,
+    "status": "included"
+  },
+  "days": 4,
+  "departure": {
+    "date": "2026-12-30",
+    "time": "18:40",
+    "yearStated": true
+  },
+  "destination": "Destino Sintético",
+  "evidence": [
+    {
+      "field": "title",
+      "quote": "Destino Sintético"
+    },
+    {
+      "field": "destination",
+      "quote": "Destino Sintético - NIEL TURISMO"
+    },
+    {
+      "field": "days",
+      "quote": "Pacote Turísticos 4 dias e 3 noites"
+    },
+    {
+      "field": "nights",
+      "quote": "Pacote Turísticos 4 dias e 3 noites"
+    },
+    {
+      "field": "departure.date",
+      "quote": "Embarque 1º Cidade Sintética A Posto Sintético Norte 30/12/2026 às 18h40"
+    },
+    {
+      "field": "departure.time",
+      "quote": "Embarque 1º Cidade Sintética A Posto Sintético Norte 30/12/2026 às 18h40"
+    },
+    {
+      "field": "returnDeparture.date",
+      "quote": "Volta 03 de jan > dom"
+    },
+    {
+      "field": "boardingCities",
+      "quote": "Embarque 1º Cidade Sintética A Posto Sintético Norte 30/12/2026 às 18h40"
+    },
+    {
+      "field": "price.amountMinor",
+      "quote": "INVESTIMENTO À vista R$ 2.345,67 ou em 12x de R$ 195,47"
+    },
+    {
+      "field": "price.qualifier",
+      "quote": "INVESTIMENTO À vista R$ 2.345,67 ou em 12x de R$ 195,47"
+    },
+    {
+      "field": "price.basis",
+      "quote": "A partir de R$2.345,67 /por pessoa"
+    },
+    {
+      "field": "price.installments",
+      "quote": "R$ 2.345,67 ou em 12x de R$ 195,47"
+    },
+    {
+      "field": "included",
+      "quote": "Serviços Inclusos Transporte em ônibus leito turismo 01 Noite C/Hospedagem Café da manhã incluso Coordenador de viagem"
+    },
+    {
+      "field": "excluded",
+      "quote": "Serviços não inclusos Almoço e jantar Ingressos de atrações"
+    },
+    {
+      "field": "modal",
+      "quote": "Transporte em ônibus leito turismo"
+    },
+    {
+      "field": "breakfast.status",
+      "quote": "Café da manhã incluso"
+    },
+    {
+      "field": "lodging.nightsIncluded",
+      "quote": "01 Noite C/Hospedagem"
+    },
+    {
+      "field": "mandatoryFees[0]",
+      "quote": "TAXAS OBRIGATÓRIAS R$ 123,45 por pessoa As taxas obrigatórias são pagas em dinheiro dentro do ônibus."
+    }
+  ],
+  "excluded": [
+    "Almoço e jantar",
+    "Ingressos de atrações"
+  ],
+  "included": [
+    "Transporte em ônibus leito turismo",
+    "01 Noite C/Hospedagem",
+    "Café da manhã incluso",
+    "Coordenador de viagem"
+  ],
+  "lodging": {
+    "name": null,
+    "nightsIncluded": 1
+  },
+  "mandatoryFees": [
+    {
+      "amountMinor": 12345,
+      "basis": "per_person",
+      "label": "TAXAS OBRIGATÓRIAS",
+      "payment": "paid_locally"
+    }
+  ],
+  "modal": "bus",
+  "nights": 3,
+  "price": {
+    "amountMinor": 234567,
+    "basis": "per_person",
+    "currency": "BRL",
+    "installments": {
+      "amountMinor": 19547,
+      "count": 12
+    },
+    "qualifier": "exact"
+  },
+  "returnArrival": {
+    "date": null,
+    "time": null,
+    "yearStated": false
+  },
+  "returnDeparture": {
+    "date": "2027-01-03",
+    "time": null,
+    "yearStated": false
+  },
+  "schemaVersion": "package-observation/1",
+  "source": {
+    "contentSha256": "5bc6d3bc61304070f58fc13dd9ae0b84b67aafb7a860253d1711c15e0c708b79",
+    "observedAt": "2026-11-04T12:00:00-03:00",
+    "retrieval": "fixture",
+    "site": "niel",
+    "url": "https://niel.example.invalid/pacote/destino-sintetico"
+  },
+  "title": "Destino Sintético",
+  "warnings": [
+    "RECOMMENDATIONS_IGNORED",
+    "RETURN_DATE_ROLE_ASSUMED",
+    "YEAR_NOT_STATED"
+  ]
+}

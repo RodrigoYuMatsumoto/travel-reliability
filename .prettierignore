@@ -30,3 +30,5 @@ sbom.cdx.json
 playwright-report
 test-results
 artifacts
+# Byte-pinned extractor fixtures: their SHA-256 is part of the golden observations.
+ingest/tests/fixtures/packages

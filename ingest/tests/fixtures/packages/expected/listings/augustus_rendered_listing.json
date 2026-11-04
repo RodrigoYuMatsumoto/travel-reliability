@@ -1,0 +1,14 @@
+[
+  {
+    "departureDate": "2027-01-15",
+    "priceFromMinor": 45678,
+    "title": "Pacote Destino Sintético",
+    "url": "https://augustus.example.invalid/#/pacote/7"
+  },
+  {
+    "departureDate": "2027-02-20",
+    "priceFromMinor": 56789,
+    "title": "Pacote Outro Destino Sintético",
+    "url": "https://augustus.example.invalid/#/pacote/8"
+  }
+]

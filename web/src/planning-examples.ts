@@ -1,6 +1,7 @@
 import type { ComparisonInput, Offer, Source, ToolId } from '../../schema/src/planning';
 import { loyaltyExample, multimodalExample } from './intelligence-examples';
 import { groundTransportExample } from './ground-transport-example';
+import { packageArbitrageExample } from './package-arbitrage-example';
 const source: Source = {
   id: 'source-a',
   url: 'https://example.invalid/synthetic-offer',
@@ -94,9 +95,14 @@ export const toolLabels: Record<ToolId, [string, string]> = {
     '12 · Excursão ou ônibus + hospedagem',
     '12 · Coach package or bus + lodging',
   ],
+  'package-arbitrage': [
+    '13 · Pacote regional × compra avulsa',
+    '13 · Regional package vs unbundled purchase',
+  ],
 };
 export const planningExamples: Record<ToolId, unknown> = {
   'ground-transport': groundTransportExample,
+  'package-arbitrage': packageArbitrageExample,
   'loyalty-arbitrage': loyaltyExample,
   'multimodal-stitching': multimodalExample,
   'flex-dates': comparison,

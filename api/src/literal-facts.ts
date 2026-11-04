@@ -1,18 +1,6 @@
 import { Temporal } from '@js-temporal/polyfill';
 import type { LiteralFact } from '../../schema/src/domain.js';
-const places: Record<string, number> = {
-  BRL: 2,
-  USD: 2,
-  EUR: 2,
-  GBP: 2,
-  CAD: 2,
-  AUD: 2,
-  JPY: 0,
-  KRW: 0,
-  KWD: 3,
-  BHD: 3,
-  OMR: 3,
-};
+import { currencyMinorUnits } from '../../schema/src/currency.js';
 /** Only explicit labels and unambiguous literals; no date, currency or component defaults. */
 export function literalFacts(text: string): LiteralFact[] {
   const facts: LiteralFact[] = [];
@@ -64,8 +52,9 @@ export function literalFacts(text: string): LiteralFact[] {
       );
     if (amount) {
       const currency = amount[1]!.toUpperCase() === 'R$' ? 'BRL' : amount[1]!.toUpperCase(),
-        digits = places[currency];
-      if (digits === undefined) continue;
+        digits = currencyMinorUnits(currency);
+      // Codes outside ISO 4217 or without minor units (XAU, XXX) stay unparsed.
+      if (digits === null) continue;
       let raw = amount[2]!;
       if (currency === 'BRL' && raw.includes(',')) {
         if (!/^\d{1,3}(?:\.\d{3})*,\d{2}$|^\d+,\d{2}$/.test(raw)) continue;

@@ -38,13 +38,24 @@ export class Auth {
   private cookieName(name: string) {
     return this.config.publicUrl.startsWith('https:') ? '__Host-' + name : name;
   }
-  private cookie(reply: FastifyReply, name: string, value: string, maxAge: number) {
-    reply.setCookie(this.cookieName(name), value, {
+  /** Attributes shared by creation and removal; a browser ignores a mismatched removal. */
+  private cookieAttributes() {
+    return {
       path: '/',
       httpOnly: true,
       secure: this.config.publicUrl.startsWith('https:'),
-      sameSite: 'lax',
-      maxAge,
+      sameSite: 'lax' as const,
+    };
+  }
+  private cookie(reply: FastifyReply, name: string, value: string, maxAge: number) {
+    reply.setCookie(this.cookieName(name), value, { ...this.cookieAttributes(), maxAge });
+  }
+  /** `__Host-` cookies are only replaced, and thus removed, by a cookie that is also `Secure`. */
+  private removeCookie(reply: FastifyReply, name: string) {
+    reply.clearCookie(this.cookieName(name), {
+      ...this.cookieAttributes(),
+      maxAge: 0,
+      expires: new Date(0),
     });
   }
   async login(reply: FastifyReply, userId: string, demo: boolean): Promise<Session> {
@@ -71,7 +82,7 @@ export class Auth {
   async logout(request: FastifyRequest, reply: FastifyReply) {
     const name = this.cookieName('tr_session');
     if (request.cookies[name]) await this.cache.remove('session:' + request.cookies[name]);
-    reply.clearCookie(name, { path: '/' });
+    this.removeCookie(reply, 'tr_session');
   }
   async revokeWorkspace(workspace: string) {
     await this.cache.set('revoked:' + workspace, String(Date.now()), 3600);
@@ -204,7 +215,7 @@ export class Auth {
       requireCondition(claims?.sub, 'OIDC_SUBJECT_REQUIRED', 401);
       await this.logout(request, reply);
       await this.login(reply, this.vault.opaque(this.config.oidcIssuer + ':' + claims.sub), false);
-      reply.clearCookie(this.cookieName('tr_oidc'), { path: '/' });
+      this.removeCookie(reply, 'tr_oidc');
       return reply.redirect('/');
     });
   }

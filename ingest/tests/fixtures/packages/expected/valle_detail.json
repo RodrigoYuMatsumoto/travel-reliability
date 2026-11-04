@@ -1,0 +1,148 @@
+{
+  "boardingCities": [
+    "Cidade Sintética A (UF)",
+    "Cidade Sintética B (UF)",
+    "Cidade Sintética C (UF)"
+  ],
+  "breakfast": {
+    "count": 2,
+    "status": "included"
+  },
+  "days": 3,
+  "departure": {
+    "date": "2026-12-24",
+    "time": "22:00",
+    "yearStated": false
+  },
+  "destination": "Destino Sintético (UF)",
+  "evidence": [
+    {
+      "field": "title",
+      "quote": "DEZEMBRO (24/12 a 27/12) Destino Sintético (UF) - Ônibus + Hotel (03 dias/02 noites)"
+    },
+    {
+      "field": "days",
+      "quote": "DEZEMBRO (24/12 a 27/12) Destino Sintético (UF) - Ônibus + Hotel (03 dias/02 noites)"
+    },
+    {
+      "field": "nights",
+      "quote": "DEZEMBRO (24/12 a 27/12) Destino Sintético (UF) - Ônibus + Hotel (03 dias/02 noites)"
+    },
+    {
+      "field": "destination",
+      "quote": "Local: Destino Sintético (UF)"
+    },
+    {
+      "field": "departure.date",
+      "quote": "🚌 Saída: Quinta 24/12 as 22h"
+    },
+    {
+      "field": "departure.time",
+      "quote": "🚌 Saída: Quinta 24/12 as 22h"
+    },
+    {
+      "field": "returnDeparture.date",
+      "quote": "🚌 Retorno: Domingo 27/12 as 17h"
+    },
+    {
+      "field": "returnDeparture.time",
+      "quote": "🚌 Retorno: Domingo 27/12 as 17h"
+    },
+    {
+      "field": "returnArrival.date",
+      "quote": "🚌 Chegada: Segunda 28/12 as 03h"
+    },
+    {
+      "field": "returnArrival.time",
+      "quote": "🚌 Chegada: Segunda 28/12 as 03h"
+    },
+    {
+      "field": "price.amountMinor",
+      "quote": "Valor: R$ 345,67"
+    },
+    {
+      "field": "price.qualifier",
+      "quote": "Valor: R$ 345,67"
+    },
+    {
+      "field": "lodging.name",
+      "quote": "Hospedagem: Hotel Exemplo Sintético (apartamentos duplos e triplos)"
+    },
+    {
+      "field": "boardingCities",
+      "quote": "Locais de Embarque: Cidade Sintética A (UF) / Cidade Sintética B (UF) / Cidade Sintética C (UF)"
+    },
+    {
+      "field": "included",
+      "quote": "✅ Itens Inclusos ✔️ Transporte em ônibus de turismo ✔️ Hospedagem (03 dias / 02 noites) ✔️ 02 Cafés da Manhã ✔️ Seguro viagem"
+    },
+    {
+      "field": "excluded",
+      "quote": "❌ Itens não inclusos ✖️ Almoço e jantar"
+    },
+    {
+      "field": "modal",
+      "quote": "Transporte em ônibus de turismo"
+    },
+    {
+      "field": "breakfast.status",
+      "quote": "02 Cafés da Manhã"
+    },
+    {
+      "field": "breakfast.count",
+      "quote": "02 Cafés da Manhã"
+    },
+    {
+      "field": "lodging.nightsIncluded",
+      "quote": "Hospedagem (03 dias / 02 noites)"
+    }
+  ],
+  "excluded": [
+    "Almoço e jantar"
+  ],
+  "included": [
+    "Transporte em ônibus de turismo",
+    "Hospedagem (03 dias / 02 noites)",
+    "02 Cafés da Manhã",
+    "Seguro viagem"
+  ],
+  "lodging": {
+    "name": "Hotel Exemplo Sintético",
+    "nightsIncluded": 2
+  },
+  "mandatoryFees": [],
+  "modal": "bus",
+  "nights": 2,
+  "price": {
+    "amountMinor": 34567,
+    "basis": "unknown",
+    "currency": "BRL",
+    "installments": null,
+    "qualifier": "exact"
+  },
+  "returnArrival": {
+    "date": "2026-12-28",
+    "time": "03:00",
+    "yearStated": false
+  },
+  "returnDeparture": {
+    "date": "2026-12-27",
+    "time": "17:00",
+    "yearStated": false
+  },
+  "schemaVersion": "package-observation/1",
+  "source": {
+    "contentSha256": "8cd0d33d762f47f24a857f09987aa3fafcfbfbe471e2404709bf0e746184570a",
+    "observedAt": "2026-11-04T12:00:00-03:00",
+    "retrieval": "fixture",
+    "site": "valle",
+    "url": "https://valle.example.invalid/home/dezembro-destino-sintetico-p1001"
+  },
+  "title": "DEZEMBRO (24/12 a 27/12) Destino Sintético (UF) - Ônibus + Hotel (03 dias/02 noites)",
+  "warnings": [
+    "CONTACT_DATA_DROPPED",
+    "LODGING_MAY_CHANGE",
+    "PRICE_BASIS_UNKNOWN",
+    "YEAR_NOT_STATED"
+  ]
+}

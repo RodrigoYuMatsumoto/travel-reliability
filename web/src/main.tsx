@@ -19,6 +19,7 @@ import { EvidenceAssist } from './evidence-assist';
 import { DocumentRetention } from './document-retention';
 import { formatMinor } from './format-money';
 import { LiteralFacts } from './literal-facts';
+import { lodgingDraftDates } from './lodging-draft';
 
 type Locale = 'pt-BR' | 'en';
 type Service = TripContract['services'][number];
@@ -320,8 +321,8 @@ function App() {
       confirmationDocumentId: null,
       paymentChannel: 'unknown',
     },
-    start: { local: `${selected?.data.startDate ?? '2030-01-01'}T15:00`, timeZone: null },
-    end: { local: `${selected?.data.endDate ?? '2030-01-01'}T11:00`, timeZone: null },
+    start: { local: `${lodgingDraftDates(selected?.data).checkIn}T15:00`, timeZone: null },
+    end: { local: `${lodgingDraftDates(selected?.data).checkOut}T11:00`, timeZone: null },
     price: null,
     cancellation: { summary: null, deadline: null, documentId: null },
     baggage: null,

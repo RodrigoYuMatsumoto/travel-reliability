@@ -156,7 +156,7 @@ describe('official MCP stdio transport', () => {
       await client.close();
     }
   }, 30000);
-  it('initializes outside cwd, preserves calculators and advertises thirteen bounded tools in the offline profile', async () => {
+  it('initializes outside cwd, preserves calculators and advertises sixteen bounded tools in the offline profile', async () => {
     const { client, errors } = await connected();
     try {
       expect(client.getServerVersion()?.name).toBe('travel-reliability');
@@ -168,6 +168,7 @@ describe('official MCP stdio transport', () => {
         'travel_check_trip',
         'travel_country_context',
         'travel_extension_draft',
+        'travel_extract_package',
         'travel_global_context',
         'travel_plan',
         'travel_prepare_brief',

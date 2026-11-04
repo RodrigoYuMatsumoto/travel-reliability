@@ -2,6 +2,11 @@
 
 ## 0.6.0 - candidate, not yet released
 
+- Added Regional Package Arbitrage: an isolated Python extractor (`ingest/travel_ingest/packages`) reads literal destination, dates, bus or air, lodging, breakfast, published price and fees from Atrativa Tur, Niel Turismo, Viajantes do Valle and Augustus Turismo pages (offline parse; rendering only with `--allow-network`, robots.txt and `Content-Signal` honored; Instagram refused), an offline MCP tool `travel_extract_package`, and a thirteenth deterministic calculator `package-arbitrage` that compares the agency total with bus and/or air plus lodging with and without breakfast, reporting agency premium or discount per scenario without inventing prices or exchange rates.
+- Trip Contract: optional `bundledTours` with stored package comparisons and a per-service `bundle` tag, with referential and arithmetic checks.
+- Phase 1 README conformance fixes ([audit](docs/audits/2026-11-04-conformidade-readme.md)): strict IANA time zones (offset IDs rejected, 422), chronology checked when both zones are unknown, ISO 4217 minor units from the official list for validation, literal facts and display, rule effective dates evaluated across Brazilian time zones with `EFFECTIVE_DATE_AMBIGUOUS` review, secure `__Host-` cookie removal, offline bundle format `TRB2` (scrypt N=2^17, authenticated header parameters, one-to-one manifest check, stable errors) with read-only `TRB1`, separate key scope for original blobs with legacy read, and one canonical list of untrusted-instruction markers shared by Node and Python.
+- Compatibility: stored trips with offset time-zone IDs or unknown currency codes now fail validation with 422; offline bundles are written as `TRB2`. The README capability matrix and LLM-facing documents now state 69 commands, thirteen calculators and sixteen MCP tools, guarded by a parity test.
+
 - Activated the existing ground-transport workflow as a twelfth deterministic calculator: local coach packages versus separately purchased buses and lodging, exact return-to-origin windows, room/person units, breakfast, complete mandatory costs and explicit unknown budgets. Service levels never relax safety or accessibility.
 - Added opt-in commit-addressed candidate runtime installation so iterative testing preserves existing versioned runtimes and can roll back configuration and skills.
 

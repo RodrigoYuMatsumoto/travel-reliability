@@ -1,7 +1,7 @@
 # Catálogo internacional de comandos
 
-Catálogo 0.6, formato 3: **68 comandos e onze papéis**, com as nove calculadoras
-documentais preservadas e duas extensões determinísticas. A ampliação cobre contexto internacional, geografia,
+Catálogo 0.6 (candidato), formato 3: **69 comandos e onze papéis**, com as nove calculadoras
+documentais preservadas e quatro extensões determinísticas (excursão ou ônibus com hospedagem, fidelidade, composição multimodal e arbitragem de pacotes regionais). A ampliação cobre contexto internacional, geografia,
 história/cultura/costumes, viagens profissionais, negociação, fontes de contas,
 reconciliação, organização local e geração de extensões revisáveis.
 
@@ -10,8 +10,8 @@ carregue **um comando por vez**. Use o ID em chamadas MCP. Cada arquivo define
 uma tarefa completa; não é necessário importar todos a cada turno. O idioma da
 resposta segue a escolha do viajante ou o host, sem prioridade territorial.
 
-Pesquisa usa capacidades reais e autorizadas. `travel_plan` recebe somente um
-dos nove IDs legados e JSON conforme seu schema; o bloco humano do prompt não é
+Pesquisa usa capacidades reais e autorizadas. `travel_plan` recebe um
+dos treze IDs de calculadores (os nove originais e as quatro extensões) e JSON conforme seu schema; o bloco humano do prompt não é
 esse JSON. `expense-settlement` encaminha acerto de despesas existentes para
 `travel_settle_expenses`, separado do planejamento `group-split`.
 
