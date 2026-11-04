@@ -12,10 +12,10 @@ requested (ignoring the fragment) is refused.
 
 from __future__ import annotations
 
+import http.client
 import re
+import ssl
 import string
-import urllib.error
-import urllib.request
 from typing import Callable
 from urllib.parse import quote, urlsplit
 
@@ -193,20 +193,26 @@ def check_robots(robots_text: str | None, url: str) -> None:
 
 
 def _default_robots_fetcher(robots_url: str) -> str | None:
-    request = urllib.request.Request(robots_url, headers={"User-Agent": USER_AGENT})
-    try:
-        with urllib.request.urlopen(request, timeout=ROBOTS_TIMEOUT_S) as response:  # noqa: S310 - https only
-            if urlsplit(response.geturl()).scheme != "https":
-                raise PackageError("ROBOTS_UNAVAILABLE")
-            body = response.read(ROBOTS_MAX_BYTES + 1)
-    except urllib.error.HTTPError as error:
-        if 400 <= error.code < 500 and error.code != 429:
-            return None
-        raise PackageError("ROBOTS_UNAVAILABLE") from None
-    except (urllib.error.URLError, TimeoutError, OSError):
-        raise PackageError("ROBOTS_UNAVAILABLE") from None
-    if len(body) > ROBOTS_MAX_BYTES:
+    """GET robots.txt over a fixed HTTPS connection: no other scheme, no redirects."""
+    parts = urlsplit(robots_url)
+    if parts.scheme != "https" or not parts.hostname or parts.username or parts.password:
         raise PackageError("ROBOTS_UNAVAILABLE")
+    connection = http.client.HTTPSConnection(
+        parts.hostname, parts.port or 443, timeout=ROBOTS_TIMEOUT_S, context=ssl.create_default_context()
+    )
+    try:
+        connection.request("GET", parts.path or "/robots.txt", headers={"User-Agent": USER_AGENT})
+        response = connection.getresponse()
+        status = response.status
+        body = response.read(ROBOTS_MAX_BYTES + 1)
+    except (http.client.HTTPException, TimeoutError, OSError):
+        raise PackageError("ROBOTS_UNAVAILABLE") from None
+    finally:
+        connection.close()
+    if 400 <= status < 500 and status != 429:
+        return None  # no robots.txt: crawling is allowed
+    if status != 200 or len(body) > ROBOTS_MAX_BYTES:
+        raise PackageError("ROBOTS_UNAVAILABLE")  # redirects, 429 and 5xx are not followed
     return body.decode("utf-8-sig", "replace")
 
 

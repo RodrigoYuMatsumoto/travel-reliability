@@ -65,8 +65,40 @@ def _walk(node, depth: int = 0):
             yield from _walk(item, depth + 1)
 
 
+MAX_JSONLD_DEPTH = 64
+
+
+def _nesting_exceeds(raw: str, limit: int = MAX_JSONLD_DEPTH) -> bool:
+    """Bracket depth outside strings, scanned iteratively before json.loads.
+
+    The recursion limit of the C JSON decoder differs between platforms (a 5000-deep
+    array fails on Windows and parses on Linux), so the limit is the project's own.
+    """
+    depth, in_string, escaped = 0, False, False
+    for char in raw:
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+        elif char == '"':
+            in_string = True
+        elif char in "[{":
+            depth += 1
+            if depth > limit:
+                return True
+        elif char in "]}":
+            depth -= 1
+    return False
+
+
 def _product(doc: Document, obs: Observation) -> dict | None:
     for raw in doc.jsonld:
+        if _nesting_exceeds(raw):
+            obs.warn("JSONLD_INVALID")
+            continue
         try:
             data = json.loads(raw)
         except (ValueError, RecursionError):

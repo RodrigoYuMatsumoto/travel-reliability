@@ -60,9 +60,8 @@ def validate_observation(obs: object) -> list[str]:
         if not condition:
             errors.append(path)
 
-    if not _keys(obs, _TOP_KEYS):
+    if not isinstance(obs, dict) or not _keys(obs, _TOP_KEYS):
         return ["keys"]
-    assert isinstance(obs, dict)
     check(obs["schemaVersion"] == SCHEMA_VERSION, "schemaVersion")
     source = obs["source"]
     if _keys(source, {"url", "site", "observedAt", "retrieval", "contentSha256"}):

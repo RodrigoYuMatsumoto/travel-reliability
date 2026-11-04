@@ -15,6 +15,17 @@
         "tests/agent-operator-profile.test.ts"
       ],
       "reviewedAt": "2026-11-02"
+    },
+    {
+      "ruleId": "python.lang.security.audit.httpsconnection-detected.httpsconnection-detected",
+      "path": "ingest/travel_ingest/packages/fetch.py",
+      "line": 200,
+      "sourceSha256": "f78afd30e46af5d904b101149a944743973fdd86f164ed4f5996f584502d61da",
+      "disposition": "not_exploitable_in_reviewed_scope",
+      "reasonCode": "FIXED_HTTPS_DEFAULT_CONTEXT_NO_REDIRECTS",
+      "evidence": "robots.txt is fetched only after the operator passes allow_network and the host is one of four supported agencies; the URL is rebuilt from the validated https host, ssl.create_default_context() verifies certificates and hostnames, redirects are not followed, the body is capped and no page content selects the target.",
+      "tests": ["ingest/tests/test_packages_fetch.py", "ingest/tests/test_packages_regressions.py"],
+      "reviewedAt": "2026-11-04"
     }
   ]
 }

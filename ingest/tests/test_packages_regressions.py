@@ -290,3 +290,14 @@ def test_valle_return_and_arrival_follow_the_departure():
     assert result["departure"]["date"] == "2026-01-10"
     assert result["returnDeparture"]["date"] == "2026-01-12"
     assert result["returnArrival"]["date"] == "2026-01-13"
+
+
+def test_jsonld_depth_limit_is_the_same_on_every_platform():
+    from travel_ingest.packages import valle
+
+    shallow = "[" * 10 + "]" * 10
+    deep = "[" * (valle.MAX_JSONLD_DEPTH + 1) + "]" * (valle.MAX_JSONLD_DEPTH + 1)
+    assert valle._nesting_exceeds(shallow) is False
+    assert valle._nesting_exceeds(deep) is True
+    # Brackets inside strings do not count.
+    assert valle._nesting_exceeds('{"name": "' + "[" * 500 + '"}') is False

@@ -20,7 +20,7 @@ def no_network(monkeypatch):
         raise AssertionError("network access attempted in a test")
 
     monkeypatch.setattr(urllib.request, "urlopen", refuse)
-    monkeypatch.setattr(fetch_module.urllib.request, "urlopen", refuse)
+    monkeypatch.setattr(fetch_module.http.client, "HTTPSConnection", refuse)
 
 
 class FakeRenderer:
@@ -336,24 +336,65 @@ def test_bom_before_content_signal_still_refuses():
     )
 
 
+class FakeConnection:
+    """Stands in for http.client.HTTPSConnection; records the request, never opens a socket."""
+
+    status = 200
+    body = (BOM + "User-agent: *" + chr(10) + "Disallow: /").encode("utf-8")
+    requests: list = []
+
+    def __init__(self, host, port, timeout, context):
+        FakeConnection.requests.append((host, port))
+
+    def request(self, method, path, headers):
+        FakeConnection.requests.append((method, path, headers["User-Agent"]))
+
+    def getresponse(self):
+        connection = self
+
+        class Response:
+            status = connection.status
+
+            def read(self, limit):
+                return connection.body[:limit]
+
+        return Response()
+
+    def close(self):
+        pass
+
+
 def test_default_robots_fetcher_decodes_utf8_sig(monkeypatch):
-    class Response:
-        def __enter__(self):
-            return self
-
-        def __exit__(self, *exc):
-            return False
-
-        def geturl(self):
-            return "https://www.atrativatur.com.br/robots.txt"
-
-        def read(self, limit):
-            return (BOM + "User-agent: *\nDisallow: /").encode("utf-8")
-
-    monkeypatch.setattr(fetch_module.urllib.request, "urlopen", lambda *args, **kwargs: Response())
+    FakeConnection.requests = []
+    monkeypatch.setattr(fetch_module.http.client, "HTTPSConnection", FakeConnection)
     text = fetch_module._default_robots_fetcher("https://www.atrativatur.com.br/robots.txt")
     assert not text.startswith(BOM)
     assert fetch_module.robots_allows(text, URL) is False
+    assert FakeConnection.requests[0] == ("www.atrativatur.com.br", 443)
+    assert FakeConnection.requests[1] == ("GET", "/robots.txt", USER_AGENT)
+
+
+@pytest.mark.parametrize(
+    "status,expected",
+    [(404, None), (301, "ROBOTS_UNAVAILABLE"), (429, "ROBOTS_UNAVAILABLE"), (503, "ROBOTS_UNAVAILABLE")],
+)
+def test_default_robots_fetcher_status_handling(monkeypatch, status, expected):
+    class Fake(FakeConnection):
+        pass
+
+    Fake.status = status
+    monkeypatch.setattr(fetch_module.http.client, "HTTPSConnection", Fake)
+    if expected is None:
+        assert fetch_module._default_robots_fetcher("https://www.atrativatur.com.br/robots.txt") is None
+    else:
+        with pytest.raises(PackageError) as caught:
+            fetch_module._default_robots_fetcher("https://www.atrativatur.com.br/robots.txt")
+        assert caught.value.code == expected
+
+
+def test_default_robots_fetcher_refuses_other_schemes():
+    with pytest.raises(PackageError):
+        fetch_module._default_robots_fetcher("file:///etc/robots.txt")
 
 
 # --- D6: redirects ----------------------------------------------------------------------------
