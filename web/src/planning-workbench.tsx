@@ -19,7 +19,11 @@ export function PlanningWorkbench({
     [result, setResult] = useState(''),
     [error, setError] = useState(''),
     [busy, setBusy] = useState(false),
-    [stalePreparedDraft, setStalePreparedDraft] = useState(false);
+    [stalePreparedDraft, setStalePreparedDraft] = useState(false),
+    // Editing a prepared draft makes the data the user's own: stale criteria then
+    // only warn, so analysis never requires discarding what was typed.
+    [draftEdited, setDraftEdited] = useState(false);
+  const blockedByStaleDraft = stalePreparedDraft && !draftEdited;
   const generation = useRef(0);
   const running = useRef(false);
   const preparedFromDiscovery = useRef(false);
@@ -33,6 +37,7 @@ export function PlanningWorkbench({
     invalidateResult();
     preparedFromDiscovery.current = false;
     setStalePreparedDraft(false);
+    setDraftEdited(false);
     setTool(id);
     setText(JSON.stringify(planningExamples[id], null, 2));
     setResult('');
@@ -45,8 +50,11 @@ export function PlanningWorkbench({
         discover={discover}
         disabled={busy}
         onCriteriaChange={() => {
+          // Only a draft prepared from discovery depends on its criteria. Another tool's
+          // inputs and result are unrelated to the search and stay as they are.
+          if (!preparedFromDiscovery.current) return;
           invalidateResult();
-          if (preparedFromDiscovery.current) setStalePreparedDraft(true);
+          setStalePreparedDraft(true);
         }}
         prepare={(input, source, windowIndex, timeZone) => {
           if (running.current) return;
@@ -55,6 +63,7 @@ export function PlanningWorkbench({
             invalidateResult();
             preparedFromDiscovery.current = true;
             setStalePreparedDraft(false);
+            setDraftEdited(false);
             setTool('ground-transport');
             setText(JSON.stringify(draft, null, 2));
             setResult('');
@@ -95,9 +104,13 @@ export function PlanningWorkbench({
         </details>
         {stalePreparedDraft && (
           <p role="status">
-            {pt
-              ? 'Os critérios da pesquisa mudaram. Os dados anteriores foram preservados; prepare outra comparação para analisar as novas condições.'
-              : 'Search criteria changed. Previous inputs have been preserved; prepare another comparison to analyze the new conditions.'}
+            {draftEdited
+              ? pt
+                ? 'Os critérios da pesquisa mudaram depois da edição. A análise usa os dados abaixo como estão, não os novos critérios.'
+                : 'Search criteria changed after editing. Analysis uses the inputs below as they are, not the new criteria.'
+              : pt
+                ? 'Os critérios da pesquisa mudaram. Os dados anteriores foram preservados; prepare outra comparação para as novas condições ou edite os dados abaixo para analisá-los como estão.'
+                : 'Search criteria changed. Previous inputs have been preserved; prepare another comparison for the new conditions or edit the inputs below to analyze them as they are.'}
           </p>
         )}
         <label className="field">
@@ -107,6 +120,7 @@ export function PlanningWorkbench({
             value={text}
             onChange={(e) => {
               invalidateResult();
+              setDraftEdited(true);
               setText(e.target.value);
             }}
             spellCheck={false}
@@ -117,9 +131,9 @@ export function PlanningWorkbench({
         <div className="button-row">
           <button
             className="primary"
-            disabled={busy || stalePreparedDraft}
+            disabled={busy || blockedByStaleDraft}
             onClick={async () => {
-              if (running.current || stalePreparedDraft) return;
+              if (running.current || blockedByStaleDraft) return;
               running.current = true;
               const requestGeneration = ++generation.current;
               setBusy(true);

@@ -215,6 +215,18 @@ export function packageSourceById(id: unknown): Readonly<PackageSourceReference>
   return found;
 }
 
+/**
+ * What a compiled reference needs before captureRegionalPackage can read it. Only a static
+ * package detail page is captured over the network; a catalog needs a detail link and a
+ * social or rendered page needs assisted reading.
+ */
+export function packageCaptureReadiness(source: Readonly<PackageSourceReference>) {
+  if (source.fetchUrl === null) return 'assisted_source_required' as const;
+  return source.kind === 'package'
+    ? ('explicit_network_approval_required' as const)
+    : ('package_detail_source_required' as const);
+}
+
 export function packageSourceUrl(id: unknown): URL {
   const source = packageSourceById(id);
   if (!source.fetchUrl) throw new AppError('PACKAGE_ASSISTED_SOURCE_REQUIRED', 422);

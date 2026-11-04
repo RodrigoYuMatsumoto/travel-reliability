@@ -239,6 +239,26 @@ describe('regional package arbitrage', () => {
     expect(result.final).toBe(true);
   });
 
+  it('prices the with-breakfast alternative of a package without breakfast from its lodging nights', () => {
+    for (const count of [null, 0]) {
+      const value = load();
+      value.package.breakfast = { status: 'excluded', count };
+      value.quotes.lodging = value.quotes.lodging.filter((quote) => quote.board === 'room_only');
+      const result = run(value);
+      const row = scenario(result, 'bus:with_breakfast');
+      expect(row, String(count)).toMatchObject({
+        status: 'computed',
+        chosen: { lodgingId: 'hotel-room-only', breakfastAddOnId: 'breakfast-separate' },
+        breakfastCount: 2,
+        equivalent: false,
+      });
+      expect(row.equivalenceReasons).toContain('BOARD_DIFFERS');
+      expect(row.ignoredQuotes.some((quote) => quote.quoteId === 'breakfast-separate')).toBe(false);
+      expect(result.pending).not.toContain('BREAKFAST_COUNT_UNKNOWN');
+      expect(result.bestEquivalent).toBe('bus:room_only');
+    }
+  });
+
   it('never adds an external breakfast charge to the selected breakfast-included hotel rate', () => {
     const value = load();
     value.quotes.breakfastAddOn[0]!.unitMinor = 100000;

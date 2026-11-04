@@ -39,6 +39,29 @@ describe('public package discovery integration', () => {
     ).toContain('2027-01-03');
   });
 
+  it('scopes each draft alternative to its own mode instead of leaving the other mode unknown', () => {
+    const input = query();
+    const source = discoverPackages(input).items.find((row) => row.kind === 'package')!;
+    const draft = createPackageComparisonDraft(input, source, 0, 'America/Recife');
+    for (const offer of draft.offers) {
+      const unused =
+        offer.transportMode === 'flight'
+          ? ['outbound_bus', 'return_bus']
+          : ['outbound_flight', 'return_flight', 'flight_baggage', 'flight_seats'];
+      for (const category of unused) {
+        expect(offer.coverage[category as keyof typeof offer.coverage], offer.id).toBe(
+          'not_required',
+        );
+        expect(offer.costs.some((cost) => cost.category === category)).toBe(false);
+      }
+    }
+    for (const row of groundTransport(draft).rows)
+      expect(
+        row.pending.filter((reason) => reason.startsWith('TRANSPORT_MODE_')),
+        row.id,
+      ).toEqual([]);
+  });
+
   it('rejects an unsafe link instead of turning it into a draft source', () => {
     const source = discoverPackages(query()).items[0]!;
     expect(() =>

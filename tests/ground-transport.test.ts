@@ -290,18 +290,21 @@ describe('bus or flight packages and breakfast-equivalent comparisons', () => {
       'flight',
     ]);
     expect(rows.map((row) => row.finalTotalMinor)).toEqual([160000, 150000, 180000, 174000, null]);
-    expect(rows.map((row) => row.difference.savingsMinor)).toEqual([
-      null,
-      10000,
-      -20000,
-      -14000,
-      null,
+    // Flights against the coach package are nominal differences, never savings.
+    expect(rows.map((row) => row.difference.savingsMinor)).toEqual([null, 10000, null, null, null]);
+    expect(rows.slice(2).map((row) => row.difference.reason)).toEqual([
+      'TRANSPORT_MODE_DIFFERS',
+      'TRANSPORT_MODE_DIFFERS',
+      'TRANSPORT_MODE_DIFFERS',
     ]);
     expect(rows[2]!.lineItems.some((line) => line.category === 'outbound_flight')).toBe(true);
     expect(rows[2]!.lineItems.some((line) => line.category === 'outbound_bus')).toBe(false);
   });
   it('equates hotel-included and explicitly priced external breakfasts only under the declared policy', () => {
-    const result = groundTransport(comparison());
+    const value = comparison();
+    // Same mode on both sides, so only the breakfast arrangement differs.
+    value.baselineId = 'synthetic-flight-hotel-included';
+    const result = groundTransport(value);
     expect(result.rows[0]!.providedBreakfasts).toBe(3);
     expect(result.rows[3]!.providedBreakfasts).toBe(3);
     expect(result.rows[3]!.hotelBreakfast).toBe('excluded');
@@ -309,7 +312,7 @@ describe('bus or flight packages and breakfast-equivalent comparisons', () => {
     expect(
       result.rows[3]!.lineItems.find((line) => line.category === 'breakfast')!.totalMinor,
     ).toBe(9000);
-    expect(result.rows[3]!.difference.savingsMinor).toBe(-14000);
+    expect(result.rows[3]!.difference.savingsMinor).toBe(6000);
   });
   it('does not use separately budgeted breakfast to satisfy a hotel-included requirement', () => {
     const value = comparison();
@@ -490,6 +493,47 @@ describe('bus or flight packages and breakfast-equivalent comparisons', () => {
     expect(row.finalTotalMinor).toBe(180000);
     flight.destinationTimeZone = 'America/Recife';
     expect(groundTransport(value).rows[0]!.pending).toContain('LODGING_BEFORE_ARRIVAL');
+  });
+  it('treats a rate declared without breakfast as zero hotel breakfasts, not as unconfirmed', () => {
+    const value = comparison();
+    value.offers[3]!.lodging.includedBreakfasts = null;
+    const row = groundTransport(value).rows[3]!;
+    expect(row.pending).not.toContain('BREAKFAST_UNCONFIRMED');
+    expect(row).toMatchObject({
+      hotelBreakfasts: 0,
+      providedBreakfasts: 3,
+      finalTotalMinor: 174000,
+    });
+    value.travelerProfile.breakfastRequirement = 'hotel_included';
+    const strict = groundTransport(value).rows[3]!;
+    expect(strict.rejected).toContain('INSUFFICIENT_INCLUDED_BREAKFASTS');
+    expect(strict.pending).not.toContain('BREAKFAST_UNCONFIRMED');
+  });
+  it('accepts only IANA names for the window and destination zones, as the trip contract does', () => {
+    for (const zone of ['-03:00', '+0000', 'america/recife', '2030-06-13T08:00:00-03:00']) {
+      const destination = comparison();
+      destination.offers[2]!.destinationTimeZone = zone;
+      expect(() => groundTransport(destination), zone).toThrow(
+        'GROUND_DESTINATION_TIME_ZONE_REJECTED',
+      );
+      const window = comparison();
+      window.requestedWindow.timeZone = zone;
+      expect(() => groundTransport(window), zone).toThrow('GROUND_TIME_ZONE_REJECTED');
+    }
+  });
+  it('flags the coach fallback to the window zone instead of applying it silently', () => {
+    const value = comparison();
+    value.offers[1]!.destinationTimeZone = null;
+    expect(groundTransport(value).rows[1]!.warnings).toContain(
+      'DESTINATION_TIME_ZONE_ASSUMED_FROM_WINDOW',
+    );
+    expect(groundTransport(value).rows[1]!.pending).not.toContain(
+      'DESTINATION_TIME_ZONE_UNCONFIRMED',
+    );
+    value.offers[1]!.destinationTimeZone = 'America/Recife';
+    expect(groundTransport(value).rows[1]!.warnings).not.toContain(
+      'DESTINATION_TIME_ZONE_ASSUMED_FROM_WINDOW',
+    );
   });
 });
 
