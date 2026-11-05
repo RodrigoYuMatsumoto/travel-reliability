@@ -3,6 +3,7 @@ import { EventEmitter } from 'node:events';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { captureRegionalPackage } from '../agent/package-capture.js';
+import { packageCaptureReadiness, packageReferenceCatalog } from '../agent/package-sources.js';
 import type { PackageExtractionRequest } from '../agent/package-extractor.js';
 import type { PackageObservation } from '../schema/src/package-observation.js';
 
@@ -73,6 +74,49 @@ describe('allowlisted HTTP to the adopted Python package extractor', () => {
     expect(transport).not.toHaveBeenCalled();
     expect(io.lookup).not.toHaveBeenCalled();
     expect(io.request).not.toHaveBeenCalled();
+  });
+
+  it('plans network approval only for references the capture actually reads', async () => {
+    for (const source of packageReferenceCatalog) {
+      const transport = vi.fn(async () => {
+        throw new Error('PACKAGE_TRANSPORT_FAILED');
+      });
+      const attempt = captureRegionalPackage(
+        { sourceId: source.id },
+        { allowNetwork: true },
+        vi.fn(),
+        transport,
+      );
+      const readiness = packageCaptureReadiness(source);
+      if (readiness === 'explicit_network_approval_required') {
+        await expect(attempt, source.id).rejects.toThrow('TRANSPORT_FAILED');
+        expect(transport, source.id).toHaveBeenCalledTimes(1);
+      } else {
+        await expect(attempt, source.id).rejects.toThrow(
+          readiness === 'package_detail_source_required'
+            ? 'PACKAGE_DETAIL_SOURCE_REQUIRED'
+            : 'PACKAGE_ASSISTED_SOURCE_REQUIRED',
+        );
+        expect(transport, source.id).not.toHaveBeenCalled();
+      }
+    }
+  });
+
+  it('never reads accessor-backed input before schema validation', async () => {
+    let count = 0;
+    const input = Object.defineProperty({}, 'sourceId', {
+      enumerable: true,
+      get() {
+        count++;
+        return 'atrativa-1823';
+      },
+    });
+    const transport = vi.fn();
+    await expect(
+      captureRegionalPackage(input, { allowNetwork: true }, vi.fn(), transport),
+    ).rejects.toThrow();
+    expect(count).toBe(0);
+    expect(transport).not.toHaveBeenCalled();
   });
 
   it('preserves observedAt and separates original byte hash from the UTF-8 extraction hash', async () => {

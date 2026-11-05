@@ -9,6 +9,7 @@ import {
   type GroundOffer,
   type GroundSource,
 } from '../../schema/src/ground-transport.js';
+import { isIanaTimeZone } from '../../schema/src/time-zone.js';
 import { AppError, requireCondition } from './errors.js';
 
 function instant(value: string): number {
@@ -46,11 +47,7 @@ export function groundTransport(supplied: unknown) {
     from = instant(window.earliestDepartureAt),
     until = instant(window.latestReturnAt);
   requireCondition(from < until, 'GROUND_WINDOW_REJECTED', 422);
-  try {
-    Temporal.Instant.from(window.earliestDepartureAt).toZonedDateTimeISO(window.timeZone);
-  } catch {
-    requireCondition(false, 'GROUND_TIME_ZONE_REJECTED', 422);
-  }
+  requireCondition(isIanaTimeZone(window.timeZone), 'GROUND_TIME_ZONE_REJECTED', 422);
   unique(input.sources.map((source) => source.id));
   unique(input.offers.map((offer) => offer.id));
   requireCondition(
@@ -124,13 +121,15 @@ export function groundTransport(supplied: unknown) {
     const pending: string[] = [],
       rejected: string[] = [],
       warnings: string[] = [];
-    const destinationTimeZone = offer.destinationTimeZone ?? window.timeZone;
-    if (transportMode === 'flight' && !offer.destinationTimeZone)
-      pending.push('DESTINATION_TIME_ZONE_UNCONFIRMED');
-    try {
-      Temporal.Instant.from(window.earliestDepartureAt).toZonedDateTimeISO(destinationTimeZone);
-    } catch {
+    const declaredDestinationTimeZone = offer.destinationTimeZone ?? null;
+    if (declaredDestinationTimeZone !== null && !isIanaTimeZone(declaredDestinationTimeZone))
       throw new AppError('GROUND_DESTINATION_TIME_ZONE_REJECTED', 422);
+    const destinationTimeZone = declaredDestinationTimeZone ?? window.timeZone;
+    // A flight usually changes zone, so its hotel dates stay pending without one. A coach
+    // keeps the legacy fallback to the window zone, but says so: it can cross zones too.
+    if (declaredDestinationTimeZone === null) {
+      if (transportMode === 'flight') pending.push('DESTINATION_TIME_ZONE_UNCONFIRMED');
+      else warnings.push('DESTINATION_TIME_ZONE_ASSUMED_FROM_WINDOW');
     }
     unique(offer.costs.map((cost) => cost.id));
     if (normalized(offer.origin) !== normalized(window.origin)) rejected.push('ORIGIN_MISMATCH');
@@ -244,18 +243,17 @@ export function groundTransport(supplied: unknown) {
       profile.minimumBreakfasts > 0 &&
       breakfastRequirement === 'hotel_included'
     ) {
-      if (lodging.breakfast === 'unknown' || lodging.includedBreakfasts === null)
+      // A rate declared without breakfast supplies zero hotel breakfasts; only an
+      // unknown rate or an included rate without a count remains unconfirmed.
+      if (lodging.breakfast === 'unknown' || hotelBreakfasts === null)
         pending.push('BREAKFAST_UNCONFIRMED');
-      else if (
-        lodging.breakfast !== 'included' ||
-        lodging.includedBreakfasts < profile.minimumBreakfasts
-      )
+      else if (lodging.breakfast !== 'included' || hotelBreakfasts < profile.minimumBreakfasts)
         rejected.push('INSUFFICIENT_INCLUDED_BREAKFASTS');
     }
     if (breakfastRequirement === 'provided_or_budgeted' && externalBreakfasts === null)
       pending.push('EXTERNAL_BREAKFAST_COUNT_UNKNOWN');
     if (breakfastRequirement === 'provided_or_budgeted' && (profile.minimumBreakfasts ?? 0) > 0) {
-      if (lodging.breakfast === 'unknown' || lodging.includedBreakfasts === null)
+      if (lodging.breakfast === 'unknown' || hotelBreakfasts === null)
         pending.push('BREAKFAST_UNCONFIRMED');
       if (providedBreakfasts !== null && providedBreakfasts < profile.minimumBreakfasts!)
         rejected.push('INSUFFICIENT_PROVIDED_BREAKFASTS');
@@ -541,9 +539,13 @@ export function groundTransport(supplied: unknown) {
   });
   const baseline = rows.find((row) => row.id === input.baselineId);
   const outputRows = rows.map(({ comparisonKey, ...row }) => {
+    // A flight alternative to a coach package (or the reverse) is a nominal difference
+    // between different services, never demonstrated savings.
+    const modeDiffers = !!baseline && row.transportMode !== baseline.transportMode;
     const comparable =
       !!baseline &&
       row.id !== baseline.id &&
+      !modeDiffers &&
       baseline.finalTotalMinor !== null &&
       row.finalTotalMinor !== null &&
       comparisonKey === baseline.comparisonKey;
@@ -558,7 +560,9 @@ export function groundTransport(supplied: unknown) {
             ? 'BASELINE'
             : comparable
               ? null
-              : 'INCOMPLETE_OR_NON_EQUIVALENT_OFFERS',
+              : modeDiffers
+                ? 'TRANSPORT_MODE_DIFFERS'
+                : 'INCOMPLETE_OR_NON_EQUIVALENT_OFFERS',
       },
     };
   });

@@ -48,7 +48,7 @@ As cotações vêm de quem usa o fluxo, cada uma com fonte e data:
 
 - **Transporte:** `bus` e/ou `air`, ida e volta (`round_trip`) ou trechos separados, por pessoa ou por grupo.
 - **Hospedagem:** `breakfast` (com café) ou `room_only` (sem café), por quarto e noite ou pela estadia. As noites e os quartos têm de bater com o pacote.
-- **Café avulso:** opcional, por pessoa e dia, para montar o cenário com café a partir da hospedagem sem café.
+- **Café avulso:** opcional, por pessoa e dia, para montar o cenário com café a partir da hospedagem sem café. Se o pacote inclui café, os dias seguem a contagem declarada no pacote; se o pacote não inclui café, seguem as noites de hospedagem, e o cenário continua sendo alternativa, não equivalente.
 - **Extras:** traslados, taxas, passeios e refeições que reproduzem o que o pacote inclui (`mirrorsPackageInclusion: true`).
 
 ## Leitura do resultado

@@ -58,10 +58,10 @@ código 2. Sem `--allow-network`, nenhuma captura ocorre.
 - HTTPS fixa DNS público, recusa redirects e endereços privados, limita bytes,
   descompressão e tempo, sem repetição automática. Encodings declarados e
   suportados são tratados; leitura inválida não vira texto faltante.
-- HTML e scripts não são executados ou persistidos pelo leitor. Só candidatos
-  comerciais limitados entram na projeção sanitizada; contatos e instruções de
-  pagamento não são exportados. Spans UTF-16 pertencem a essa projeção.
-- O primeiro ou menor `R$` pode ser extra ou parcela. A projeção auxiliar Node mantém candidatos sem selecionar preço. O fluxo de captura usa o extrator Python de arbitragem: preço literal exige contexto explícito e unidade ou condições desconhecidas ficam pendentes. Não certifica oferta ou disponibilidade.
+- HTML e scripts não são executados ou persistidos pelo leitor Node, que só
+  transporta e decodifica bytes. A extração tem um único responsável: o extrator
+  Python de arbitragem.
+- O primeiro ou menor `R$` pode ser extra ou parcela. No extrator Python, preço literal exige contexto explícito e unidade ou condições desconhecidas ficam pendentes. Não certifica oferta ou disponibilidade.
 - Cadastur, identidade jurídica, capacidade de operação, quarto e condições
   da tarifa requerem verificação própria. Hash e recibo não substituem essa etapa.
 
@@ -72,4 +72,4 @@ comparável a uma tarifa com café incluído.
 
 ## Partir de uma URL
 
-`npm run packages -- --url "https://atrativatur.com.br/viagem.php?v=1823"` devolve o plano sem rede. Com `--allow-network`, uma URL compilada de produto estático passa por HTTPS delimitado e pelo extrator Python canônico. O CLI admite até 1 MB e o MCP até 200 KiB, sem truncamento. A projeção auxiliar Node conserva candidatos; a extração canônica usa o contrato package-observation/1 do Python. Nenhum preço literal autentica fornecedor ou confirma vaga.
+`npm run packages -- --url "https://atrativatur.com.br/viagem.php?v=1823"` devolve o plano sem rede. Com `--allow-network`, uma URL compilada de produto estático passa por HTTPS delimitado e pelo extrator Python canônico. O CLI admite até 1 MB e o MCP até 200 KiB, sem truncamento. A extração usa o contrato package-observation/1 do Python. O plano sem rede informa em `captureStatus` o que a captura aceita: página de pacote estática (`explicit_network_approval_required`), catálogo que exige escolher o link do pacote (`package_detail_source_required`) ou perfil social e página renderizada, que exigem leitura assistida (`assisted_source_required`). Nos dois últimos casos, `--allow-network` recusa a captura sem acessar a rede. Nenhum preço literal autentica fornecedor ou confirma vaga.

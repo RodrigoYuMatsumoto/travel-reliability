@@ -1,26 +1,23 @@
 import { Temporal } from '@js-temporal/polyfill';
-import type {
-  GroundCategory,
-  GroundOffer,
-  GroundTransportInput,
+import {
+  flightGroundCategories,
+  type GroundCategory,
+  type GroundOffer,
+  type GroundTransportInput,
 } from '../../schema/src/ground-transport.js';
+import { isIanaTimeZone } from '../../schema/src/time-zone.js';
 import type { PackageReference, PackageSearchInput } from './package-discovery';
 
+/** Same IANA rule as the comparator, so a zone accepted here is never rejected there. */
 export function requirePackageTimeZone(value: unknown): string {
   if (typeof value !== 'string' || !value.trim()) throw new Error('PACKAGE_TIME_ZONE_REQUIRED');
   const timeZone = value.trim();
-  if (
-    timeZone.length > 100 ||
-    !/^(?:UTC|[A-Za-z][A-Za-z0-9_+-]*(?:\/[A-Za-z0-9_+-]+)+)$/.test(timeZone)
-  )
-    throw new Error('PACKAGE_TIME_ZONE_REJECTED');
-  try {
-    Temporal.PlainDate.from('2000-01-01').toZonedDateTime({ timeZone, plainTime: '00:00:00' });
-  } catch {
-    throw new Error('PACKAGE_TIME_ZONE_REJECTED');
-  }
+  if (!isIanaTimeZone(timeZone)) throw new Error('PACKAGE_TIME_ZONE_REJECTED');
   return timeZone;
 }
+
+const busCategories: readonly GroundCategory[] = ['outbound_bus', 'return_bus'];
+const unusedModeReason = 'Meio de transporte não usado nesta alternativa / Mode not used here';
 
 /** A reference link is never a quote. The caller must select a window and origin zone. */
 export function createPackageComparisonDraft(
@@ -62,76 +59,74 @@ export function createPackageComparisonDraft(
     'mandatory_activities',
     'other_meals',
   ];
-  const coverage = Object.fromEntries(
-    categories.map((category) => [category, 'unknown']),
-  ) as GroundOffer['coverage'];
   const offer = (
     id: string,
     provider: string,
     transportMode: 'bus' | 'flight',
     hotelBreakfast: 'included' | 'excluded' | 'unknown',
     agency = false,
-  ): GroundOffer => ({
-    id,
-    provider,
-    transportMode,
-    kind: agency ? 'agency_package' : 'independent',
-    origin: query.origin,
-    destination: query.destination ?? 'A confirmar / To confirm',
-    yearConfirmed: false,
-    departureAt: null,
-    arrivalAtDestination: null,
-    returnDepartureAt: null,
-    returnToOriginAt: null,
-    destinationTimeZone: null,
-    lodging: {
-      checkIn: null,
-      checkOut: null,
-      declaredNights: null,
-      nightsInTransit: null,
-      rooms: null,
-      roomType: 'unknown',
-      occupantsPerRoom: null,
-      occupancyConfirmed: null,
-      breakfast: hotelBreakfast,
-      includedBreakfasts: null,
-      externalBreakfasts: null,
-      arrivalBreakfastIncluded: null,
-    },
-    available: null,
-    accessibilityConfirmed: null,
-    requiredServicesConfirmed: null,
-    cancellationPolicyKnown: null,
-    coverage: { ...coverage },
-    notRequiredReasons: {},
-    serviceScopeKey: null,
-    costs: (agency
-      ? ['package' as const]
-      : categories.filter(
-          (category) =>
-            !(['outbound_bus', 'return_bus'].includes(category) && transportMode === 'flight') &&
-            !(
-              [
-                'outbound_flight',
-                'return_flight',
-                'flight_baggage',
-                'flight_seats',
-                'airport_transfers',
-              ].includes(category) && transportMode === 'bus'
-            ),
-        )
-    ).map((category, index) => ({
-      id: id + '-cost-' + index,
-      category,
-      unit: 'group',
-      quantity: 1,
-      unitMinor: null,
-      currency: 'BRL',
-      treatment: 'necessary',
-      selected: true,
-      sourceIds: agency ? ['agency-reference'] : [],
-    })),
-  });
+  ): GroundOffer => {
+    // The other mode's categories are out of scope, not unknown: leaving them unknown
+    // makes the comparator report a mode conflict on every alternative.
+    const unused: readonly GroundCategory[] =
+      transportMode === 'flight' ? busCategories : flightGroundCategories;
+    return {
+      id,
+      provider,
+      transportMode,
+      kind: agency ? 'agency_package' : 'independent',
+      origin: query.origin,
+      destination: query.destination ?? 'A confirmar / To confirm',
+      yearConfirmed: false,
+      departureAt: null,
+      arrivalAtDestination: null,
+      returnDepartureAt: null,
+      returnToOriginAt: null,
+      destinationTimeZone: null,
+      lodging: {
+        checkIn: null,
+        checkOut: null,
+        declaredNights: null,
+        nightsInTransit: null,
+        rooms: null,
+        roomType: 'unknown',
+        occupantsPerRoom: null,
+        occupancyConfirmed: null,
+        breakfast: hotelBreakfast,
+        includedBreakfasts: null,
+        externalBreakfasts: null,
+        arrivalBreakfastIncluded: null,
+      },
+      available: null,
+      accessibilityConfirmed: null,
+      requiredServicesConfirmed: null,
+      cancellationPolicyKnown: null,
+      coverage: Object.fromEntries(
+        categories.map((category) => [
+          category,
+          unused.includes(category) ? 'not_required' : 'unknown',
+        ]),
+      ) as GroundOffer['coverage'],
+      notRequiredReasons: Object.fromEntries(
+        unused.map((category) => [category, unusedModeReason]),
+      ),
+      serviceScopeKey: null,
+      costs: (agency
+        ? ['package' as const]
+        : categories.filter((category) => !unused.includes(category))
+      ).map((category, index) => ({
+        id: id + '-cost-' + index,
+        category,
+        unit: 'group',
+        quantity: 1,
+        unitMinor: null,
+        currency: 'BRL',
+        treatment: 'necessary',
+        selected: true,
+        sourceIds: agency ? ['agency-reference'] : [],
+      })),
+    };
+  };
   return {
     evaluatedAt,
     baselineId: 'agency-package',

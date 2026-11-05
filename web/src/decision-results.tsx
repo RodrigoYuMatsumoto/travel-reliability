@@ -83,6 +83,18 @@ const gapLabels: Record<string, readonly [string, string]> = {
     'Confirme o fuso horário do destino.',
     'Confirm the destination time zone.',
   ],
+  DESTINATION_TIME_ZONE_ASSUMED_FROM_WINDOW: [
+    'Sem fuso do destino, as datas do hotel usam o fuso da saída. Informe-o se forem diferentes.',
+    'Without a destination zone, hotel dates use the departure zone. Supply it if they differ.',
+  ],
+  ARRIVAL_BREAKFAST_OUTSIDE_HOTEL_RATE: [
+    'O café do dia da chegada não está na diária do hotel.',
+    'Breakfast on the arrival day is not part of the hotel rate.',
+  ],
+  TRANSIT_NIGHTS_ARE_NOT_LODGING_NIGHTS: [
+    'Noites viajando não contam como noites de hotel.',
+    'Nights in transit do not count as hotel nights.',
+  ],
   JOURNEY_TIME_INCOMPLETE: [
     'Confirme os horários de todos os trechos.',
     'Confirm the times of every journey leg.',
@@ -427,12 +439,13 @@ export function DecisionResults({
         : '—';
     return formatted === '—' ? (pt ? 'A cotar' : 'To quote') : formatted;
   };
-  const pendingFacts = (reasons: unknown[]) => {
+  const pendingFacts = (reasons: unknown[], notes = false) => {
     const messages = [...new Set(reasons.map((reason) => readableGap(reason, pt)))];
     return messages.length ? (
       <details>
         <summary>
-          {pt ? 'Ver pendências' : 'Review gaps'} ({messages.length})
+          {notes ? (pt ? 'Ver avisos' : 'Review notes') : pt ? 'Ver pendências' : 'Review gaps'} (
+          {messages.length})
         </summary>
         <ul>
           {messages.map((message) => (
@@ -751,12 +764,16 @@ export function DecisionResults({
           quoteMoney(row.finalTotalMinor, row.currency),
           typeof object(row.difference).savingsMinor === 'number'
             ? money(object(row.difference).savingsMinor, row.currency)
-            : pt
-              ? 'Não demonstrada'
-              : 'Not demonstrated',
+            : (pt ? 'Não demonstrada' : 'Not demonstrated') +
+              (object(row.difference).reason === 'TRANSPORT_MODE_DIFFERS'
+                ? pt
+                  ? ': transporte diferente do pacote'
+                  : ': transport differs from the package'
+                : ''),
           <>
             <span>{label(row.status)}</span>
             {pendingFacts(reasons)}
+            {pendingFacts(Array.isArray(row.warnings) ? row.warnings : [], true)}
           </>,
         ];
       }),

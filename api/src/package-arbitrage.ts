@@ -344,10 +344,13 @@ export function packageArbitrage(supplied: unknown) {
     if (quote.rooms !== party.rooms) issues.push('ROOMS_DIFFER');
     return issues;
   };
+  // A package without breakfast has no breakfast count to mirror. Its with-breakfast
+  // alternative (never equivalent: BOARD_DIFFERS) budgets one breakfast per lodging night.
+  const addOnDays = breakfast.status === 'excluded' ? lodgingNights : breakfastDays;
   const addOnIssues = (quote: BreakfastAddOnQuote) =>
-    breakfastDays === null
-      ? ['BREAKFAST_COUNT_UNKNOWN']
-      : quote.days !== breakfastDays
+    addOnDays === null
+      ? [breakfast.status === 'excluded' ? 'PACKAGE_NIGHTS_UNKNOWN' : 'BREAKFAST_COUNT_UNKNOWN']
+      : quote.days !== addOnDays
         ? ['DAYS_DIFFER']
         : [];
   const selectStay = (board: Board): Selection & { nightsDiffer: boolean } => {

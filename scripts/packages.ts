@@ -1,6 +1,10 @@
 import { parseArgs } from 'node:util';
 import { discoverPackages } from '../agent/package-discovery.js';
-import { packageReferenceCatalog, packageSourceCatalog } from '../agent/package-sources.js';
+import {
+  packageCaptureReadiness,
+  packageReferenceCatalog,
+  packageSourceCatalog,
+} from '../agent/package-sources.js';
 import { captureRegionalPackage } from '../agent/package-capture.js';
 
 try {
@@ -27,16 +31,16 @@ try {
     const url = new URL(values.url);
     const source = packageReferenceCatalog.find((reference) => reference.browserUrl === url.href);
     if (!source) throw new Error('PACKAGE_SOURCE_REJECTED');
+    // The plan states exactly what the capture below would accept, never a capture that
+    // would then be refused.
+    const captureStatus = packageCaptureReadiness(source);
     if (!values['allow-network']) {
       console.log(
         JSON.stringify({
           kind: 'regional_package_workflow',
           sourceId: source.id,
           sourceUrl: source.browserUrl,
-          captureStatus:
-            source.access === 'static_html'
-              ? 'explicit_network_approval_required'
-              : 'assisted_source_required',
+          captureStatus,
           workflowId: 'package-arbitrage',
           extractionTool: 'travel_extract_package',
           quoteNeeds: [
@@ -54,6 +58,10 @@ try {
       );
       process.exit(0);
     }
+    if (captureStatus === 'package_detail_source_required')
+      throw new Error('PACKAGE_DETAIL_SOURCE_REQUIRED');
+    if (captureStatus === 'assisted_source_required')
+      throw new Error('PACKAGE_ASSISTED_SOURCE_REQUIRED');
     captures = [source.id];
   }
   if (values.catalog) {

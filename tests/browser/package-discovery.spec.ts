@@ -164,6 +164,15 @@ test('locks discovery while a calculation is pending and prevents previous resul
     await expect(
       page.getByText('Os critérios da pesquisa mudaram.', { exact: false }),
     ).toBeVisible();
+    // Editing takes ownership of the draft: analysis no longer requires discarding it.
+    const editor = page.getByRole('textbox', { name: 'Dados estruturados', exact: true });
+    const edited = (await editor.inputValue()).replace('"adults": null', '"adults": 2');
+    await editor.fill(edited);
+    await expect(page.getByRole('button', { name: 'Analisar dados' })).toBeEnabled();
+    await expect(editor).toHaveValue(edited);
+    await expect(
+      page.getByText('A análise usa os dados abaixo como estão', { exact: false }),
+    ).toBeVisible();
     await prepare.click();
     const draft = JSON.parse(
       await page.getByRole('textbox', { name: 'Dados estruturados', exact: true }).inputValue(),
@@ -177,6 +186,23 @@ test('locks discovery while a calculation is pending and prevents previous resul
     release();
     await page.unroute('**/v1/tools/ground-transport');
   }
+});
+
+test('keeps another tool result when discovery criteria change', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Planejamento e rateio' }).click();
+  await page.getByRole('combobox', { name: 'Ferramenta', exact: true }).selectOption('group-split');
+  await page.getByRole('button', { name: 'Analisar dados' }).click();
+  const heading = page.getByRole('heading', { name: 'Resultado e pendências', exact: true });
+  await expect(heading).toBeVisible();
+  const discovery = page.getByRole('region', { name: 'Encontrar excursões locais' });
+  await discovery.getByLabel('Cidade de saída').fill('Juazeiro, BA');
+  await discovery.getByLabel('Saída a partir de').fill('2026-12-24');
+  await expect(heading).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Analisar dados' })).toBeEnabled();
+  await expect(page.getByText('Os critérios da pesquisa mudaram.', { exact: false })).toHaveCount(
+    0,
+  );
 });
 
 test('invalidates the executed discovery snapshot when origin, destination, dates, agencies or time zone change', async ({
