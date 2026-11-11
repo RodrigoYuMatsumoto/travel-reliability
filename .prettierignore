@@ -35,3 +35,4 @@ artifacts
 ingest/tests/fixtures/packages
 # Immutable Chromium seccomp policy: its exact bytes are hash-bound at runtime.
 deploy/renderer/seccomp_chromium.json
+deploy/renderer/seccomp_upstream.json

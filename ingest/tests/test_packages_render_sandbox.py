@@ -1,5 +1,6 @@
 """Container and protocol configuration regressions without starting a daemon."""
 import copy
+import hashlib
 import json
 from pathlib import Path
 
@@ -88,12 +89,48 @@ def test_host_environment_drops_cloud_keys_docker_context_proxy_and_python_hooks
         assert key not in sandbox._environment()
 
 
-def test_profile_matches_pinned_official_bytes_and_retains_default_deny():
+def test_profile_matches_pinned_derivation_and_retains_default_deny():
     profile = sandbox._profile()
     parsed = json.loads(profile.read_bytes())
+    upstream_bytes = (profile.parent / "seccomp_upstream.json").read_bytes()
+    upstream = json.loads(upstream_bytes)
+    provenance = json.loads((profile.parent / "provenance.json").read_bytes())
+    assert hashlib.sha256(upstream_bytes).hexdigest() == provenance["seccompUpstreamSha256"]
+    assert hashlib.sha256(profile.read_bytes()).hexdigest() == provenance["seccompSha256"]
+    assert provenance["seccompDerivation"]["outerCapabilitiesAdded"] is False
+    derived = copy.deepcopy(upstream)
+    removed = {"socket", "socketpair", "socketcall", "io_uring_setup", "io_uring_enter", "io_uring_register"}
+    assert set(provenance["seccompDerivation"]["removedAllowSyscalls"]) == removed
+    for rule in derived["syscalls"]:
+        if rule["action"] == "SCMP_ACT_ALLOW":
+            rule["names"] = [name for name in rule["names"] if name not in removed]
+    derived["syscalls"] = [rule for rule in derived["syscalls"] if rule["names"]]
+    appended = provenance["seccompDerivation"]["appendedRules"]
+    assert len(appended) == 6
+    derived["syscalls"].extend(appended)
+    assert parsed == derived
+    assert appended[0]["names"] == ["chroot"]
+    assert appended[0]["includes"] == {}
+    assert any(item["names"] == ["chroot"] and item.get("includes", {}).get("caps") == ["CAP_SYS_CHROOT"]
+               for item in upstream["syscalls"])
     assert parsed["defaultAction"] == "SCMP_ACT_ERRNO"
     assert any(set(item["names"]) == {"clone", "setns", "unshare"} and item["action"] == "SCMP_ACT_ALLOW"
                for item in parsed["syscalls"])
+
+
+def test_profile_disallows_non_namespaced_socket_families_legacy_multiplexer_and_io_uring():
+    profile = json.loads(sandbox._profile().read_bytes())
+    rules = [rule for rule in profile["syscalls"] if rule["action"] == "SCMP_ACT_ALLOW"]
+    for forbidden in ("socketcall", "io_uring_setup", "io_uring_enter", "io_uring_register"):
+        assert not any(forbidden in rule["names"] for rule in rules)
+    sockets = [rule for rule in rules if "socket" in rule["names"]]
+    assert len(sockets) == 4
+    assert {rule["args"][0]["value"] for rule in sockets} == {1, 2, 10, 16}
+    assert all(rule["names"] == ["socket"] and len(rule["args"]) == 1 and
+               rule["args"][0]["index"] == 0 and rule["args"][0]["op"] == "SCMP_CMP_EQ" for rule in sockets)
+    pairs = [rule for rule in rules if "socketpair" in rule["names"]]
+    assert len(pairs) == 1
+    assert pairs[0]["args"] == [{"index": 0, "value": 1, "op": "SCMP_CMP_EQ"}]
 
 
 def test_missing_operator_image_fails_before_policy_dns_docker_or_any_external_read(monkeypatch):

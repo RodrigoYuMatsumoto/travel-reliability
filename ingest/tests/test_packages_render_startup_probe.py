@@ -16,7 +16,34 @@ from travel_ingest.packages import render_sandbox as sandbox
 
 pytestmark = pytest.mark.skipif(os.environ.get("TRAVEL_RENDERER_DIAGNOSTIC_REQUIRED") != "1",
                                 reason="Empty-browser technical startup diagnostic is opt-in")
-PROBE = """from playwright.sync_api import sync_playwright
+PROBE = """import os, socket, ctypes, platform
+from playwright.sync_api import sync_playwright
+assert os.geteuid() == 10001
+with open('/proc/self/status') as status:
+ caps = [line.split(':',1)[1].strip() for line in status if line.startswith(('CapEff:','CapBnd:'))]
+assert len(caps) == 2 and all(int(value,16) == 0 for value in caps)
+try:
+ os.chroot('/')
+except PermissionError:
+ print('OUTER_CHROOT_DENIED_WITHOUT_CAPABILITIES')
+else:
+ raise AssertionError('OUTER_CHROOT_MUST_NOT_BE_PRIVILEGED')
+for family in (38,40):
+ try:
+  value=socket.socket(family,socket.SOCK_STREAM)
+ except PermissionError as error:
+  assert error.errno == 1
+ else:
+  value.close()
+  raise AssertionError('NON_NAMESPACED_SOCKET_FAMILY_MUST_BE_DENIED')
+print('NON_NAMESPACED_SOCKET_FAMILIES_DENIED')
+assert platform.machine() == 'x86_64'
+library=ctypes.CDLL(None,use_errno=True)
+library.syscall.restype=ctypes.c_long
+result=library.syscall(ctypes.c_long(425),ctypes.c_uint(0),ctypes.c_void_p(None))
+assert result == -1 and ctypes.get_errno() == 1, 'IO_URING_SETUP_MUST_BE_DENIED'
+print('IO_URING_SETUP_DENIED')
+print('SOCKETCALL_32BIT_NOT_EXECUTED_ON_AMD64')
 with sync_playwright() as p:
  b=p.chromium.launch(headless=True,chromium_sandbox=True,timeout=10000,args=[
   '--disable-background-networking','--disable-component-update','--disable-default-apps',

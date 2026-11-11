@@ -23,7 +23,7 @@ from .render_policy import PROTOCOL, RenderPolicy
 MAX_PROTOCOL_LINE = 8 * 1024 * 1024
 MAX_PROTOCOL_TOTAL = 12 * 1024 * 1024
 MEMORY_BYTES = 1024 * 1024 * 1024
-PROFILE_SHA256 = "cc3e61cabda6bbc1e53e54d27ba4d55a9d3be829b6dd1a596f4a7b31b1cc7849"
+PROFILE_SHA256 = "5a29e41a0b936ca7f9958d49691bd7c8cafda4bb64a5f439b9d9ec9ce2eb3b70"
 
 
 def _environment() -> dict:

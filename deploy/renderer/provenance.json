@@ -1,6 +1,6 @@
 {
   "seccompSource": "https://raw.githubusercontent.com/microsoft/playwright/v1.64.1/utils/docker/seccomp_profile.json",
-  "seccompSha256": "cc3e61cabda6bbc1e53e54d27ba4d55a9d3be829b6dd1a596f4a7b31b1cc7849",
+  "seccompSha256": "5a29e41a0b936ca7f9958d49691bd7c8cafda4bb64a5f439b9d9ec9ce2eb3b70",
   "license": "Apache-2.0",
   "dependencies": [
     {
@@ -29,5 +29,108 @@
     }
   ],
   "baseImage": "mcr.microsoft.com/playwright/python:v1.64.1-noble@sha256:330d401ae23c905896a0c26c66c36fc971b621519e7b11b435a8328d7bf6e031",
-  "baseImageDigestSource": "https://mcr.microsoft.com/v2/playwright/python/manifests/v1.64.1-noble"
+  "baseImageDigestSource": "https://mcr.microsoft.com/v2/playwright/python/manifests/v1.64.1-noble",
+  "seccompUpstreamSha256": "cc3e61cabda6bbc1e53e54d27ba4d55a9d3be829b6dd1a596f4a7b31b1cc7849",
+  "seccompDerivation": {
+    "operation": "remove-generic-socket-and-io-uring-allows-then-append-minimal-rules",
+    "outerCapabilitiesAdded": false,
+    "sources": [
+      "https://chromium.googlesource.com/chromium/src/+/d9d917c05c2a781d58ec15e3182e1dbd24c6530c/sandbox/linux/services/credentials.cc",
+      "https://man7.org/linux/man-pages/man2/chroot.2.html",
+      "https://man7.org/linux/man-pages/man7/user_namespaces.7.html",
+      "https://docs.docker.com/engine/security/seccomp/"
+    ],
+    "diagnosticRun": 43066511882,
+    "diagnosticJob": 130682787030,
+    "diagnosticCommit": "da4c1786e7dc1100e220d5c563d1d6e40a27b6f9",
+    "classification": "Chromium namespace-sandbox chroot blocked by capability-conditional upstream seccomp rule",
+    "removedAllowSyscalls": [
+      "io_uring_enter",
+      "io_uring_register",
+      "io_uring_setup",
+      "socket",
+      "socketcall",
+      "socketpair"
+    ],
+    "appendedRules": [
+      {
+        "comment": "Allow Chromium chroot inside its own user namespace without adding outer container capabilities",
+        "names": ["chroot"],
+        "action": "SCMP_ACT_ALLOW",
+        "args": [],
+        "includes": {},
+        "excludes": {}
+      },
+      {
+        "comment": "Allow only a namespaced socket address family",
+        "names": ["socket"],
+        "action": "SCMP_ACT_ALLOW",
+        "args": [
+          {
+            "index": 0,
+            "value": 1,
+            "op": "SCMP_CMP_EQ"
+          }
+        ],
+        "includes": {},
+        "excludes": {}
+      },
+      {
+        "comment": "Allow only a namespaced socket address family",
+        "names": ["socket"],
+        "action": "SCMP_ACT_ALLOW",
+        "args": [
+          {
+            "index": 0,
+            "value": 2,
+            "op": "SCMP_CMP_EQ"
+          }
+        ],
+        "includes": {},
+        "excludes": {}
+      },
+      {
+        "comment": "Allow only a namespaced socket address family",
+        "names": ["socket"],
+        "action": "SCMP_ACT_ALLOW",
+        "args": [
+          {
+            "index": 0,
+            "value": 10,
+            "op": "SCMP_CMP_EQ"
+          }
+        ],
+        "includes": {},
+        "excludes": {}
+      },
+      {
+        "comment": "Allow only a namespaced socket address family",
+        "names": ["socket"],
+        "action": "SCMP_ACT_ALLOW",
+        "args": [
+          {
+            "index": 0,
+            "value": 16,
+            "op": "SCMP_CMP_EQ"
+          }
+        ],
+        "includes": {},
+        "excludes": {}
+      },
+      {
+        "comment": "Allow only local Unix socket pairs",
+        "names": ["socketpair"],
+        "action": "SCMP_ACT_ALLOW",
+        "args": [
+          {
+            "index": 0,
+            "value": 1,
+            "op": "SCMP_CMP_EQ"
+          }
+        ],
+        "includes": {},
+        "excludes": {}
+      }
+    ]
+  }
 }

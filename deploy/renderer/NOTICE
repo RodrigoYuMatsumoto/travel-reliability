@@ -1,5 +1,9 @@
-O arquivo seccomp_chromium.json preserva os bytes publicados no Microsoft Playwright v1.64.1.
+O arquivo seccomp_upstream.json preserva os bytes publicados no Microsoft Playwright v1.64.1.
 Origem: https://github.com/microsoft/playwright/blob/v1.64.1/utils/docker/seccomp_profile.json
 Licença: Apache-2.0, reproduzida em LICENSE_Apache_2_0.txt.
 Atribuição: Microsoft Corporation e colaboradores do Playwright; perfil derivado do Docker.
-A proveniência, o hash e a imagem-base estão em provenance.json.
+O arquivo seccomp_chromium.json é derivado: permite chroot para o sandbox próprio do Chromium sem adicionar capabilities ao container externo.
+Retira as permissões genéricas de socket, socketpair, socketcall e das três operações io_uring.
+Permite socket somente para AF_UNIX, AF_INET, AF_INET6 e AF_NETLINK; socketpair somente para AF_UNIX. As demais famílias, inclusive AF_ALG e AF_VSOCK, continuam negadas por padrão.
+O kernel continua exigindo CAP_SYS_CHROOT no namespace do processo, e o processo externo não recebe essa capability.
+Os dois hashes, as transformações exatas, as fontes primárias e a evidência técnica estão em provenance.json.
