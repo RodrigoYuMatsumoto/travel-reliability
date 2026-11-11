@@ -1,0 +1,33 @@
+{
+  "seccompSource": "https://raw.githubusercontent.com/microsoft/playwright/v1.64.1/utils/docker/seccomp_profile.json",
+  "seccompSha256": "cc3e61cabda6bbc1e53e54d27ba4d55a9d3be829b6dd1a596f4a7b31b1cc7849",
+  "license": "Apache-2.0",
+  "dependencies": [
+    {
+      "package": "playwright",
+      "version": "1.64.1",
+      "source": "https://pypi.org/pypi/playwright/1.64.1/json",
+      "wheelHashes": 8
+    },
+    {
+      "package": "pyee",
+      "version": "13.0.1",
+      "source": "https://pypi.org/pypi/pyee/13.0.1/json",
+      "wheelHashes": 1
+    },
+    {
+      "package": "greenlet",
+      "version": "3.2.4",
+      "source": "https://pypi.org/pypi/greenlet/3.2.4/json",
+      "wheelHashes": 65
+    },
+    {
+      "package": "typing_extensions",
+      "version": "4.15.0",
+      "source": "https://pypi.org/pypi/typing_extensions/4.15.0/json",
+      "wheelHashes": 1
+    }
+  ],
+  "baseImage": "mcr.microsoft.com/playwright/python:v1.64.1-noble@sha256:330d401ae23c905896a0c26c66c36fc971b621519e7b11b435a8328d7bf6e031",
+  "baseImageDigestSource": "https://mcr.microsoft.com/v2/playwright/python/manifests/v1.64.1-noble"
+}

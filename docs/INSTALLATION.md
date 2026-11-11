@@ -108,3 +108,7 @@ upgrade an already installed host runtime.
 Shortcuts: `travel-flex-dates`, `travel-airports`, `travel-connections`,
 `travel-promotions`, `travel-total-cost`, `travel-fare-scenarios`,
 `travel-negotiation`, `travel-hidden-city`, and `travel-group-split`.
+
+## Renderização externa opcional
+
+A demonstração e o MCP offline continuam dispensando Docker. A renderização de páginas públicas em JavaScript exige uma imagem Linux imutável preparada separadamente, sem volumes ou rede no navegador. O [guia de pacotes](PACKAGE_ARBITRAGE.md#preparação-do-renderer) contém o comando de construção, a configuração local e os limites. Não se instala Docker nem se altera a política do computador automaticamente.

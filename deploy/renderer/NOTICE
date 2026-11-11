@@ -1,0 +1,5 @@
+O arquivo seccomp_chromium.json preserva os bytes publicados no Microsoft Playwright v1.64.1.
+Origem: https://github.com/microsoft/playwright/blob/v1.64.1/utils/docker/seccomp_profile.json
+Licença: Apache-2.0, reproduzida em LICENSE_Apache_2_0.txt.
+Atribuição: Microsoft Corporation e colaboradores do Playwright; perfil derivado do Docker.
+A proveniência, o hash e a imagem-base estão em provenance.json.

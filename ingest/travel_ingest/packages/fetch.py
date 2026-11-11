@@ -1,21 +1,16 @@
-"""Fail-closed package rendering and bounded robots.txt checks.
+"""Opt-in isolated package rendering and bounded robots.txt checks.
 
-Automatic browser rendering is unavailable until browser egress, including redirects and
-non-HTTP transports, can be verified in an isolated environment. ``allow_network=True``
-does not bypass that gate. The only currently supported render adapter is an in-process,
-explicitly injected fixture; it requires both callbacks and is labelled ``fixture``.
-
-The separate robots.txt primitive uses public DNS answers, a pinned TCP destination, TLS
-certificate verification for the original hostname, no redirects and a total deadline.
-It is not called by the disabled automatic renderer. RFC 9309 matching and applicable
-``Content-Signal: ai-input=no`` remain enforced for fixture adapters. Product identity
-includes the exact URL fragment because it can select an entirely different SPA package.
+The operator must provision an immutable Docker renderer image. Without it, automatic
+rendering fails before DNS or browser launch. The browser has no network; the host broker
+alone supplies approved read-only resources. In-process callbacks remain fixture-only.
+Product identity retains its exact SPA fragment, and source facts remain unconfirmed.
 """
 
 from __future__ import annotations
 
 import http.client
 import ipaddress
+import os
 import queue
 import re
 import socket
@@ -83,8 +78,8 @@ def _records(robots_text: str):
 
 
 def _agent_matches(value: str, agent: str = USER_AGENT) -> bool:
-    token = value.split("/", 1)[0].strip().lower()
-    return token == agent.lower()
+    product_agent = value.split("/", 1)[0].strip().lower()
+    return product_agent == agent.lower()
 
 
 def _groups(robots_text: str) -> list[tuple[list[str], list[tuple[bool, str]]]]:
@@ -402,10 +397,11 @@ def same_document(requested: str, final: str) -> bool:
 
 
 def _playwright_renderer(url: str, *, user_agent: str, timeout_ms: int, max_bytes: int) -> dict:
-    # A route callback and Chromium host-resolver-rules do not alone prove complete
-    # egress control (redirect chains, WebSockets and other transports). No browser,
-    # DNS lookup or subrequest is started until an isolated renderer is homologated.
-    raise PackageError("NETWORK_RENDERER_UNAVAILABLE")
+    if not os.environ.get("TRAVEL_RELIABILITY_RENDERER_IMAGE"):
+        raise PackageError("NETWORK_RENDERER_UNAVAILABLE")
+    from .render_sandbox import render_isolated
+
+    return render_isolated(url, user_agent=user_agent, timeout_ms=timeout_ms, max_bytes=max_bytes)
 
 
 def fetch_rendered(
@@ -416,31 +412,42 @@ def fetch_rendered(
     renderer: Renderer | None = None,
     robots_fetcher: RobotsFetcher | None = None,
 ) -> dict:
-    """Validate a trusted in-process render fixture; automatic network mode fails closed."""
+    """Render through a provisioned sandbox or validate a fixture, preserving provenance."""
     if allow_network is not True:
         raise PackageError("NETWORK_NOT_ALLOWED")
     url, host = _check_target(url)
     check_observed_at(observed_at)
-    # Do not perform even robots/DNS traffic before deciding renderer availability.
-    # Requiring both fixture callbacks prevents an incomplete adapter from silently
-    # falling back to a real network primitive. CLI/MCP cannot provide callables.
-    if renderer is None or robots_fetcher is None:
+    automatic = renderer is None and robots_fetcher is None
+    if automatic:
+        if not os.environ.get("TRAVEL_RELIABILITY_RENDERER_IMAGE"):
+            raise PackageError("NETWORK_RENDERER_UNAVAILABLE")
+        try:
+            rendered = _playwright_renderer(
+                url, user_agent=USER_AGENT, timeout_ms=RENDER_TIMEOUT_MS, max_bytes=MAX_HTML_BYTES
+            )
+        except PackageError:
+            raise
+        except Exception:
+            raise PackageError("RENDER_FAILED") from None
+    elif renderer is None or robots_fetcher is None:
+        # A partial fixture must never fall back to real I/O.
         raise PackageError("NETWORK_RENDERER_UNAVAILABLE")
-    fetch_robots = robots_fetcher
-    try:
-        robots_text = fetch_robots(f"https://{host}/robots.txt")
-    except PackageError:
-        raise
-    except Exception:
-        raise PackageError("ROBOTS_UNAVAILABLE") from None
-    check_robots(robots_text, url)
-    render = renderer
-    try:
-        rendered = render(url, user_agent=USER_AGENT, timeout_ms=RENDER_TIMEOUT_MS, max_bytes=MAX_HTML_BYTES)
-    except PackageError:
-        raise
-    except Exception:
-        raise PackageError("RENDER_FAILED") from None
+    else:
+        try:
+            robots_text = robots_fetcher(f"https://{host}/robots.txt")
+        except PackageError:
+            raise
+        except Exception:
+            raise PackageError("ROBOTS_UNAVAILABLE") from None
+        check_robots(robots_text, url)
+        try:
+            rendered = renderer(
+                url, user_agent=USER_AGENT, timeout_ms=RENDER_TIMEOUT_MS, max_bytes=MAX_HTML_BYTES
+            )
+        except PackageError:
+            raise
+        except Exception:
+            raise PackageError("RENDER_FAILED") from None
     if not isinstance(rendered, dict):
         raise PackageError("RENDER_FAILED")
     html, final_url = rendered.get("html"), rendered.get("finalUrl")
@@ -451,4 +458,10 @@ def fetch_rendered(
         raise PackageError("REDIRECT_NOT_ALLOWED")
     if len(html) > MAX_HTML_BYTES or len(html.encode("utf-8", "replace")) > MAX_HTML_BYTES:
         raise PackageError("HTML_TOO_LARGE")
-    return {"html": html, "retrieval": "fixture", "url": url}
+    result = {"html": html, "retrieval": "rendered_dom" if automatic else "fixture", "url": url}
+    if automatic:
+        isolation, provenance = rendered.get("isolation"), rendered.get("provenance")
+        if not isinstance(isolation, dict) or not isinstance(provenance, dict):
+            raise PackageError("RENDER_PROVENANCE_MISSING")
+        result.update({"isolation": isolation, "provenance": provenance})
+    return result

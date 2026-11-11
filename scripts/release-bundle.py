@@ -20,7 +20,7 @@ from pathlib import Path
 
 REPOSITORY = "RodrigoYuMatsumoto/travel-reliability"
 REQUIRED_CHECKS = {"verify", "SAST (Semgrep and Bandit)", "Fuzzing (bounded mutation)", "DAST (isolated HTTP and ZAP)"}
-FAMILIES = {"openai", "anthropic", "google", "deepseek", "qwen", "maritaca"}
+FAMILIES = {"openai", "anthropic", "google", "deepseek", "qwen", "maritaca", "xai"}
 VERDICTS = {"APPROVE", "APPROVE_WITH_CAVEATS", "REJECT", "INCONCLUSIVE", "INDEPENDENCE_UNPROVEN", "NOT_RUN"}
 APPROVALS = {"APPROVE", "APPROVE_WITH_CAVEATS"}
 MAX_FILE = 20 * 1024 * 1024

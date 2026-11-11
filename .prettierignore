@@ -33,3 +33,5 @@ test-results
 artifacts
 # Byte-pinned extractor fixtures: their SHA-256 is part of the golden observations.
 ingest/tests/fixtures/packages
+# Immutable Chromium seccomp policy: its exact bytes are hash-bound at runtime.
+deploy/renderer/seccomp_chromium.json

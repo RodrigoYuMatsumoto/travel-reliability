@@ -1,3 +1,5 @@
+Este registro preserva o checkpoint de 04/11/2026. A evolução posterior da renderização isolada está descrita no [guia de pacotes](PACKAGE_ARBITRAGE.md).
+
 # Integração híbrida — auditoria e pacotes regionais
 
 Base adotada: PR #9, commit `e8ef35d5867ac0ce20c34adac62f53f59ba2415c`,
