@@ -174,7 +174,7 @@ function platformBotFixture(
       tree,
       ...parentArguments,
       '-m',
-      (options.subject ?? 'Bump synthetic-dependency from 1.0.0 to 1.0.1') +
+      (options.subject ?? 'build(deps): bump synthetic-dependency from 1.0.0 to 1.0.1') +
         '\n\n' +
         (options.message ?? platformBotTrailer),
     ],
@@ -220,6 +220,23 @@ it('classifies only exact shared platform fields without claiming authenticated 
   }
 }, 30000);
 
+it('classifies the exact dependency-dev subject format as the same bounded platform profile', () => {
+  const repo = platformBotFixture({
+    subject: 'build(deps-dev): bump synthetic-dev-dependency from 1.0.0 to 1.0.1',
+  });
+  try {
+    const passed = repo.scan();
+    expect(passed.status).toBe(0);
+    expect(passed.report.classifiedPlatformServiceFields).toMatchObject({
+      committerEmailFields: 1,
+      exactBotTrailerLines: 1,
+      identityVerification: 'not_performed',
+    });
+  } finally {
+    repo.cleanup();
+  }
+}, 30000);
+
 it.each([
   { authorName: 'Synthetic Human', authorEmail: syntheticEmail },
   { authorEmail: syntheticEmail },
@@ -229,6 +246,13 @@ it.each([
   { committerEmail: ['noreply', 'github.com.attacker.invalid'].join('@') },
   { subject: 'Other Bump synthetic dependency' },
   { subject: 'Bump' },
+  { subject: 'Bump synthetic-dependency from 1.0.0 to 1.0.1' },
+  { subject: 'feat(deps): bump synthetic-dependency' },
+  { subject: 'build(other): bump synthetic-dependency' },
+  { subject: 'build(deps-prod): bump synthetic-dependency' },
+  { subject: 'build(deps): Bump synthetic-dependency' },
+  { subject: 'build(deps): bump ' },
+  { subject: 'prefix build(deps): bump synthetic-dependency' },
   { parentCount: 0 },
   { parentCount: 2 },
 ])(

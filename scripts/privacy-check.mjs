@@ -165,7 +165,7 @@ function main() {
           committerName === 'GitHub' &&
           /^noreply@github\.com$/.test(committerEmail) &&
           parents.length === 1 &&
-          /^Bump [^\r\n]+$/.test(subject);
+          /^build\(deps(?:-dev)?\): bump [^\r\n]+$/.test(subject);
         let privateEmailView = metadata;
         if (platformBotProfile) {
           const lines = message.split('\n');

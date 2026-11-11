@@ -85,7 +85,7 @@ def test_encoded_download_and_wrong_mime_resources_are_not_delivered(connection,
 def test_response_bytes_include_robots_and_all_resources_in_one_total_budget(connection, monkeypatch):
     state, _ = connection
     monkeypatch.setattr(module, "MAX_TOTAL_BYTES", 10)
-    state["response"] = Response(body=b"01234567890")
+    state["response"] = Response(body=b"SYNTHETICXX")
     broker = module.ResourceBroker(RenderPolicy(TARGET), deadline=time.monotonic() + 10)
     with pytest.raises(PackageError, match="RENDER_BYTE_LIMIT"):
         broker._get(TARGET, "document")

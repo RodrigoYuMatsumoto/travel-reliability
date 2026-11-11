@@ -26,6 +26,11 @@ jobs:
         run: |
           mkdir -p .local/renderer
           docker build --build-arg PLAYWRIGHT_BASE=mcr.microsoft.com/playwright/python:v1.64.1-noble@sha256:330d401ae23c905896a0c26c66c36fc971b621519e7b11b435a8328d7bf6e031 -f deploy/renderer/Dockerfile --iidfile .local/renderer/image.id .
+      - name: Diagnosticar a inicialização vazia sem página ou credenciais
+        run: |
+          export TRAVEL_RELIABILITY_RENDERER_IMAGE="$(cat .local/renderer/image.id)"
+          export TRAVEL_RENDERER_DIAGNOSTIC_REQUIRED=1
+          uv run --project ingest python -m pytest ingest/tests/test_packages_render_startup_probe.py -q -s
       - name: Exercitar o navegador real e a contenção do sistema operacional
         run: |
           export TRAVEL_RELIABILITY_RENDERER_IMAGE="$(cat .local/renderer/image.id)"
