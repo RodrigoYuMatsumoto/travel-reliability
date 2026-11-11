@@ -38,11 +38,13 @@ for family in (38,40):
   raise AssertionError('NON_NAMESPACED_SOCKET_FAMILY_MUST_BE_DENIED')
 print('NON_NAMESPACED_SOCKET_FAMILIES_DENIED')
 assert platform.machine() == 'x86_64'
+assert ctypes.sizeof(ctypes.c_void_p) == 8
 library=ctypes.CDLL(None,use_errno=True)
 library.syscall.restype=ctypes.c_long
-result=library.syscall(ctypes.c_long(425),ctypes.c_uint(0),ctypes.c_void_p(None))
-assert result == -1 and ctypes.get_errno() == 1, 'IO_URING_SETUP_MUST_BE_DENIED'
-print('IO_URING_SETUP_DENIED')
+library.syscall.argtypes=[ctypes.c_long,ctypes.c_uint,ctypes.c_void_p]
+result=library.syscall(425,0,None)
+observed_errno=ctypes.get_errno()
+print('IO_URING_SETUP_RESULT',result,'ERRNO',observed_errno,'POINTER_BITS',ctypes.sizeof(ctypes.c_void_p)*8)
 print('SOCKETCALL_32BIT_NOT_EXECUTED_ON_AMD64')
 with sync_playwright() as p:
  b=p.chromium.launch(headless=True,chromium_sandbox=True,timeout=10000,args=[
@@ -51,6 +53,8 @@ with sync_playwright() as p:
   '--force-webrtc-ip-handling-policy=disable_non_proxied_udp'])
  print('EMPTY_BROWSER_STARTUP_PASS')
  b.close()
+assert result == -1 and observed_errno == 1, 'IO_URING_SETUP_MUST_BE_DENIED'
+print('IO_URING_SETUP_DENIED')
 """
 
 
