@@ -111,3 +111,54 @@ def test_inspection_never_mutates_observed_configuration():
     original = copy.deepcopy(observed)
     sandbox.validate_container(observed, IMAGE)
     assert observed == original
+
+
+@pytest.mark.parametrize("message,expected", [
+    ("pthread_create: Operation not permitted", "RENDER_THREAD_CREATION_DENIED"),
+    ("Failed to move to new namespace: Operation not permitted", "RENDER_CHROMIUM_SANDBOX_UNAVAILABLE"),
+    ("Executable doesn't exist at synthetic path", "RENDER_BROWSER_EXECUTABLE_MISSING"),
+    ("Permission denied with synthetic sensitive text", "RENDER_PROCESS_PERMISSION_DENIED"),
+    ("Unexpected failure with synthetic sensitive text", "RENDER_BOOTSTRAP_FAILED"),
+])
+def test_worker_startup_diagnostics_return_only_fixed_codes_without_raw_text(monkeypatch, message, expected):
+    from travel_ingest.packages import render_worker
+    monkeypatch.setattr(render_worker, "_clone_errno", lambda: "UNSUPPORTED")
+    result = render_worker.safe_error_code(RuntimeError(message))
+    assert result == expected
+    assert "synthetic" not in result
+
+
+@pytest.mark.parametrize("number,label", [(1, "EPERM"), (38, "ENOSYS"), (22, "EINVAL"), (14, "EFAULT"), (999, "OTHER")])
+def test_clone_probe_has_only_null_arguments_and_reports_fixed_errno_enums(monkeypatch, number, label):
+    from travel_ingest.packages import render_worker
+    class Syscall:
+        def __call__(self, number, pointer, size):
+            assert (number, pointer, size) == (435, None, 0)
+            return -1
+    class Library:
+        syscall = Syscall()
+    monkeypatch.setattr(render_worker, "_supports_clone_probe", lambda: True)
+    monkeypatch.setattr(render_worker.ctypes, "CDLL", lambda value, use_errno: Library())
+    monkeypatch.setattr(render_worker.ctypes, "get_errno", lambda: number)
+    assert render_worker._clone_errno() == label
+
+
+def test_clone_probe_exception_and_unsupported_platform_are_nonfatal_and_do_not_create_processes(monkeypatch):
+    from travel_ingest.packages import render_worker
+    def forbidden(*args, **kwargs):
+        raise OSError("Synthetic failure with private diagnostic")
+    monkeypatch.setattr(render_worker.ctypes, "CDLL", forbidden)
+    monkeypatch.setattr(render_worker, "_supports_clone_probe", lambda: False)
+    assert render_worker._clone_errno() == "UNSUPPORTED"
+    monkeypatch.setattr(render_worker, "_supports_clone_probe", lambda: True)
+    assert render_worker._clone_errno() == "UNAVAILABLE"
+
+
+@pytest.mark.parametrize("observed", ["EPERM", "ENOSYS", "EINVAL", "EFAULT"])
+def test_only_startup_thread_errors_attach_observed_clone_errno(monkeypatch, observed):
+    from travel_ingest.packages import render_worker
+    monkeypatch.setattr(render_worker, "STAGE", "BROWSER_LAUNCH")
+    monkeypatch.setattr(render_worker, "_clone_errno", lambda: observed)
+    assert render_worker.safe_error_code(RuntimeError("pthread_create: synthetic")) == "RENDER_THREAD_CREATION_DENIED_CLONE_" + observed
+    monkeypatch.setattr(render_worker, "STAGE", "DOCUMENT_NAVIGATION")
+    assert render_worker.safe_error_code(RuntimeError("pthread_create: synthetic")) == "RENDER_THREAD_CREATION_DENIED"

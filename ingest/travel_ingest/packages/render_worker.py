@@ -3,14 +3,60 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import ctypes
 import json
 import os
+import platform
 import sys
 import time
 from pathlib import Path
 
 PROTOCOL = "travel-reliability-renderer/1"
 MAX_LINE = 8 * 1024 * 1024
+STAGE = "BOOTSTRAP"
+
+
+def _supports_clone_probe() -> bool:
+    return sys.platform == "linux" and platform.machine() == "x86_64"
+
+
+def _clone_errno() -> str:
+    """Linux x86-64 clone3(NULL, 0) cannot create a child; report only an errno enum."""
+    if not _supports_clone_probe():
+        return "UNSUPPORTED"
+    try:
+        library = ctypes.CDLL(None, use_errno=True)
+        syscall = library.syscall
+        syscall.restype = ctypes.c_long
+        syscall.argtypes = [ctypes.c_long, ctypes.c_void_p, ctypes.c_size_t]
+        result = syscall(435, None, 0)
+        if result != -1:
+            return "UNEXPECTED"
+        # Linux x86-64 ABI constants; Windows errno.ENOSYS has another value.
+        return {1: "EPERM", 38: "ENOSYS", 22: "EINVAL", 14: "EFAULT"}.get(ctypes.get_errno(), "OTHER")
+    except Exception:
+        return "UNAVAILABLE"
+
+
+def safe_error_code(error: BaseException) -> str:
+    """Classify fixed startup diagnostics without exporting browser logs or URLs."""
+    message = str(error)
+    if message.startswith("RENDER_") and message.replace("_", "").isalnum() and len(message) <= 80:
+        return message
+    lowered = message.lower()
+    if any(value in lowered for value in ("no usable sandbox", "failed to move to new namespace", "namespace sandbox")):
+        return "RENDER_CHROMIUM_SANDBOX_UNAVAILABLE"
+    if "pthread_create" in lowered or "can't start new thread" in lowered:
+        if STAGE in {"BOOTSTRAP", "PLAYWRIGHT_STARTUP", "BROWSER_LAUNCH"}:
+            observed = _clone_errno()
+            if observed in {"EPERM", "ENOSYS", "EINVAL", "EFAULT"}:
+                return "RENDER_THREAD_CREATION_DENIED_CLONE_" + observed
+        return "RENDER_THREAD_CREATION_DENIED"
+    if "executable doesn't exist" in lowered:
+        return "RENDER_BROWSER_EXECUTABLE_MISSING"
+    if "operation not permitted" in lowered or "permission denied" in lowered:
+        return "RENDER_PROCESS_PERMISSION_DENIED"
+    return "RENDER_" + STAGE + "_FAILED"
 
 
 def emit(value: dict) -> None:
@@ -32,6 +78,7 @@ def read() -> dict:
 
 
 async def main() -> None:
+    global STAGE
     from playwright.async_api import async_playwright
 
     config = read()
@@ -61,7 +108,9 @@ async def main() -> None:
             raise ValueError("RENDER_DEADLINE")
         return value
 
+    STAGE = "PLAYWRIGHT_STARTUP"
     async with async_playwright() as playwright:
+        STAGE = "BROWSER_LAUNCH"
         browser = await playwright.chromium.launch(
             headless=True, chromium_sandbox=True,
             args=["--disable-background-networking", "--disable-component-update",
@@ -69,12 +118,14 @@ async def main() -> None:
                   "--disable-dev-shm-usage", "--force-webrtc-ip-handling-policy=disable_non_proxied_udp"],
             timeout=remaining(),
         )
+        STAGE = "BROWSER_CONTEXT"
         context = await browser.new_context(
             accept_downloads=False, service_workers="block", user_agent=config["userAgent"],
             permissions=[], java_script_enabled=True, ignore_https_errors=False,
         )
         context.set_default_timeout(remaining())
         await context.route_web_socket("**/*", lambda websocket: websocket.close())
+        STAGE = "BROWSER_PAGE"
         page = await context.new_page()
 
         async def reject_new_page(other):
@@ -130,7 +181,9 @@ async def main() -> None:
         await context.route("**/*", route_request)
         emit({"type": "ready", "protocol": PROTOCOL, "uid": os.getuid(),
               "interfaces": interfaces, "chromiumSandbox": True})
+        STAGE = "DOCUMENT_NAVIGATION"
         await page.goto(config["url"], wait_until="domcontentloaded", timeout=remaining())
+        STAGE = "DOCUMENT_RENDER"
         await page.wait_for_load_state("networkidle", timeout=remaining())
         if violation is not None:
             raise ValueError(violation)
@@ -147,8 +200,5 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except BaseException as error:
-        code = str(error)
-        if not (code.startswith("RENDER_") and code.replace("_", "").isalnum() and len(code) <= 80):
-            code = "RENDER_BROWSER_FAILED"
-        emit({"type": "error", "code": code})
+        emit({"type": "error", "code": safe_error_code(error)})
         raise SystemExit(1) from None

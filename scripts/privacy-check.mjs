@@ -68,9 +68,10 @@ function main() {
     ],
   ];
   const failures = [];
-  function scan(text, label) {
+  function scan(text, label, privateEmailView = text) {
     for (const [name, pattern] of rules)
-      if (pattern.test(text)) failures.push({ file: label, rule: name });
+      if (pattern.test(name === 'private-email' ? privateEmailView : text))
+        failures.push({ file: label, rule: name });
     if (
       extraTerms.some((term) => text.toLocaleLowerCase().includes(term.toLocaleLowerCase())) ||
       accountName?.test(text)
@@ -113,6 +114,11 @@ function main() {
     scan(data.toString('utf8'), file);
   }
   let excludedPreviewMetadata = null;
+  const classifiedPlatformServiceFields = {
+    committerEmailFields: 0,
+    exactBotTrailerLines: 0,
+    identityVerification: 'not_performed',
+  };
   if (history) {
     const commits = git(['rev-list', '--all']).trim().split('\n').filter(Boolean);
     const seen = new Set();
@@ -134,11 +140,61 @@ function main() {
         preview = parents.length === 2 && subject === `Merge ${parents[1]} into ${parents[0]}`;
       }
       if (preview) excludedPreviewMetadata = commit.slice(0, 12);
-      else
-        scan(
-          git(['show', '-s', '--format=%an%n%ae%n%cn%n%ce%n%B', commit]),
-          `commit:${commit.slice(0, 12)}`,
+      else {
+        const fields = git([
+          'show',
+          '-s',
+          '--format=%an%x00%ae%x00%cn%x00%ce%x00%B%x00%P',
+          commit,
+        ]).split('\0');
+        if (fields.length !== 6) throw new CoreGitError('CORE_GIT_HISTORY_METADATA_REJECTED');
+        const [authorName, authorEmail, committerName, committerEmail, message, parentText] =
+          fields;
+        const metadata = [authorName, authorEmail, committerName, committerEmail, message].join(
+          '\n',
         );
+        const parents = parentText.trim().split(/\s+/).filter(Boolean);
+        const subject = message.split('\n', 1)[0];
+        // GitHub documents this shared service committer for web-created commits:
+        // https://docs.github.com/en/enterprise-cloud@latest/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets
+        // This exact bot-shaped profile classifies only shared platform addresses.
+        // It does not authenticate the actor or verify a signature; metadata can be forged.
+        const platformBotProfile =
+          authorName === 'dependabot[bot]' &&
+          /^49699333\+dependabot\[bot\]@users\.noreply\.github\.com$/.test(authorEmail) &&
+          committerName === 'GitHub' &&
+          /^noreply@github\.com$/.test(committerEmail) &&
+          parents.length === 1 &&
+          /^Bump [^\r\n]+$/.test(subject);
+        let privateEmailView = metadata;
+        if (platformBotProfile) {
+          const lines = message.split('\n');
+          const platformTrailer = /^Signed-off-by: dependabot\[bot\] <support@github\.com>$/;
+          const matching = lines.filter((line) => platformTrailer.test(line));
+          let emailMessage = message;
+          // Exactly one complete line is eligible. Prefixes, suffixes, other trailers,
+          // author metadata and every other message byte remain in the email scan.
+          if (matching.length === 1) {
+            emailMessage = lines
+              .map((line) =>
+                platformTrailer.test(line) ? 'Signed-off-by: [platform-bot-service]' : line,
+              )
+              .join('\n');
+            classifiedPlatformServiceFields.exactBotTrailerLines++;
+          }
+          privateEmailView = [
+            authorName,
+            authorEmail,
+            committerName,
+            '[platform-committer-service]',
+            emailMessage,
+          ].join('\n');
+          classifiedPlatformServiceFields.committerEmailFields++;
+        }
+        // Only the private-email rule uses the field-specific view. Deny terms,
+        // credentials, identifiers and paths still inspect original metadata.
+        scan(metadata, `commit:${commit.slice(0, 12)}`, privateEmailView);
+      }
       const entries = git(['ls-tree', '-r', '-z', commit]).split('\0').filter(Boolean);
       for (const entry of entries) {
         const [header, path] = entry.split('\t'),
@@ -161,6 +217,7 @@ function main() {
         history,
         embedded: core.embedded,
         excludedPreviewMetadata,
+        classifiedPlatformServiceFields,
         scope: 'heuristic scan; manual review still required',
       }) + '\n',
     );

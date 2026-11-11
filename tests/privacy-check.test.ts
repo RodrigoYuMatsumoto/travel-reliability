@@ -83,6 +83,10 @@ function fixture(privateParent = false) {
   return {
     dir,
     merge,
+    parent,
+    head,
+    tree,
+    env,
     scan(overrides: Record<string, string> = {}) {
       const result = spawnSync(process.execPath, [checker, '--history'], {
         cwd: dir,
@@ -121,6 +125,155 @@ it('excludes only validated temporary PR metadata and still rejects private file
           finding.file === 'fixture.txt' && finding.rule === 'private-email',
       ),
     ).toBe(true);
+  } finally {
+    repo.cleanup();
+  }
+}, 30000);
+
+const platformCommitterEmail = ['noreply', 'github.com'].join('@');
+const platformBotEmail = ['49699333+dependabot[bot]', 'users.noreply.github.com'].join('@');
+const platformBotTrailer = ['Signed-off-by: dependabot[bot] <support', 'github.com>'].join('@');
+
+function platformBotFixture(
+  options: {
+    authorName?: string;
+    authorEmail?: string;
+    committerName?: string;
+    committerEmail?: string;
+    subject?: string;
+    message?: string;
+    parentCount?: number;
+    committedBlob?: string;
+  } = {},
+) {
+  const repo = fixture();
+  const git = (args: string[], env = repo.env) =>
+    execFileSync('git', args, {
+      cwd: repo.dir,
+      env,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }).trim();
+  let tree = repo.tree;
+  if (options.committedBlob !== undefined) {
+    writeFileSync(join(repo.dir, 'fixture.txt'), options.committedBlob);
+    git(['add', 'fixture.txt']);
+    tree = git(['write-tree']);
+  }
+  const parentArguments =
+    options.parentCount === 0
+      ? []
+      : options.parentCount === 2
+        ? ['-p', repo.head, '-p', repo.parent]
+        : ['-p', repo.head];
+  const commit = git(
+    [
+      '-c',
+      'commit.gpgsign=false',
+      'commit-tree',
+      tree,
+      ...parentArguments,
+      '-m',
+      (options.subject ?? 'Bump synthetic-dependency from 1.0.0 to 1.0.1') +
+        '\n\n' +
+        (options.message ?? platformBotTrailer),
+    ],
+    {
+      ...repo.env,
+      GIT_AUTHOR_NAME: options.authorName ?? 'dependabot[bot]',
+      GIT_AUTHOR_EMAIL: options.authorEmail ?? platformBotEmail,
+      GIT_COMMITTER_NAME: options.committerName ?? 'GitHub',
+      GIT_COMMITTER_EMAIL: options.committerEmail ?? platformCommitterEmail,
+    },
+  );
+  git(['-c', 'core.hooksPath=disabled-hooks', 'checkout', '--quiet', '--detach', commit]);
+  return {
+    ...repo,
+    commit,
+    scan(overrides: Record<string, string> = {}) {
+      return repo.scan({ GITHUB_EVENT_NAME: 'push', GITHUB_SHA: commit, ...overrides });
+    },
+  };
+}
+
+it('classifies only exact shared platform fields without claiming authenticated bot identity', () => {
+  const repo = platformBotFixture();
+  try {
+    const passed = repo.scan();
+    expect(passed.status).toBe(0);
+    expect(passed.report.classifiedPlatformServiceFields).toEqual({
+      committerEmailFields: 1,
+      exactBotTrailerLines: 1,
+      identityVerification: 'not_performed',
+    });
+    // Other rules still inspect the original bot metadata, not the email projection.
+    expect(repo.scan({ PRIVACY_DENY_TERMS: 'dependabot' }).status).toBe(1);
+    writeFileSync(join(repo.dir, 'fixture.txt'), platformCommitterEmail);
+    const failed = repo.scan();
+    expect(failed.status).toBe(1);
+    expect(failed.report.findings).toContainEqual({
+      file: 'fixture.txt',
+      rule: 'private-email',
+    });
+  } finally {
+    repo.cleanup();
+  }
+}, 30000);
+
+it.each([
+  { authorName: 'Synthetic Human', authorEmail: syntheticEmail },
+  { authorEmail: syntheticEmail },
+  { authorEmail: ['999+dependabot[bot]', 'users.noreply.github.com'].join('@') },
+  { committerName: 'Synthetic Platform' },
+  { committerEmail: syntheticEmail },
+  { committerEmail: ['noreply', 'github.com.attacker.invalid'].join('@') },
+  { subject: 'Other Bump synthetic dependency' },
+  { subject: 'Bump' },
+  { parentCount: 0 },
+  { parentCount: 2 },
+])(
+  'rejects a platform metadata exception with a changed identity or commit shape %#',
+  (options) => {
+    const repo = platformBotFixture(options);
+    try {
+      expect(repo.scan().status).toBe(1);
+    } finally {
+      repo.cleanup();
+    }
+  },
+  30000,
+);
+
+it.each([
+  platformBotTrailer + '\nSigned-off-by: Synthetic fixture <' + syntheticEmail + '>',
+  platformBotTrailer + '\nContact ' + syntheticEmail,
+  syntheticEmail + '\n' + platformBotTrailer,
+  'Prefix ' + platformBotTrailer,
+  platformBotTrailer + ' suffix',
+  platformBotTrailer + '\n' + platformBotTrailer,
+])(
+  'keeps message emails outside one exact bot trailer in scope %#',
+  (message) => {
+    const repo = platformBotFixture({ message });
+    try {
+      expect(repo.scan().status).toBe(1);
+    } finally {
+      repo.cleanup();
+    }
+  },
+  30000,
+);
+
+it('still scans private historical blobs on bot-shaped commits after the current copy is clean', () => {
+  const repo = platformBotFixture({ committedBlob: syntheticEmail });
+  try {
+    writeFileSync(join(repo.dir, 'fixture.txt'), 'Synthetic fixture only.\n');
+    const failed = repo.scan();
+    expect(failed.status).toBe(1);
+    expect(failed.report.findings).toContainEqual({
+      file: 'history:fixture.txt',
+      rule: 'private-email',
+    });
   } finally {
     repo.cleanup();
   }
