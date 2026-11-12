@@ -1,6 +1,9 @@
 # Changelog
 
-## 0.6.0 - 2026-11-11
+## 0.6.0 - não publicada
+
+- Atualizados Vite para 8.3.7 e `@fastify/multipart` para 10.1.7, corrigindo as faixas afetadas nos avisos oficiais [GHSA-p4f5-76q4-ffq7](https://github.com/vitejs/vite/security/advisories/GHSA-p4f5-76q4-ffq7) e [GHSA-5849-5m6q-9632](https://github.com/fastify/fastify-multipart/security/advisories/GHSA-5849-5m6q-9632). O servidor de desenvolvimento continua limitado a loopback; não há alegação de exploração reproduzida contra o aplicativo.
+- Incorporadas as atualizações compatíveis de `jose` 6.2.15, `openid-client` 6.8.9, `@fastify/rate-limit` 11.2.2 e `@vitejs/plugin-react` 6.2.1, com lockfile regenerado. O novo corte exige repetição dos checks e revisão independente antes de publicação estável.
 
 - Acrescentada renderização externa opcional com Chromium sem rede, broker HTTPS restrito, imagem e perfil seccomp imutáveis, inspeção efetiva do contêiner e testes adversariais reais. O modo padrão permanece offline.
 - Incorporadas as correções do PR #11 para modalidade de transporte, café excluído, fusos IANA e estado da interface. A revisão independente e a CI da árvore final continuam sendo condições de publicação estável.
