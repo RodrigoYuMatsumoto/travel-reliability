@@ -68,7 +68,7 @@ Nomes de schema: `brief`, `trip`, os treze IDs de calculadores, `package-observa
 
 ### Funções internacionais e leitura configurada
 
-Na versão 0.6, o servidor anuncia dezesseis ferramentas. Além das sete acima:
+Na versão 0.6, o servidor anuncia dezessete ferramentas. Além das sete acima:
 
 | Ferramenta                   | Argumentos                               | Resultado e limite                                                                                                                                     |
 | ---------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |

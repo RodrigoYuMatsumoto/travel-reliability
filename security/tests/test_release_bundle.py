@@ -217,6 +217,18 @@ class ReleaseBundleTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "REVIEW_FAMILY_NOT_DISTINCT"):
             self.fixture.build(stable=True)
 
+    def test_xai_and_maritaca_can_review_openai_anthropic_without_weakening_quorum(self):
+        self.fixture.receipt["generatorFamilies"] = ["openai", "anthropic"]
+        responses = self.fixture.receipt["packets"][0]["responses"]
+        for response, family in zip(responses, ["maritaca", "xai"], strict=True):
+            response.update(self.fixture.object(f"response-{family}.txt", f"Synthetic {family} review\n".encode()))
+            response["family"] = family
+        _, report = self.fixture.build(stable=True)
+        self.assertTrue(report["releaseEligibility"]["eligible"])
+        self.fixture.receipt["generatorFamilies"].append("xai")
+        with self.assertRaisesRegex(ValueError, "REVIEW_FAMILY_NOT_DISTINCT"):
+            self.fixture.build(stable=True)
+
     def test_public_approval_string_without_bound_packets_is_not_enough(self):
         with self.assertRaisesRegex(ValueError, "INVALID_PUBLIC_REVIEW"):
             bundle.public_review_approved({"overall": "APPROVE"}, COMMIT, TREE)

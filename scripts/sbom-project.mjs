@@ -1,5 +1,5 @@
 /** Normalize npm's CycloneDX project identity without depending on the checkout name. */
-export function projectSbom(input, packageMetadata) {
+export function projectSbom(input, packageMetadata, supplemental = null) {
   const { name, version } = packageMetadata;
   if (
     typeof name !== 'string' ||
@@ -55,6 +55,46 @@ export function projectSbom(input, packageMetadata) {
     throw new Error('INVALID_SBOM_ROOT_DEPENDENCY');
   if (body.components?.some((entry) => entry['bom-ref'] === rootRef))
     throw new Error('DUPLICATE_SBOM_ROOT_REFERENCE');
+
+  if (supplemental !== null) {
+    if (
+      supplemental?.format !== 'travel-reliability-python-inventory/1' ||
+      !Array.isArray(supplemental.components) ||
+      !Array.isArray(supplemental.dependencies) ||
+      !Array.isArray(supplemental.roots) ||
+      !Array.isArray(supplemental.properties)
+    )
+      throw new Error('INVALID_SBOM_SUPPLEMENT');
+    body.components ??= [];
+    const references = new Set([rootRef, ...body.components.map((entry) => entry['bom-ref'])]);
+    for (const extra of structuredClone(supplemental.components)) {
+      if (typeof extra['bom-ref'] !== 'string' || references.has(extra['bom-ref']))
+        throw new Error('DUPLICATE_SBOM_COMPONENT_REFERENCE');
+      references.add(extra['bom-ref']);
+      body.components.push(extra);
+    }
+    body.dependencies.push(...structuredClone(supplemental.dependencies));
+    if (supplemental.roots.some((reference) => !references.has(reference)))
+      throw new Error('INVALID_SBOM_SUPPLEMENT_ROOT');
+    const rootDependency = body.dependencies.find((entry) => entry.ref === rootRef);
+    rootDependency.dependsOn = [
+      ...new Set([...rootDependency.dependsOn, ...supplemental.roots]),
+    ].sort();
+    const dependencyRefs = new Set();
+    for (const dependency of body.dependencies) {
+      if (
+        !references.has(dependency.ref) ||
+        dependencyRefs.has(dependency.ref) ||
+        !Array.isArray(dependency.dependsOn) ||
+        dependency.dependsOn.some((reference) => !references.has(reference))
+      )
+        throw new Error('INVALID_SBOM_DEPENDENCY_GRAPH');
+      dependencyRefs.add(dependency.ref);
+    }
+    body.metadata.properties ??= [];
+    body.metadata.properties.push(...structuredClone(supplemental.properties));
+    project(body);
+  }
 
   body.metadata.properties ??= [];
   if (!Array.isArray(body.metadata.properties)) throw new Error('INVALID_SBOM_PROPERTIES');

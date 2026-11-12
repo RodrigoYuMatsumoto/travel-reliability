@@ -3,11 +3,13 @@ import { receipt, safeInteger, validatePassive } from '../../agent/provenance.js
 import {
   groundTransportSchema,
   groundCategories,
-  mandatoryGroundCategories,
+  flightGroundCategories,
+  mandatorySharedCategories,
   type GroundTransportInput,
   type GroundOffer,
   type GroundSource,
 } from '../../schema/src/ground-transport.js';
+import { isIanaTimeZone } from '../../schema/src/time-zone.js';
 import { AppError, requireCondition } from './errors.js';
 
 function instant(value: string): number {
@@ -45,11 +47,7 @@ export function groundTransport(supplied: unknown) {
     from = instant(window.earliestDepartureAt),
     until = instant(window.latestReturnAt);
   requireCondition(from < until, 'GROUND_WINDOW_REJECTED', 422);
-  try {
-    Temporal.Instant.from(window.earliestDepartureAt).toZonedDateTimeISO(window.timeZone);
-  } catch {
-    requireCondition(false, 'GROUND_TIME_ZONE_REJECTED', 422);
-  }
+  requireCondition(isIanaTimeZone(window.timeZone), 'GROUND_TIME_ZONE_REJECTED', 422);
   unique(input.sources.map((source) => source.id));
   unique(input.offers.map((offer) => offer.id));
   requireCondition(
@@ -58,7 +56,13 @@ export function groundTransport(supplied: unknown) {
     422,
   );
   requireCondition(
-    mandatoryGroundCategories.every((category) => input.requiredCategories.includes(category)),
+    mandatorySharedCategories.every((category) => input.requiredCategories.includes(category)) &&
+      input.offers.every((offer) =>
+        (offer.transportMode === 'flight'
+          ? (['outbound_flight', 'return_flight'] as const)
+          : (['outbound_bus', 'return_bus'] as const)
+        ).every((category) => input.requiredCategories.includes(category)),
+      ),
     'GROUND_REQUIRED_SCOPE_MISSING',
     422,
   );
@@ -67,6 +71,12 @@ export function groundTransport(supplied: unknown) {
       profile.minimumBreakfasts === 0 ||
       input.requiredCategories.includes('breakfast'),
     'GROUND_REQUIRED_SCOPE_MISSING',
+    422,
+  );
+  const breakfastRequirement = profile.breakfastRequirement ?? 'hotel_included';
+  requireCondition(
+    breakfastRequirement !== 'not_required' || (profile.minimumBreakfasts ?? 0) === 0,
+    'GROUND_BREAKFAST_POLICY_CONFLICT',
     422,
   );
   const travelers =
@@ -87,6 +97,20 @@ export function groundTransport(supplied: unknown) {
     source.reviewAfter !== null &&
     instant(source.reviewAfter) >= now;
   const rows = input.offers.map((offer) => {
+    const transportMode = offer.transportMode ?? 'bus';
+    const transportCategories =
+      transportMode === 'flight'
+        ? [...flightGroundCategories]
+        : (['outbound_bus', 'return_bus'] as const);
+    const requiredCategories = [
+      ...new Set([
+        ...input.requiredCategories.filter(
+          (category) =>
+            !['outbound_bus', 'return_bus', ...flightGroundCategories].includes(category),
+        ),
+        ...transportCategories,
+      ]),
+    ];
     requireCondition(
       [offer.origin, offer.destination, offer.provider].every(
         (value) => normalized(value).length > 0,
@@ -97,6 +121,16 @@ export function groundTransport(supplied: unknown) {
     const pending: string[] = [],
       rejected: string[] = [],
       warnings: string[] = [];
+    const declaredDestinationTimeZone = offer.destinationTimeZone ?? null;
+    if (declaredDestinationTimeZone !== null && !isIanaTimeZone(declaredDestinationTimeZone))
+      throw new AppError('GROUND_DESTINATION_TIME_ZONE_REJECTED', 422);
+    const destinationTimeZone = declaredDestinationTimeZone ?? window.timeZone;
+    // A flight usually changes zone, so its hotel dates stay pending without one. A coach
+    // keeps the legacy fallback to the window zone, but says so: it can cross zones too.
+    if (declaredDestinationTimeZone === null) {
+      if (transportMode === 'flight') pending.push('DESTINATION_TIME_ZONE_UNCONFIRMED');
+      else warnings.push('DESTINATION_TIME_ZONE_ASSUMED_FROM_WINDOW');
+    }
     unique(offer.costs.map((cost) => cost.id));
     if (normalized(offer.origin) !== normalized(window.origin)) rejected.push('ORIGIN_MISMATCH');
     if (
@@ -148,17 +182,21 @@ export function groundTransport(supplied: unknown) {
         pending.push('LODGING_NIGHT_COUNT_CONFLICT');
       if (arrival !== null && arrival !== undefined) {
         const arrivalDate = Temporal.Instant.fromEpochMilliseconds(arrival)
-          .toZonedDateTimeISO(window.timeZone)
+          .toZonedDateTimeISO(destinationTimeZone)
           .toPlainDate();
         if (Temporal.PlainDate.compare(arrivalDate, date(lodging.checkIn)) > 0)
           pending.push('LODGING_BEFORE_ARRIVAL');
+        if (Temporal.PlainDate.compare(arrivalDate, date(lodging.checkIn)) < 0)
+          pending.push('OVERNIGHT_BEFORE_LODGING_UNCONFIRMED');
       }
       if (returnDeparture !== null && returnDeparture !== undefined) {
         const departureDate = Temporal.Instant.fromEpochMilliseconds(returnDeparture)
-          .toZonedDateTimeISO(window.timeZone)
+          .toZonedDateTimeISO(destinationTimeZone)
           .toPlainDate();
         if (Temporal.PlainDate.compare(departureDate, date(lodging.checkOut)) < 0)
           pending.push('LODGING_AFTER_RETURN_DEPARTURE');
+        if (Temporal.PlainDate.compare(departureDate, date(lodging.checkOut)) > 0)
+          pending.push('OVERNIGHT_AFTER_LODGING_UNCONFIRMED');
       }
     } else pending.push('LODGING_DATES_UNKNOWN');
     if (
@@ -185,15 +223,49 @@ export function groundTransport(supplied: unknown) {
       lodging.occupantsPerRoom * lodging.rooms < travelers
     )
       rejected.push('INSUFFICIENT_ROOM_CAPACITY');
-    if (profile.minimumBreakfasts !== null && profile.minimumBreakfasts > 0) {
-      if (lodging.breakfast === 'unknown' || lodging.includedBreakfasts === null)
+    const externalBreakfasts =
+      lodging.externalBreakfasts !== undefined
+        ? lodging.externalBreakfasts
+        : lodging.breakfast === 'included' &&
+            lodging.includedBreakfasts !== null &&
+            lodging.includedBreakfasts >= (profile.minimumBreakfasts ?? 0)
+          ? 0
+          : null;
+    const hotelBreakfasts = lodging.breakfast === 'excluded' ? 0 : lodging.includedBreakfasts;
+    const providedBreakfasts =
+      hotelBreakfasts === null || externalBreakfasts === null
+        ? null
+        : hotelBreakfasts + externalBreakfasts;
+    if (lodging.breakfast === 'excluded' && (lodging.includedBreakfasts ?? 0) > 0)
+      pending.push('BREAKFAST_INCLUSION_CONFLICT');
+    if (
+      profile.minimumBreakfasts !== null &&
+      profile.minimumBreakfasts > 0 &&
+      breakfastRequirement === 'hotel_included'
+    ) {
+      // A rate declared without breakfast supplies zero hotel breakfasts; only an
+      // unknown rate or an included rate without a count remains unconfirmed.
+      if (lodging.breakfast === 'unknown' || hotelBreakfasts === null)
         pending.push('BREAKFAST_UNCONFIRMED');
-      else if (
-        lodging.breakfast !== 'included' ||
-        lodging.includedBreakfasts < profile.minimumBreakfasts
-      )
+      else if (lodging.breakfast !== 'included' || hotelBreakfasts < profile.minimumBreakfasts)
         rejected.push('INSUFFICIENT_INCLUDED_BREAKFASTS');
     }
+    if (breakfastRequirement === 'provided_or_budgeted' && externalBreakfasts === null)
+      pending.push('EXTERNAL_BREAKFAST_COUNT_UNKNOWN');
+    if (breakfastRequirement === 'provided_or_budgeted' && (profile.minimumBreakfasts ?? 0) > 0) {
+      if (lodging.breakfast === 'unknown' || hotelBreakfasts === null)
+        pending.push('BREAKFAST_UNCONFIRMED');
+      if (providedBreakfasts !== null && providedBreakfasts < profile.minimumBreakfasts!)
+        rejected.push('INSUFFICIENT_PROVIDED_BREAKFASTS');
+    }
+    if ((externalBreakfasts ?? 0) > 0 && offer.coverage.breakfast !== 'itemized')
+      pending.push('EXTERNAL_BREAKFAST_COST_SCOPE_UNKNOWN');
+    if (
+      providedBreakfasts !== null &&
+      lodgingNights !== null &&
+      providedBreakfasts > lodgingNights + (lodging.arrivalBreakfastIncluded === true ? 1 : 0)
+    )
+      pending.push('BREAKFAST_COUNT_SCOPE_CONFLICT');
     if (
       lodging.includedBreakfasts !== null &&
       lodgingNights !== null &&
@@ -210,6 +282,16 @@ export function groundTransport(supplied: unknown) {
     const activeCosts = offer.costs.filter(
       (cost) => cost.treatment !== 'optional' || cost.selected,
     );
+    const inactiveTransportCategories =
+      transportMode === 'flight'
+        ? (['outbound_bus', 'return_bus'] as const)
+        : flightGroundCategories;
+    for (const category of inactiveTransportCategories) {
+      if (activeCosts.some((cost) => cost.category === category))
+        pending.push('TRANSPORT_MODE_COST_CONFLICT:' + category);
+      if (offer.coverage[category] !== undefined && offer.coverage[category] !== 'not_required')
+        pending.push('TRANSPORT_MODE_COVERAGE_CONFLICT:' + category);
+    }
     const lineItems = activeCosts.map((cost) => {
       requireCondition(cost.currency === profile.currency, 'GROUND_CURRENCY_MISMATCH', 422);
       requireCondition(
@@ -227,20 +309,32 @@ export function groundTransport(supplied: unknown) {
         !cost.sourceIds.every((id) => sourceFresh(sources.get(id)!))
       )
         pending.push('COST_PROVENANCE_UNCONFIRMED:' + cost.id);
+      const personQuantity =
+        cost.personScope === 'adults'
+          ? profile.adults
+          : cost.personScope === 'children'
+            ? profile.children
+            : travelers;
+      if (cost.unit === 'person_breakfast' && cost.category !== 'breakfast')
+        pending.push('PRICE_UNIT_CATEGORY_MISMATCH:' + cost.id);
       const expected =
-        cost.unit === 'person'
-          ? cost.personScope === 'adults'
-            ? profile.adults
-            : cost.personScope === 'children'
-              ? profile.children
-              : travelers
-          : cost.unit === 'room_stay'
-            ? profile.rooms
-            : cost.unit === 'room_night'
-              ? profile.rooms === null || lodgingNights === null
-                ? null
-                : profile.rooms * lodgingNights
-              : 1;
+        cost.unit === 'person_breakfast'
+          ? personQuantity === null || externalBreakfasts === null
+            ? null
+            : personQuantity * externalBreakfasts
+          : cost.unit === 'person'
+            ? cost.personScope === 'adults'
+              ? profile.adults
+              : cost.personScope === 'children'
+                ? profile.children
+                : travelers
+            : cost.unit === 'room_stay'
+              ? profile.rooms
+              : cost.unit === 'room_night'
+                ? profile.rooms === null || lodgingNights === null
+                  ? null
+                  : profile.rooms * lodgingNights
+                : 1;
       if (expected === null) pending.push('PRICE_UNIT_SCOPE_UNCONFIRMED:' + cost.id);
       else if (cost.quantity !== expected) pending.push('PRICE_UNIT_QUANTITY_MISMATCH:' + cost.id);
       if (totalMinor !== null) {
@@ -253,7 +347,9 @@ export function groundTransport(supplied: unknown) {
         category: cost.category,
         unit: cost.unit,
         quantity: cost.quantity,
-        personScope: cost.unit === 'person' ? (cost.personScope ?? 'party') : null,
+        personScope: ['person', 'person_breakfast'].includes(cost.unit)
+          ? (cost.personScope ?? 'party')
+          : null,
         totalMinor,
         treatment: cost.treatment,
         sourceIds: cost.sourceIds,
@@ -261,7 +357,7 @@ export function groundTransport(supplied: unknown) {
     });
     const ordinaryCosts = activeCosts.filter((cost) => cost.treatment !== 'refundable_hold');
     const coversParty = (costs: typeof ordinaryCosts) => {
-      if (costs.some((cost) => cost.unit !== 'person')) return true;
+      if (costs.some((cost) => !['person', 'person_breakfast'].includes(cost.unit))) return true;
       const scopes = new Set(costs.map((cost) => cost.personScope ?? 'party'));
       return (
         scopes.has('party') ||
@@ -269,6 +365,17 @@ export function groundTransport(supplied: unknown) {
           (profile.children === 0 || scopes.has('children')))
       );
     };
+    if ((externalBreakfasts ?? 0) > 0) {
+      const externalCosts = ordinaryCosts.filter((cost) => cost.category === 'breakfast');
+      // A declared external meal budget remains part of this offer even when
+      // breakfasts are not part of the caller's minimum requirement.
+      if (offer.coverage.breakfast !== 'itemized' || externalCosts.length === 0)
+        pending.push('EXTERNAL_BREAKFAST_COST_SCOPE_UNKNOWN');
+      if (externalCosts.some((cost) => !['person_breakfast', 'group'].includes(cost.unit)))
+        pending.push('EXTERNAL_BREAKFAST_PRICE_UNIT_UNCONFIRMED');
+      if (externalCosts.length > 0 && !coversParty(externalCosts))
+        pending.push('PARTY_PRICE_COVERAGE_INCOMPLETE:breakfast');
+    }
     const packageCosts = ordinaryCosts.filter((cost) => cost.category === 'package');
     if (packageCosts.length > 0 && !coversParty(packageCosts))
       pending.push('PARTY_PRICE_COVERAGE_INCOMPLETE:package');
@@ -280,11 +387,20 @@ export function groundTransport(supplied: unknown) {
         pending.push('INCLUDED_COST_DUPLICATED:' + category);
     }
     const missingCategories: string[] = [];
-    for (const category of input.requiredCategories) {
+    for (const category of requiredCategories) {
       const coverage = offer.coverage[category];
-      if (coverage === 'unknown') missingCategories.push(category);
-      if (coverage === 'included' && !ordinaryCosts.some((cost) => cost.category === 'package'))
-        missingCategories.push(category);
+      if (coverage === 'unknown' || coverage === undefined) missingCategories.push(category);
+      const includedInKnownRate =
+        ordinaryCosts.some((cost) => cost.category === 'package') ||
+        (category === 'breakfast' &&
+          lodging.breakfast === 'included' &&
+          ordinaryCosts.some((cost) => cost.category === 'lodging')) ||
+        (['flight_baggage', 'flight_seats'].includes(category) &&
+          transportMode === 'flight' &&
+          ['outbound_flight', 'return_flight'].every((flight) =>
+            ordinaryCosts.some((cost) => cost.category === flight),
+          ));
+      if (coverage === 'included' && !includedInKnownRate) missingCategories.push(category);
       if (coverage === 'itemized' && !ordinaryCosts.some((cost) => cost.category === category))
         missingCategories.push(category);
       if (coverage === 'itemized') {
@@ -295,7 +411,9 @@ export function groundTransport(supplied: unknown) {
       if (coverage === 'not_required' && !offer.notRequiredReasons[category]?.trim())
         missingCategories.push(category);
       if (
-        ['outbound_bus', 'return_bus', 'lodging'].includes(category) &&
+        ['outbound_bus', 'return_bus', 'outbound_flight', 'return_flight', 'lodging'].includes(
+          category,
+        ) &&
         coverage === 'not_required'
       )
         missingCategories.push(category);
@@ -332,22 +450,33 @@ export function groundTransport(supplied: unknown) {
       roomType: lodging.roomType,
       rooms: lodging.rooms,
       occupancy: lodging.occupantsPerRoom,
-      breakfast: lodging.breakfast,
-      breakfasts: lodging.includedBreakfasts,
-      requiredCategories: [...input.requiredCategories].sort(),
+      breakfast:
+        breakfastRequirement === 'provided_or_budgeted'
+          ? 'provided_or_budgeted'
+          : lodging.breakfast,
+      breakfasts:
+        breakfastRequirement === 'provided_or_budgeted'
+          ? providedBreakfasts
+          : lodging.includedBreakfasts,
+      requiredCategories: input.requiredCategories
+        .filter(
+          (category) =>
+            !['outbound_bus', 'return_bus', ...flightGroundCategories].includes(category),
+        )
+        .sort(),
       serviceScopeKey: offer.serviceScopeKey ?? null,
       arrivalDate:
         arrival === null || arrival === undefined
           ? null
           : Temporal.Instant.fromEpochMilliseconds(arrival)
-              .toZonedDateTimeISO(window.timeZone)
+              .toZonedDateTimeISO(destinationTimeZone)
               .toPlainDate()
               .toString(),
       returnDate:
         returnDeparture === null || returnDeparture === undefined
           ? null
           : Temporal.Instant.fromEpochMilliseconds(returnDeparture)
-              .toZonedDateTimeISO(window.timeZone)
+              .toZonedDateTimeISO(destinationTimeZone)
               .toPlainDate()
               .toString(),
     });
@@ -355,6 +484,8 @@ export function groundTransport(supplied: unknown) {
       id: offer.id,
       provider: offer.provider,
       kind: offer.kind,
+      transportMode,
+      destinationTimeZone,
       destination: offer.destination,
       status: rejectionReasons.length
         ? 'rejected'
@@ -371,8 +502,13 @@ export function groundTransport(supplied: unknown) {
       lodgingNights,
       declaredLodgingNights: lodging.declaredNights,
       nightsInTransit: lodging.nightsInTransit,
+      breakfastRequirement,
+      hotelBreakfasts,
+      externalBreakfasts,
+      providedBreakfasts,
+      hotelBreakfast: lodging.breakfast,
       priceUnitScope:
-        'Every quantity is explicitly billed; person=party, room_stay=rooms, room_night=rooms times calculated lodging nights, group=one.',
+        'Every quantity is explicitly billed; person=party, person_breakfast=declared persons times external breakfasts per person, room_stay=rooms, room_night=rooms times calculated lodging nights, group=one.',
       knownHoldsMinor,
       knownCashExposureUpperBoundMinor,
       cashExposureUpperBoundMinor,
@@ -403,9 +539,13 @@ export function groundTransport(supplied: unknown) {
   });
   const baseline = rows.find((row) => row.id === input.baselineId);
   const outputRows = rows.map(({ comparisonKey, ...row }) => {
+    // A flight alternative to a coach package (or the reverse) is a nominal difference
+    // between different services, never demonstrated savings.
+    const modeDiffers = !!baseline && row.transportMode !== baseline.transportMode;
     const comparable =
       !!baseline &&
       row.id !== baseline.id &&
+      !modeDiffers &&
       baseline.finalTotalMinor !== null &&
       row.finalTotalMinor !== null &&
       comparisonKey === baseline.comparisonKey;
@@ -420,7 +560,9 @@ export function groundTransport(supplied: unknown) {
             ? 'BASELINE'
             : comparable
               ? null
-              : 'INCOMPLETE_OR_NON_EQUIVALENT_OFFERS',
+              : modeDiffers
+                ? 'TRANSPORT_MODE_DIFFERS'
+                : 'INCOMPLETE_OR_NON_EQUIVALENT_OFFERS',
       },
     };
   });

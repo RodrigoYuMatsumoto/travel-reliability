@@ -47,7 +47,7 @@ describe('bounded documentary workflow preparation', () => {
     }
   });
 
-  it('keeps lodging and ground workflows distinct from flight calculators', () => {
+  it('keeps lodging scoped and exposes multimodal comparison explicitly', () => {
     for (const [workflowId, domain] of [
       ['compare-lodging', 'lodging'],
       ['ground-transport', 'ground'],
@@ -55,7 +55,8 @@ describe('bounded documentary workflow preparation', () => {
       const command = catalog.commands.find((row) => row.id === workflowId);
       expect(command).toBeDefined();
       expect(command!.domains).toContain(domain);
-      expect(command!.domains).not.toContain('flight');
+      if (workflowId === 'ground-transport') expect(command!.domains).toContain('flight');
+      else expect(command!.domains).not.toContain('flight');
       const result = prepareWorkflow(draft(command!), now);
       expect(result.agentId).toBe(command!.agentId);
       expect(result.executor.calculatorId).toBe(

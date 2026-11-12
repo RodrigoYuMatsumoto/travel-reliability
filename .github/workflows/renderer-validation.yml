@@ -1,0 +1,46 @@
+name: Verificar renderer isolado
+on:
+  pull_request:
+    paths:
+      - 'ingest/travel_ingest/packages/render_*.py'
+      - 'ingest/tests/test_packages_render_*.py'
+      - 'deploy/renderer/**'
+      - '.github/workflows/renderer-validation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: renderer-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  renderer-verification:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with: { persist-credentials: false }
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2
+        with: { version: 0.11.32, python-version: '3.12' }
+      - run: uv sync --project ingest --locked
+      - name: Construir a imagem imutável
+        run: |
+          mkdir -p .local/renderer
+          docker build --build-arg PLAYWRIGHT_BASE=mcr.microsoft.com/playwright/python:v1.64.1-noble@sha256:330d401ae23c905896a0c26c66c36fc971b621519e7b11b435a8328d7bf6e031 -f deploy/renderer/Dockerfile --iidfile .local/renderer/image.id .
+      - name: Diagnosticar a inicialização vazia sem página ou credenciais
+        run: |
+          export TRAVEL_RELIABILITY_RENDERER_IMAGE="$(cat .local/renderer/image.id)"
+          export TRAVEL_RENDERER_DIAGNOSTIC_REQUIRED=1
+          uv run --project ingest python -m pytest ingest/tests/test_packages_render_startup_probe.py -q -s
+      - name: Exercitar o navegador real e a contenção do sistema operacional
+        run: |
+          export TRAVEL_RELIABILITY_RENDERER_IMAGE="$(cat .local/renderer/image.id)"
+          export TRAVEL_RENDERER_INTEGRATION_REQUIRED=1
+          uv run --project ingest python -m pytest ingest/tests/test_packages_render_integration.py -q --junitxml=.local/renderer/results.xml
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: renderer-verification
+          path: .local/renderer/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7

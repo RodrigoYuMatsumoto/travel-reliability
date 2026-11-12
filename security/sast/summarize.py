@@ -61,7 +61,7 @@ def summarize(kind: str, raw: dict, triage: list | None = None) -> dict:
         if not metrics or not isinstance(results, list) or not isinstance(errors, list):
             raise ValueError("INVALID_BANDIT_REPORT")
         findings = [{"ruleId": str(item["test_id"])[:80], "severity": str(item.get("issue_severity", "unknown"))[:20], "confidence": str(item.get("issue_confidence", "unknown"))[:20], "path": source_path(item["filename"]), "line": int(item.get("line_number", 0))} for item in results]
-        return {"status": "FAIL" if findings or errors else "PASS", "tool": "Bandit", "version": "1.9.4", "lines": metrics.get("loc", 0), "parserOrToolErrors": len(errors), "findings": findings, "inlineTriage": "The HOME-only sandbox hint has one narrowly scoped B108 suppression, reviewed with rationale in source; no general rule exclusions.", "privacy": "Only rule metadata, relative source paths and counters."}
+        return {"status": "FAIL" if findings or errors else "PASS", "tool": "Bandit", "version": "1.9.4", "lines": metrics.get("loc", 0), "parserOrToolErrors": len(errors), "findings": findings, "inlineTriage": "Triagem inline restrita aos locais justificados no código: diretórios temporários isolados e comandos Docker fixos, sem shell e com imagem imutável; nenhuma exclusão global de regras.", "privacy": "Only rule metadata, relative source paths and counters."}
     raise ValueError("UNKNOWN_SCANNER")
 
 

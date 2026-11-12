@@ -1,21 +1,24 @@
-"""Opt-in rendering of a supported package page.
+"""Opt-in isolated package rendering and bounded robots.txt checks.
 
-Network access requires ``allow_network=True``. Only https URLs on the four supported
-agency hosts are accepted. robots.txt is checked first for the
-``TravelReliabilityPackageReader`` user agent with RFC 9309 matching (longest match wins,
-``Allow`` wins a tie, ``*`` and ``$`` are supported), and a ``Content-Signal`` with
-``ai-input=no`` is a refusal. The default renderer imports Playwright lazily (it is an
-optional dependency) and blocks images, media, fonts and downloads; JavaScript runs because
-some sites (Augustus) are single-page apps. A render that ends on any URL other than the one
-requested (ignoring the fragment) is refused.
+The operator must provision an immutable Docker renderer image. Without it, automatic
+rendering fails before DNS or browser launch. The browser has no network; the host broker
+alone supplies approved read-only resources. In-process callbacks remain fixture-only.
+Product identity retains its exact SPA fragment, and source facts remain unconfirmed.
 """
 
 from __future__ import annotations
 
 import http.client
+import ipaddress
+import os
+import queue
 import re
+import socket
 import ssl
 import string
+import threading
+import time
+from dataclasses import dataclass
 from typing import Callable
 from urllib.parse import quote, urlsplit
 
@@ -38,12 +41,11 @@ ALLOWED_HOSTS = frozenset(
 RENDER_TIMEOUT_MS = 30_000
 ROBOTS_TIMEOUT_S = 10
 ROBOTS_MAX_BYTES = 512 * 1024
-_BLOCKED_RESOURCES = frozenset({"image", "media", "font"})
 _BOM = chr(0xFEFF)
 _UNRESERVED = frozenset(string.ascii_letters + string.digits + "-._~")
 
-# A renderer returns {"html": str, "finalUrl": str}; finalUrl is the address the browser
-# ended on, so redirects can be checked.
+# Trusted in-process fixture callbacks, never accepted from CLI/MCP input. A renderer
+# returns {"html": str, "finalUrl": str}. They do not establish network provenance.
 Renderer = Callable[..., dict]
 RobotsFetcher = Callable[[str], "str | None"]
 
@@ -76,8 +78,8 @@ def _records(robots_text: str):
 
 
 def _agent_matches(value: str, agent: str = USER_AGENT) -> bool:
-    token = value.split("/", 1)[0].strip().lower()
-    return token == agent.lower()
+    product_agent = value.split("/", 1)[0].strip().lower()
+    return product_agent == agent.lower()
 
 
 def _groups(robots_text: str) -> list[tuple[list[str], list[tuple[bool, str]]]]:
@@ -192,28 +194,174 @@ def check_robots(robots_text: str | None, url: str) -> None:
         raise PackageError("ROBOTS_DISALLOWED")
 
 
-def _default_robots_fetcher(robots_url: str) -> str | None:
-    """GET robots.txt over a fixed HTTPS connection: no other scheme, no redirects."""
-    parts = urlsplit(robots_url)
-    if parts.scheme != "https" or not parts.hostname or parts.username or parts.password:
-        raise PackageError("ROBOTS_UNAVAILABLE")
-    connection = http.client.HTTPSConnection(
-        parts.hostname, parts.port or 443, timeout=ROBOTS_TIMEOUT_S, context=ssl.create_default_context()
-    )
+@dataclass(frozen=True)
+class _PinnedEndpoint:
+    host: str
+    address: str
+    family: int
+
+
+def _public_ip(value: str) -> bool:
+    """Reject every non-global address, including IPv4-mapped private IPv6."""
     try:
-        connection.request("GET", parts.path or "/robots.txt", headers={"User-Agent": USER_AGENT})
+        if "%" in value:  # scoped IPv6 is never a public Internet endpoint
+            return False
+        address = ipaddress.ip_address(value)
+        if isinstance(address, ipaddress.IPv6Address) and address.ipv4_mapped:
+            return _public_ip(str(address.ipv4_mapped))
+        return address.is_global and not any(
+            (address.is_multicast, address.is_reserved, address.is_unspecified, address.is_loopback)
+        )
+    except ValueError:
+        return False
+
+
+def _remaining(deadline: float) -> float:
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise TimeoutError
+    return remaining
+
+
+def _resolve_public_endpoint(host: str, deadline: float) -> _PinnedEndpoint:
+    """Resolve once; reject the entire answer if any usable address is not public.
+
+    getaddrinfo has no portable timeout. Its daemon worker cannot keep a failed request
+    alive; no socket is opened by this worker. The caller shares one absolute deadline
+    with TCP, TLS and response reads, rather than restarting a timeout per operation.
+    """
+    results: queue.Queue = queue.Queue(maxsize=1)
+
+    def resolve() -> None:
+        try:
+            answers = socket.getaddrinfo(host, 443, socket.AF_UNSPEC, socket.SOCK_STREAM)
+            results.put((answers, None))
+        except Exception as error:
+            results.put((None, error))
+
+    threading.Thread(target=resolve, daemon=True, name="package-robots-dns").start()
+    try:
+        answers, error = results.get(timeout=_remaining(deadline))
+    except queue.Empty:
+        raise PackageError("ROBOTS_UNAVAILABLE") from None
+    if error is not None or not answers:
+        raise PackageError("ROBOTS_UNAVAILABLE")
+    endpoints: list[_PinnedEndpoint] = []
+    for family, sock_type, protocol, _, sockaddr in answers:
+        if (
+            family not in (socket.AF_INET, socket.AF_INET6)
+            or sock_type != socket.SOCK_STREAM
+            or protocol not in (0, socket.IPPROTO_TCP)
+            or not _public_ip(sockaddr[0])
+            or sockaddr[1] != 443
+        ):
+            raise PackageError("ROBOTS_UNAVAILABLE")
+        endpoints.append(_PinnedEndpoint(host, sockaddr[0], family))
+    # There is no connection-time DNS lookup and no retry/fallback to a changed answer.
+    return endpoints[0]
+
+
+class _PinnedHTTPSConnection(http.client.HTTPSConnection):
+    """Preserve Host/SNI/certificate identity while connecting to one vetted IP."""
+
+    def __init__(self, endpoint: _PinnedEndpoint, *, deadline: float):
+        self._endpoint = endpoint
+        self._deadline = deadline
+        self._active_socket = None
+        super().__init__(
+            endpoint.host,
+            443,
+            timeout=_remaining(deadline),
+            context=ssl.create_default_context(),
+        )
+
+    def connect(self) -> None:
+        # A raw socket connects to an IP literal: create_connection/getaddrinfo would
+        # introduce a second resolution and invalidate the preflight pin.
+        raw_socket = socket.socket(self._endpoint.family, socket.SOCK_STREAM, socket.IPPROTO_TCP)
+        self._active_socket = raw_socket
+        try:
+            raw_socket.settimeout(_remaining(self._deadline))
+            address = (self._endpoint.address, 443)
+            if self._endpoint.family == socket.AF_INET6:
+                address = (self._endpoint.address, 443, 0, 0)
+            raw_socket.connect(address)
+            if ipaddress.ip_address(raw_socket.getpeername()[0]) != ipaddress.ip_address(
+                self._endpoint.address
+            ):
+                raise OSError("peer address mismatch")
+            raw_socket.settimeout(_remaining(self._deadline))
+            self.sock = self._context.wrap_socket(raw_socket, server_hostname=self._endpoint.host)
+            self._active_socket = self.sock
+        except BaseException:
+            raw_socket.close()
+            raise
+
+    def cancel(self) -> None:
+        """Interrupt slow headers/body as well as connect/TLS at the absolute deadline."""
+        active_socket = self._active_socket
+        if active_socket is not None:
+            try:
+                active_socket.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
+            active_socket.close()
+        self.close()
+
+
+def _default_robots_fetcher(robots_url: str) -> str | None:
+    """Bounded GET to the exact allowlisted HTTPS /robots.txt, with public-IP pinning."""
+    connection = None
+    watchdog = None
+    try:
+        robots_url, host = _check_target(robots_url)
+        parts = urlsplit(robots_url)
+        if parts.path != "/robots.txt" or parts.query or parts.fragment:
+            raise PackageError("ROBOTS_UNAVAILABLE")
+        deadline = time.monotonic() + ROBOTS_TIMEOUT_S
+        endpoint = _resolve_public_endpoint(host, deadline)
+        connection = _PinnedHTTPSConnection(endpoint, deadline=deadline)
+        # HTTPResponse parses headers internally. A total-deadline watchdog closes
+        # the active socket even if a server drip-feeds those headers indefinitely.
+        watchdog = threading.Timer(_remaining(deadline), connection.cancel)
+        watchdog.daemon = True
+        watchdog.start()
+        connection.request(
+            "GET", "/robots.txt", headers={"User-Agent": USER_AGENT, "Accept-Encoding": "identity"}
+        )
+        if connection.sock is not None:
+            connection.sock.settimeout(_remaining(deadline))
         response = connection.getresponse()
         status = response.status
-        body = response.read(ROBOTS_MAX_BYTES + 1)
-    except (http.client.HTTPException, TimeoutError, OSError):
+        if 400 <= status < 500 and status != 429:
+            return None  # no robots.txt; do not read an unneeded error response body
+        if status != 200:
+            raise PackageError("ROBOTS_UNAVAILABLE")  # never follow any redirect
+        if response.getheader("Content-Encoding", "identity").lower().strip() not in ("", "identity"):
+            raise PackageError("ROBOTS_UNAVAILABLE")
+        body = bytearray()
+        while True:
+            if connection.sock is not None:
+                connection.sock.settimeout(_remaining(deadline))
+            else:
+                _remaining(deadline)
+            # read1 performs at most one underlying buffered read; a server cannot
+            # reset the absolute deadline by slowly trickling an entire read(n).
+            chunk = response.read1(min(16 * 1024, ROBOTS_MAX_BYTES + 1 - len(body)))
+            if not chunk:
+                break
+            body.extend(chunk)
+            if len(body) > ROBOTS_MAX_BYTES:
+                raise PackageError("ROBOTS_UNAVAILABLE")
+        _remaining(deadline)
+        return bytes(body).decode("utf-8-sig", "replace")
+    except (PackageError, http.client.HTTPException, TimeoutError, OSError, ValueError):
         raise PackageError("ROBOTS_UNAVAILABLE") from None
     finally:
-        connection.close()
-    if 400 <= status < 500 and status != 429:
-        return None  # no robots.txt: crawling is allowed
-    if status != 200 or len(body) > ROBOTS_MAX_BYTES:
-        raise PackageError("ROBOTS_UNAVAILABLE")  # redirects, 429 and 5xx are not followed
-    return body.decode("utf-8-sig", "replace")
+        if watchdog is not None:
+            watchdog.cancel()
+        if connection is not None:
+            connection.close()
 
 
 # ---------------------------------------------------------------------------
@@ -221,8 +369,12 @@ def _default_robots_fetcher(robots_url: str) -> str | None:
 # ---------------------------------------------------------------------------
 
 
-def _comparable(url: str) -> tuple[str, str, int | None, str, str]:
-    """URL without fragment, normalised the way browsers report it (``https://h`` == ``https://h/``)."""
+def _comparable(url: str) -> tuple[str, str, int | None, str, str, str]:
+    """Normalise trivial browser URL spelling while retaining exact SPA identity."""
+    try:
+        check_url(url)
+    except PackageError:
+        raise PackageError("REDIRECT_NOT_ALLOWED") from None
     parts = urlsplit(url)
     try:
         port = parts.port
@@ -234,8 +386,9 @@ def _comparable(url: str) -> tuple[str, str, int | None, str, str]:
         parts.scheme.lower(),
         (parts.hostname or "").lower().rstrip("."),
         port,
-        _normalise_path(parts.path or "/"),
-        _normalise_path(parts.query),
+        parts.path or "/",
+        parts.query,
+        parts.fragment,
     )
 
 
@@ -244,41 +397,11 @@ def same_document(requested: str, final: str) -> bool:
 
 
 def _playwright_renderer(url: str, *, user_agent: str, timeout_ms: int, max_bytes: int) -> dict:
-    try:
-        from playwright.sync_api import Error as PlaywrightError
-        from playwright.sync_api import sync_playwright
-    except ImportError:
-        raise PackageError("PLAYWRIGHT_NOT_INSTALLED") from None
+    if not os.environ.get("TRAVEL_RELIABILITY_RENDERER_IMAGE"):
+        raise PackageError("NETWORK_RENDERER_UNAVAILABLE")
+    from .render_sandbox import render_isolated
 
-    def route(request_route) -> None:
-        if request_route.request.resource_type in _BLOCKED_RESOURCES:
-            request_route.abort()
-        else:
-            request_route.continue_()
-
-    try:
-        with sync_playwright() as playwright:
-            browser = playwright.chromium.launch(headless=True)
-            try:
-                context = browser.new_context(
-                    user_agent=user_agent,
-                    java_script_enabled=True,
-                    accept_downloads=False,
-                    service_workers="block",
-                )
-                context.set_default_timeout(timeout_ms)
-                context.route("**/*", route)
-                page = context.new_page()
-                page.goto(url, wait_until="networkidle", timeout=timeout_ms)
-                final_url = page.url
-                html = page.content()
-            finally:
-                browser.close()
-    except PlaywrightError:
-        raise PackageError("RENDER_FAILED") from None
-    if len(html.encode("utf-8", "replace")) > max_bytes:
-        raise PackageError("HTML_TOO_LARGE")
-    return {"html": html, "finalUrl": final_url}
+    return render_isolated(url, user_agent=user_agent, timeout_ms=timeout_ms, max_bytes=max_bytes)
 
 
 def fetch_rendered(
@@ -289,26 +412,42 @@ def fetch_rendered(
     renderer: Renderer | None = None,
     robots_fetcher: RobotsFetcher | None = None,
 ) -> dict:
-    """Render ``url`` after the network opt-in, host allowlist and robots.txt checks."""
+    """Render through a provisioned sandbox or validate a fixture, preserving provenance."""
     if allow_network is not True:
         raise PackageError("NETWORK_NOT_ALLOWED")
     url, host = _check_target(url)
     check_observed_at(observed_at)
-    fetch_robots = robots_fetcher or _default_robots_fetcher
-    try:
-        robots_text = fetch_robots(f"https://{host}/robots.txt")
-    except PackageError:
-        raise
-    except Exception:
-        raise PackageError("ROBOTS_UNAVAILABLE") from None
-    check_robots(robots_text, url)
-    render = renderer or _playwright_renderer
-    try:
-        rendered = render(url, user_agent=USER_AGENT, timeout_ms=RENDER_TIMEOUT_MS, max_bytes=MAX_HTML_BYTES)
-    except PackageError:
-        raise
-    except Exception:
-        raise PackageError("RENDER_FAILED") from None
+    automatic = renderer is None and robots_fetcher is None
+    if automatic:
+        if not os.environ.get("TRAVEL_RELIABILITY_RENDERER_IMAGE"):
+            raise PackageError("NETWORK_RENDERER_UNAVAILABLE")
+        try:
+            rendered = _playwright_renderer(
+                url, user_agent=USER_AGENT, timeout_ms=RENDER_TIMEOUT_MS, max_bytes=MAX_HTML_BYTES
+            )
+        except PackageError:
+            raise
+        except Exception:
+            raise PackageError("RENDER_FAILED") from None
+    elif renderer is None or robots_fetcher is None:
+        # A partial fixture must never fall back to real I/O.
+        raise PackageError("NETWORK_RENDERER_UNAVAILABLE")
+    else:
+        try:
+            robots_text = robots_fetcher(f"https://{host}/robots.txt")
+        except PackageError:
+            raise
+        except Exception:
+            raise PackageError("ROBOTS_UNAVAILABLE") from None
+        check_robots(robots_text, url)
+        try:
+            rendered = renderer(
+                url, user_agent=USER_AGENT, timeout_ms=RENDER_TIMEOUT_MS, max_bytes=MAX_HTML_BYTES
+            )
+        except PackageError:
+            raise
+        except Exception:
+            raise PackageError("RENDER_FAILED") from None
     if not isinstance(rendered, dict):
         raise PackageError("RENDER_FAILED")
     html, final_url = rendered.get("html"), rendered.get("finalUrl")
@@ -319,4 +458,10 @@ def fetch_rendered(
         raise PackageError("REDIRECT_NOT_ALLOWED")
     if len(html) > MAX_HTML_BYTES or len(html.encode("utf-8", "replace")) > MAX_HTML_BYTES:
         raise PackageError("HTML_TOO_LARGE")
-    return {"html": html, "retrieval": "rendered_dom", "url": url}
+    result = {"html": html, "retrieval": "rendered_dom" if automatic else "fixture", "url": url}
+    if automatic:
+        isolation, provenance = rendered.get("isolation"), rendered.get("provenance")
+        if not isinstance(isolation, dict) or not isinstance(provenance, dict):
+            raise PackageError("RENDER_PROVENANCE_MISSING")
+        result.update({"isolation": isolation, "provenance": provenance})
+    return result

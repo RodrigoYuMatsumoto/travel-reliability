@@ -177,6 +177,98 @@ describe('regional package arbitrage', () => {
     });
   });
 
+  it('does not infer an included breakfast count from lodging nights or certify unknown meal equivalence', () => {
+    const value = load();
+    value.package.breakfast.count = null;
+    const result = run(value);
+    const row = scenario(result, 'bus:with_breakfast');
+    expect(row.unbundledTotalMinor).toBe(135000);
+    expect(row.equivalent).toBe(false);
+    expect(row.equivalenceReasons).toContain('BREAKFAST_COUNT_UNKNOWN');
+    expect(result.pending).toContain('BREAKFAST_COUNT_UNKNOWN');
+    expect(result.bestEquivalent).toBeNull();
+    expect(result.final).toBe(false);
+  });
+
+  it('does not choose a separate breakfast quote by silently replacing the missing package count with nights', () => {
+    const value = load();
+    value.package.breakfast.count = null;
+    value.quotes.lodging = value.quotes.lodging.filter((quote) => quote.board === 'room_only');
+    const result = run(value);
+    const row = scenario(result, 'bus:with_breakfast');
+    expect(row.status).toBe('not_computable');
+    expect(row.chosen.breakfastAddOnId).toBeNull();
+    expect(row.unbundledTotalMinor).toBeNull();
+    expect(row.equivalenceReasons).toContain('BREAKFAST_COUNT_UNKNOWN');
+    expect(row.ignoredQuotes).toContainEqual({
+      quoteId: 'breakfast-separate',
+      reasons: ['BREAKFAST_COUNT_UNKNOWN'],
+    });
+    expect(result.final).toBe(false);
+  });
+
+  it('preserves an explicitly stated zero count rather than classifying it as unknown', () => {
+    const value = load();
+    value.package.breakfast.count = 0;
+    value.quotes.breakfastAddOn[0]!.days = 0;
+    const result = run(value);
+    const row = scenario(result, 'bus:with_breakfast');
+    expect(row.breakfastCount).toBe(0);
+    expect(row.chosen).toMatchObject({
+      lodgingId: 'hotel-room-only',
+      breakfastAddOnId: 'breakfast-separate',
+    });
+    expect(row.lines.find((line) => line.component === 'breakfast_add_on')!.totalMinor).toBe(0);
+    expect(row.unbundledTotalMinor).toBe(125000);
+    expect(row.equivalent).toBe(true);
+    expect(result.pending).not.toContain('BREAKFAST_COUNT_UNKNOWN');
+    expect(result.final).toBe(true);
+  });
+
+  it('keeps excluded zero-breakfast planning equivalent to room-only without a meal add-on', () => {
+    const value = load();
+    value.package.breakfast = { status: 'excluded', count: 0 };
+    value.quotes.breakfastAddOn = [];
+    const result = run(value);
+    const row = scenario(result, 'bus:room_only');
+    expect(row.breakfastCount).toBe(0);
+    expect(row.chosen.breakfastAddOnId).toBeNull();
+    expect(row.lines.some((line) => line.component === 'breakfast_add_on')).toBe(false);
+    expect(row.equivalent).toBe(true);
+    expect(result.bestEquivalent).toBe('bus:room_only');
+    expect(result.final).toBe(true);
+  });
+
+  it('prices the with-breakfast alternative of a package without breakfast from its lodging nights', () => {
+    for (const count of [null, 0]) {
+      const value = load();
+      value.package.breakfast = { status: 'excluded', count };
+      value.quotes.lodging = value.quotes.lodging.filter((quote) => quote.board === 'room_only');
+      const result = run(value);
+      const row = scenario(result, 'bus:with_breakfast');
+      expect(row, String(count)).toMatchObject({
+        status: 'computed',
+        chosen: { lodgingId: 'hotel-room-only', breakfastAddOnId: 'breakfast-separate' },
+        breakfastCount: 2,
+        equivalent: false,
+      });
+      expect(row.equivalenceReasons).toContain('BOARD_DIFFERS');
+      expect(row.ignoredQuotes.some((quote) => quote.quoteId === 'breakfast-separate')).toBe(false);
+      expect(result.pending).not.toContain('BREAKFAST_COUNT_UNKNOWN');
+      expect(result.bestEquivalent).toBe('bus:room_only');
+    }
+  });
+
+  it('never adds an external breakfast charge to the selected breakfast-included hotel rate', () => {
+    const value = load();
+    value.quotes.breakfastAddOn[0]!.unitMinor = 100000;
+    const row = scenario(run(value), 'bus:with_breakfast');
+    expect(row.chosen.lodgingId).toBe('hotel-breakfast');
+    expect(row.chosen.breakfastAddOnId).toBeNull();
+    expect(row.lines.some((line) => line.component === 'breakfast_add_on')).toBe(false);
+    expect(row.unbundledTotalMinor).toBe(135000);
+  });
+
   it('treats air as an alternative and never as an equivalent of a bus package', () => {
     const result = run(load());
     expect(scenario(result, 'air:with_breakfast')).toMatchObject({

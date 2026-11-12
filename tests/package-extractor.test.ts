@@ -56,6 +56,29 @@ const code = async (promise: Promise<unknown>) =>
   );
 
 describe('package observation contract between Python and Node', () => {
+  it('bounds trusted HTML configuration without changing the default boundary', async () => {
+    for (const maxHtmlBytes of [0, -1, 1.5, 1_000_001, Number.NaN, Number.POSITIVE_INFINITY])
+      expect(() => createPackageExtractor({ maxHtmlBytes })).toThrow(
+        'INVALID_PACKAGE_EXTRACTOR_CONFIG',
+      );
+    const minimal = createPackageExtractor({
+      maxHtmlBytes: 1,
+      interpreterPath: 'synthetic-missing-interpreter',
+    });
+    expect(
+      await code(
+        minimal({
+          html: 'xx',
+          url: 'https://synthetic.example.invalid',
+          observedAt: OBSERVED_AT,
+          retrieval: 'fixture',
+          mode: 'detail',
+        }),
+      ),
+    ).toBe('PACKAGE_HTML_REJECTED');
+    expect(() => createPackageExtractor({ maxHtmlBytes: 1_000_000 })).not.toThrow();
+  });
+
   it('validates every Python golden observation against the TypeScript schema', () => {
     const names = readdirSync(new URL('expected/', fixtures)).filter((n) => n.endsWith('.json'));
     expect(names.length).toBeGreaterThanOrEqual(cases.length);
@@ -158,6 +181,7 @@ describe('travel_extract_package over MCP', () => {
         result: unknown;
       };
       expect(body.extraction).toBe('literal_unconfirmed');
+      expect(body).toHaveProperty('inputTrust', 'caller_supplied_unverified');
       expect(body.result).toEqual(golden('augustus_rendered_detail'));
       const refused = await client.callTool({
         name: 'travel_extract_package',
@@ -169,6 +193,16 @@ describe('travel_extract_package over MCP', () => {
         },
       });
       expect((refused as { isError?: boolean }).isError).toBe(true);
+      const oversized = await client.callTool({
+        name: 'travel_extract_package',
+        arguments: {
+          html: '<p>' + 'x'.repeat(PACKAGE_EXTRACTOR_LIMITS.htmlBytes) + '</p>',
+          url: 'https://atrativa.example.invalid/viagem.php?v=1',
+          observedAt: OBSERVED_AT,
+          retrieval: 'static_html',
+        },
+      });
+      expect((oversized as { isError?: boolean }).isError).toBe(true);
     } finally {
       await client.close();
     }

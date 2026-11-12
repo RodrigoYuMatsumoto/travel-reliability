@@ -52,7 +52,7 @@ Production requires a separately configured identity provider, HTTPS, durable pr
 
 ## 4. Codex: complete skill, nine shortcuts and offline MCP
 
-On Windows, with Python 3.12 and Node.js 24 already installed, download the source ZIP, skill
+On Windows, with Python 3.12, Node.js 24 and `uv` already installed, download the source ZIP, skill
 ZIP and `SHA256SUMS` from the same release. Extract the source ZIP and run its
 installer with those downloaded files as explicit inputs:
 
@@ -65,6 +65,9 @@ version. The installer verifies archive SHA-256, safe membership, skill manifest
 source bindings and all nine prompt files before changing the host. The checksum
 file establishes consistency with that distribution, not independent authorship.
 Use `--verify-only` to verify inputs without installing.
+For an unreleased candidate, append `--candidate`: its runtime uses the verified commit
+in its directory name, preserves previous runtimes and receives the same private backups.
+This does not classify the candidate as a stable release.
 
 Automatic host configuration uses a Windows exclusive file handle to preserve
 concurrent edits. Other operating systems can use `--verify-only`, the complete
@@ -78,9 +81,23 @@ MCP settings are preserved, and a failed installation restores previous settings
 and skills. Old versioned runtimes remain available to existing sessions.
 
 Dependencies come from the locked public npm graph with lifecycle scripts disabled.
-The MCP launches Node directly, avoiding npm output on the JSON-RPC channel. Only
-twelve local tools are allowed; source synchronization, workspace inventory/plans and the
-package extractor (it needs the local Python worker) stay excluded. No supplier, mailbox, document root or credential is configured.
+When the verified catalog advertises `travel_extract_package`, the installer also checks
+for `uv` before changing the host, validates the public PyPI lock and prepares Python
+3.12 with `uv sync --project ingest --locked`. It disables source builds, Python
+downloads, inherited index/token configuration and development dependency groups.
+The environment is created at the final runtime path, then a synthetic isolated
+`-I -B` worker smoke must pass before skills or MCP configuration are changed.
+Missing `uv` reports `UV_REQUIRED_FOR_PACKAGE_EXTRACTOR_INSTALL_UV_AND_RETRY`;
+install `uv`, ensure Python 3.12 is available, and rerun the same command.
+Preparation failure restores the previous runtime registration and skills; diagnostics
+remain in the private backup as `python-prepare.log`, outside the JSON-RPC channel.
+
+The MCP launches Node directly. The current catalog allows fourteen local tools,
+including offline package discovery and literal Python extraction; source synchronization
+and workspace inventory/plans remain excluded. Legacy catalogs retain only the
+intersection with their advertised ten or twelve supported tools and do not require
+the new worker. Internal dependency-skipping installations explicitly omit the extractor
+and record it as unavailable. No supplier, mailbox, document root or credential is configured.
 
 `--codex-home`, `--skills-home` and `--node` support explicit local destinations;
 network paths and links are rejected. Reopen the Codex session if the host does
@@ -91,3 +108,7 @@ upgrade an already installed host runtime.
 Shortcuts: `travel-flex-dates`, `travel-airports`, `travel-connections`,
 `travel-promotions`, `travel-total-cost`, `travel-fare-scenarios`,
 `travel-negotiation`, `travel-hidden-city`, and `travel-group-split`.
+
+## Renderização externa opcional
+
+A demonstração e o MCP offline continuam dispensando Docker. A renderização de páginas públicas em JavaScript exige uma imagem Linux imutável preparada separadamente, sem volumes ou rede no navegador. O [guia de pacotes](PACKAGE_ARBITRAGE.md#preparação-do-renderer) contém o comando de construção, a configuração local e os limites. Não se instala Docker nem se altera a política do computador automaticamente.

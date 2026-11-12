@@ -142,7 +142,7 @@ fornecedor somente porque há um papel com esse tema.
 - Geração de extensão produz proposta revisável, sem ativar código, carregar
   módulos ou alterar permissões automaticamente.
 
-O runtime 0.6 anuncia dezesseis tools. `travel_country_context`, `travel_audit_output` e `travel_extract_package` (extração literal e offline de páginas de pacotes regionais já obtidas pelo host) completam a lista abaixo. `travel_global_context`,
+O runtime 0.6 anuncia dezessete tools. `travel_country_context`, `travel_audit_output` e `travel_extract_package` (extração literal e offline de páginas de pacotes regionais já obtidas pelo host) completam a lista abaixo. `travel_global_context`,
 `travel_reconcile_bookings` e `travel_extension_draft` são preparadores/cálculos
 locais. `travel_sync_sources` exige registry do operador;
 `travel_workspace_inventory` e `travel_workspace_plan` exigem workspace já

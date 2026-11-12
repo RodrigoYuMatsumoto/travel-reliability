@@ -1122,3 +1122,9 @@ footer {
 .decision-card p {
   font-size: 13px;
 }
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+}

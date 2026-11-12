@@ -1,15 +1,15 @@
-import importlib.util
 import errno
+import importlib.util
 import json
 import os
-from pathlib import Path
 import stat
 import subprocess
 import tempfile
 import tomllib
 import unittest
-from unittest.mock import patch
 import zipfile
+from pathlib import Path
+from unittest.mock import patch
 
 SPEC = importlib.util.spec_from_file_location(
     "travel_codex_installer", Path(__file__).resolve().parents[2] / "scripts/install-codex.py"
@@ -31,14 +31,27 @@ def archive(path, files):
     return installer.digest(path.read_bytes())
 
 
-def fixture(root, links=False):
+def fixture(root, links=False, tools=None, python_source=True):
     source = {
         "package.json": json.dumps({"name": "travel-reliability", "version": "0.6.0"}).encode(),
         "package-lock.json": json.dumps({"lockfileVersion": 3, "packages": {}}).encode(),
         "scripts/agent-mcp.mjs": b"// Synthetic fixture, never executed.\n",
-        "agents/manifest.json": json.dumps({"optionalRuntime": {"tools": installer.TOOLS}}).encode(),
+        "agents/manifest.json": json.dumps({"optionalRuntime": {
+            "tools": installer.TOOLS if tools is None else tools,
+        }}).encode(),
         "skills/travel-agent/SKILL.md": b"---\nname: travel-agent\n---\nSynthetic instructions.\n",
     }
+    if python_source:
+        source.update({
+            "ingest/pyproject.toml": b'[project]\nname="synthetic-ingest"\nversion="0.1.0"\nrequires-python=">=3.12,<3.13"\n',
+            "ingest/uv.lock": (
+                'version=1\n[[package]]\nname="synthetic"\nversion="1.0"\n'
+                'source={registry="https://pypi.org/simple"}\n'
+                'wheels=[{url="https://files.pythonhosted.org/synthetic.whl",hash="sha256:'
+                + '0' * 64 + '"}]\n'
+            ).encode(),
+            "ingest/travel_ingest/packages/__init__.py": b"# Synthetic fixture; never executed.\n",
+        })
     skill = {"SKILL.md": source["skills/travel-agent/SKILL.md"]}
     bindings = {"SKILL.md": "skills/travel-agent/SKILL.md"}
     for filename in installer.ALIASES.values():
@@ -124,7 +137,7 @@ class InstallerTests(unittest.TestCase):
         self.assertFalse(self.runtime.exists())
         records = list(self.codex.glob("backups/*/rollback.json"))
         self.assertTrue(records)
-        self.assertTrue(all(json.loads(path.read_text())["status"] == "RESTORED" for path in records))
+        self.assertTrue(all(json.loads(path.read_text(encoding="utf-8"))["status"] == "RESTORED" for path in records))
 
     def existing_version_sentinel(self):
         self.runtime.mkdir(parents=True)
@@ -211,14 +224,18 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(record["version"], "0.6.0")
         self.assertEqual(record["channel"], "versioned")
         self.assertEqual(record["runtimeKey"], "v0.6.0")
-        cfg = tomllib.loads(self.config.read_text())
+        cfg = tomllib.loads(self.config.read_text(encoding="utf-8"))
         self.assertEqual(len(cfg["mcp_servers"]), 19)
         previous = tomllib.loads(old_config().decode())
         for number in range(18):
             key = f"other_{number}"
             self.assertEqual(cfg["mcp_servers"][key], previous["mcp_servers"][key])
         travel = cfg["mcp_servers"]["travel-reliability"]
-        self.assertEqual(travel["enabled_tools"], installer.TOOLS)
+        self.assertEqual(travel["enabled_tools"], [
+            tool for tool in installer.TOOLS if tool != "travel_extract_package"
+        ])
+        self.assertFalse(record["pythonExtractorPrepared"])
+        self.assertEqual(record["unavailableTools"], ["travel_extract_package"])
         self.assertFalse(any("workspace" in item or "sync_sources" in item for item in travel["enabled_tools"]))
         backup = next(self.codex.glob("backups/*"))
         self.assertEqual((backup / "config.toml").read_bytes(), old_config())
@@ -340,10 +357,12 @@ class InstallerTests(unittest.TestCase):
             self.install()
         self.assertEqual(len(blocked), 1)
         self.assertTrue(blocked[0][0] == errno.EACCES or blocked[0][1] == 32)
-        cfg = tomllib.loads(self.config.read_text())
+        cfg = tomllib.loads(self.config.read_text(encoding="utf-8"))
         for number in range(18):
             self.assertEqual(cfg["mcp_servers"][f"other_{number}"]["command"], "synthetic")
-        self.assertEqual(cfg["mcp_servers"]["travel-reliability"]["enabled_tools"], installer.TOOLS)
+        self.assertEqual(cfg["mcp_servers"]["travel-reliability"]["enabled_tools"], [
+            tool for tool in installer.TOOLS if tool != "travel_extract_package"
+        ])
 
     def test_existing_writer_handle_causes_closed_failure_without_overwriting_it(self):
         with self.config.open("r+b"):
@@ -360,17 +379,19 @@ class InstallerTests(unittest.TestCase):
 
     def test_release_manifest_commit_binding_is_checked(self):
         path = self.root / "release-manifest.json"
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
         data["commit"] = "b" * 40
         path.write_text(json.dumps(data))
         sums = self.inputs[2]
-        text = sums.read_text().splitlines()
+        text = sums.read_text(encoding="utf-8").splitlines()
         text[-1] = installer.digest(path.read_bytes()) + "  release-manifest.json"
         sums.write_text("\n".join(text) + "\n")
         with self.assertRaisesRegex(ValueError, "RELEASE_SOURCE_BINDING"):
             installer.verify_inputs(*self.inputs)
 
     def test_dependencies_use_mocked_node24_public_registry_and_no_scripts(self):
+        # Legacy archives do not advertise extraction and require neither uv nor ingest.
+        self.inputs = fixture(self.root, tools=installer.TOOLS[:12], python_source=False)
         npm = self.node.parent / "node_modules/npm/bin/npm-cli.js"
         npm.parent.mkdir(parents=True)
         npm.write_bytes(b"// Fixture")
@@ -397,6 +418,76 @@ class InstallerTests(unittest.TestCase):
         self.assertNotEqual(environment["NPM_CONFIG_USERCONFIG"], os.devnull)
         self.assertNotEqual(environment["NPM_CONFIG_GLOBALCONFIG"], os.devnull)
 
+    def test_missing_uv_fails_before_backup_or_configuration_changes(self):
+        with patch.object(installer.shutil, "which", return_value=None):
+            with self.assertRaisesRegex(ValueError, "UV_REQUIRED_FOR_PACKAGE_EXTRACTOR_INSTALL_UV_AND_RETRY"):
+                self.install(dependencies=True)
+        self.assertFalse((self.codex / "backups").exists())
+        self.assertEqual(self.config.read_bytes(), old_config())
+        self.assertFalse(self.runtime.exists())
+        for name, body in self.original_skills.items():
+            self.assertEqual((self.skills / name / "SKILL.md").read_bytes(), body)
+
+    def test_python_preparation_failure_restores_candidate_before_skills_or_config_change(self):
+        sentinel = self.existing_version_sentinel()
+        npm = self.node.parent / "node_modules/npm/bin/npm-cli.js"
+        npm.parent.mkdir(parents=True)
+        npm.write_bytes(b"// Synthetic fixture")
+        uv = self.root / "uv.exe"
+        uv.write_bytes(b"Synthetic; never executed")
+
+        def processes(command, **kwargs):
+            if "--version" in command:
+                return subprocess.CompletedProcess([], 0, stdout="v24.14.0\n")
+            if "sync" in command:
+                self.assertEqual(self.config.read_bytes(), old_config())
+                raise subprocess.CalledProcessError(1, command)
+            return subprocess.CompletedProcess([], 0)
+
+        with patch.object(installer.shutil, "which", return_value=str(uv)):
+            with patch.object(installer.subprocess, "run", side_effect=processes):
+                with patch.object(installer, "WindowsConfigEdit") as edit:
+                    with self.assertRaisesRegex(ValueError, "PACKAGE_EXTRACTOR_PREPARATION_FAILED_SEE_PRIVATE_BACKUP"):
+                        self.install(dependencies=True, candidate=True)
+                    edit.assert_not_called()
+        self.assert_candidate_failure_restored(sentinel)
+
+    def test_ready_worker_enables_all_fourteen_tools_after_final_path_preparation(self):
+        npm = self.node.parent / "node_modules/npm/bin/npm-cli.js"
+        npm.parent.mkdir(parents=True)
+        npm.write_bytes(b"// Synthetic fixture")
+        uv = self.root / "uv.exe"
+        uv.write_bytes(b"Synthetic; never executed")
+        operations = []
+
+        def processes(command, **kwargs):
+            if "--version" in command:
+                return subprocess.CompletedProcess([], 0, stdout="v24.14.0\n")
+            if "sync" in command:
+                self.assertEqual(command[command.index("--project") + 1], str(self.runtime / "ingest"))
+                self.assertTrue(self.runtime.is_dir())
+                self.assertEqual(self.config.read_bytes(), old_config())
+                for name, body in self.original_skills.items():
+                    self.assertEqual((self.skills / name / "SKILL.md").read_bytes(), body)
+                python = self.runtime / "ingest/.venv/Scripts/python.exe"
+                python.parent.mkdir(parents=True)
+                python.write_bytes(b"Synthetic; never executed")
+                operations.append("sync-final-runtime")
+            elif "-I" in command:
+                self.assertEqual(command[:3], [str(self.runtime / "ingest/.venv/Scripts/python.exe"), "-I", "-B"])
+                operations.append("isolated-worker-smoke")
+            return subprocess.CompletedProcess([], 0)
+
+        with patch.object(installer.shutil, "which", return_value=str(uv)):
+            with patch.object(installer.subprocess, "run", side_effect=processes):
+                record = self.install(dependencies=True)
+        self.assertEqual(operations, ["sync-final-runtime", "isolated-worker-smoke"])
+        self.assertTrue(record["pythonExtractorPrepared"])
+        self.assertEqual(record["unavailableTools"], [])
+        self.assertEqual(record["allowedTools"], 14)
+        cfg = tomllib.loads(self.config.read_text(encoding="utf-8"))
+        self.assertEqual(cfg["mcp_servers"]["travel-reliability"]["enabled_tools"], installer.TOOLS)
+
     def test_rejects_links_inside_existing_skill_before_mutation(self):
         linked = self.skills / "travel-agent" / "linked"
         try:
@@ -406,6 +497,70 @@ class InstallerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "LINK_TARGET"):
             self.install()
         self.assertFalse((self.codex / "backups").exists())
+
+
+class PythonPreparationTests(unittest.TestCase):
+    def test_preflight_rejects_nonpublic_or_unlocked_sources_without_running_tools(self):
+        with tempfile.TemporaryDirectory(prefix="travel-python-preflight-") as temp:
+            root = Path(temp)
+            inputs = fixture(root)
+            source = installer.verify_inputs(*inputs)[2]
+            uv = root / "uv.exe"
+            uv.write_bytes(b"Synthetic; never executed")
+            with patch.object(installer.shutil, "which", return_value=str(uv)):
+                self.assertEqual(installer.package_python_prerequisite(source), uv)
+                for origin in ['{path="../private"}', '{git="https://example.invalid/repository"}',
+                               '{registry="https://example.invalid/simple"}']:
+                    invalid = dict(source)
+                    invalid["ingest/uv.lock"] = (
+                        'version=1\n[[package]]\nname="synthetic"\nsource=' + origin + '\n'
+                    ).encode()
+                    with self.subTest(origin=origin):
+                        with self.assertRaisesRegex(ValueError, "LOCKED_PUBLIC_PYTHON_REGISTRY_REQUIRED"):
+                            installer.package_python_prerequisite(invalid)
+                invalid = dict(source)
+                invalid["ingest/uv.lock"] = source["ingest/uv.lock"].replace(
+                    b"files.pythonhosted.org", b"example.invalid"
+                )
+                with self.assertRaisesRegex(ValueError, "LOCKED_PUBLIC_PYTHON_REGISTRY_REQUIRED"):
+                    installer.package_python_prerequisite(invalid)
+            with patch.object(installer.shutil, "which", return_value=None):
+                with self.assertRaisesRegex(ValueError, "UV_REQUIRED_FOR_PACKAGE_EXTRACTOR"):
+                    installer.package_python_prerequisite(source)
+            with self.assertRaisesRegex(ValueError, "LOCKED_PACKAGE_EXTRACTOR_SOURCE_REQUIRED"):
+                installer.package_python_prerequisite({})
+
+    def test_sync_is_locked_build_free_and_strips_tokens_index_and_python_overrides(self):
+        with tempfile.TemporaryDirectory(prefix="travel-python-prepare-") as temp:
+            root = Path(temp)
+            runtime, backup, cache = root / "runtime", root / "backup", root / "cache"
+            (runtime / "ingest").mkdir(parents=True)
+            backup.mkdir()
+            python = runtime / "ingest/.venv/Scripts/python.exe"
+
+            def processes(command, **kwargs):
+                if "sync" in command:
+                    python.parent.mkdir(parents=True)
+                    python.write_bytes(b"Synthetic; never executed")
+                return subprocess.CompletedProcess([], 0)
+
+            with patch.dict(os.environ, {"UV_INDEX_URL": "https://example.invalid/private",
+                                        "UV_PYTHON": "synthetic-untrusted-python",
+                                        "UV_TOKEN": "SYNTHETIC_ONLY", "NPM_TOKEN": "SYNTHETIC_ONLY"}):
+                with patch.object(installer.subprocess, "run", side_effect=processes) as run:
+                    installer.prepare_package_python(runtime, root / "uv.exe", backup, cache)
+            sync, smoke = run.call_args_list
+            command = sync.args[0]
+            for flag in ["--locked", "--no-build", "--no-config", "--no-python-downloads", "--no-default-groups"]:
+                self.assertIn(flag, command)
+            self.assertEqual(command[command.index("--python") + 1], "3.12")
+            environment = sync.kwargs["env"]
+            for key in ["UV_INDEX_URL", "UV_PYTHON", "UV_TOKEN", "NPM_TOKEN"]:
+                self.assertNotIn(key, environment)
+            self.assertEqual(environment["UV_KEYRING_PROVIDER"], "disabled")
+            self.assertEqual(environment["UV_CACHE_DIR"], str(cache))
+            self.assertEqual(smoke.args[0][:3], [str(python), "-I", "-B"])
+            self.assertIn("parse_package", smoke.args[0][-1])
 
 
 class ConfigurationTests(unittest.TestCase):
@@ -434,6 +589,7 @@ class ConfigurationTests(unittest.TestCase):
             "travel_catalog", "travel_workflow", "travel_settle_expenses", "travel_prepare_brief",
             "travel_schema", "travel_plan", "travel_check_trip", "travel_global_context",
             "travel_reconcile_bookings", "travel_extension_draft", "travel_country_context", "travel_audit_output",
+            "travel_discover_packages", "travel_extract_package",
         ])
 
     def test_old_catalog_does_not_enable_unadvertised_or_sensitive_tools(self):
@@ -442,6 +598,30 @@ class ConfigurationTests(unittest.TestCase):
         ]}}).encode()}
         self.assertEqual(installer.allowed_tools(source), ["travel_catalog", "travel_plan"])
         self.assertEqual(installer.allowed_tools({}), [])
+        legacy_ten = [
+            "travel_catalog", "travel_workflow", "travel_settle_expenses", "travel_prepare_brief",
+            "travel_schema", "travel_plan", "travel_check_trip", "travel_global_context",
+            "travel_reconcile_bookings", "travel_extension_draft",
+        ]
+        legacy_twelve = [*legacy_ten, "travel_country_context", "travel_audit_output"]
+        current_fourteen = [*legacy_twelve, "travel_discover_packages", "travel_extract_package"]
+        sensitive = [
+            "travel_sync_sources", "travel_workspace_inventory", "travel_workspace_plan",
+            "travel_document_workspace", "travel_read_source", "untrusted_tool",
+        ]
+        for advertised in [legacy_ten, legacy_twelve, current_fourteen]:
+            with self.subTest(advertised_count=len(advertised)):
+                # Catalog order and duplicates cannot expand the fixed allowlist.
+                manifest = {"optionalRuntime": {"tools": [*reversed(advertised), *sensitive, *advertised]}}
+                enabled = installer.allowed_tools({"agents/manifest.json": json.dumps(manifest).encode("utf-8")})
+                self.assertEqual(enabled, advertised)
+                self.assertEqual(len(enabled), len(set(enabled)))
+                self.assertFalse(set(enabled).intersection(sensitive))
+        for invalid in [None, "travel_plan", ["travel_plan", 1]]:
+            with self.subTest(invalid_advertised=invalid):
+                manifest = {"optionalRuntime": {"tools": invalid}}
+                with self.assertRaisesRegex(ValueError, "INVALID_ADVERTISED_TOOL_LIST"):
+                    installer.allowed_tools({"agents/manifest.json": json.dumps(manifest).encode("utf-8")})
 
     def test_appending_preserves_original_bytes_and_bom(self):
         original = b"\xef\xbb\xbf" + b'title = "synthetic"\r\n[other]\r\nvalue = 4\r\n'
@@ -524,7 +704,7 @@ class SkillSourceBindingTests(unittest.TestCase):
             }
             path = root / "release-manifest.json"
             path.write_text(json.dumps(release), encoding="utf-8")
-            lines = inputs[2].read_text().splitlines()
+            lines = inputs[2].read_text(encoding="utf-8").splitlines()
             lines[-1] = installer.digest(path.read_bytes()) + "  release-manifest.json"
             inputs[2].write_text("\n".join(lines) + "\n")
             self.assertEqual(installer.verify_inputs(*inputs)[:2], ("0.6.0", COMMIT))
@@ -544,7 +724,7 @@ class SkillSourceBindingTests(unittest.TestCase):
             manifest["files"][0]["sha256"] = installer.digest(files["SKILL.md"])
             files["PACKAGE-MANIFEST.json"] = json.dumps(manifest).encode()
             value = archive(inputs[1], [("travel-agent/" + name, body) for name, body in files.items()])
-            lines = inputs[2].read_text().splitlines()
+            lines = inputs[2].read_text(encoding="utf-8").splitlines()
             lines[1] = value + "  " + inputs[1].name
             inputs[2].write_text("\n".join(lines) + "\n")
             with self.assertRaisesRegex(ValueError, "SKILL_CONTENT_PROJECTION_REJECTED"):

@@ -4,6 +4,12 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      public_renderer_smoke:
+        description: Testar a renderização pública autorizada, sem contas ou dados pessoais
+        type: boolean
+        required: false
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -36,11 +42,28 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-por tesseract-ocr-eng fonts-dejavu-core
       - run: npm ci
       - run: uv sync --project ingest --locked
+      - name: Construir o renderer imutável com isolamento de rede
+        run: |
+          mkdir -p .local/renderer
+          docker build --build-arg PLAYWRIGHT_BASE=mcr.microsoft.com/playwright/python:v1.64.1-noble@sha256:330d401ae23c905896a0c26c66c36fc971b621519e7b11b435a8328d7bf6e031 -f deploy/renderer/Dockerfile --iidfile .local/renderer/image.id .
+      - name: Verificar a contenção real do navegador e os limites adversariais
+        run: |
+          export TRAVEL_RELIABILITY_RENDERER_IMAGE="$(cat .local/renderer/image.id)"
+          export TRAVEL_RENDERER_INTEGRATION_REQUIRED=1
+          uv run --project ingest python -m pytest ingest/tests/test_packages_render_integration.py -q
+      - name: Verificar a renderização pública expressamente solicitada
+        if: github.event_name == 'workflow_dispatch' && inputs.public_renderer_smoke
+        run: |
+          export TRAVEL_RELIABILITY_RENDERER_IMAGE="$(cat .local/renderer/image.id)"
+          export TRAVEL_RENDERER_INTEGRATION_REQUIRED=1
+          export TRAVEL_RENDERER_PUBLIC_SMOKE=1
+          uv run --project ingest python -m pytest ingest/tests/test_packages_render_public.py -q
       - run: npm run format:check && npm run lint:python
       - name: Audit Python runtime dependencies
         run: |
           uv export --project ingest --locked --format requirements-txt --no-dev --output-file /tmp/travel-runtime.txt --quiet
           uvx pip-audit==2.10.1 --requirement /tmp/travel-runtime.txt --no-deps --disable-pip
+          uvx pip-audit==2.10.1 --requirement deploy/renderer/requirements.txt --no-deps --disable-pip
       - name: Start disposable S3-compatible test service
         run: docker run -d --name travel-test-s3 -p 127.0.0.1:9000:8333 -e AWS_ACCESS_KEY_ID=synthetic-access -e AWS_SECRET_ACCESS_KEY=synthetic-secret-only chrislusf/seaweedfs:4.51@sha256:f7a49e3f3972ebed5be2ed4befa4a0c68eb7bdddba6e692d42729ceb545134b8 mini -dir=/data
       - name: Wait for test object storage
@@ -75,5 +98,7 @@ jobs:
             playwright-report/
             sbom.cdx.json
             .local/validation/benchmark.json
+            .local/renderer/public-smoke.json
+            .local/renderer/image.id
           include-hidden-files: true
           retention-days: 7

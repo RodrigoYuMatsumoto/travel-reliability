@@ -6,6 +6,7 @@ import { Temporal } from '@js-temporal/polyfill';
 import { AppError, requireCondition } from './errors.js';
 import { canonicalLocale } from '../../schema/src/locale.js';
 import { currencyMinorUnits, isActiveCurrency } from '../../schema/src/currency.js';
+import { isIanaTimeZone } from '../../schema/src/time-zone.js';
 
 const ajv = new Ajv2020({
   allErrors: false,
@@ -15,20 +16,9 @@ const ajv = new Ajv2020({
 });
 (addFormats as unknown as (instance: Ajv2020) => void)(ajv);
 const check = ajv.compile(tripSchema);
-// IANA names are ASCII ("America/Sao_Paulo", "Etc/GMT+3") and start with a letter. This
-// excludes UTC offsets ("+03:00", "-0500") and ISO date-time strings, which Temporal
-// would otherwise accept as a time zone argument.
-const IANA_NAME = /^[A-Za-z][A-Za-z0-9_+-]*(?:\/[A-Za-z0-9_+-]+)*$/;
 /** Accepts only a tz database name known to the runtime, spelled in its normalized case. */
 export function assertIanaTimeZone(id: string): string {
-  let known: string | null = null;
-  if (typeof id === 'string' && IANA_NAME.test(id))
-    try {
-      known = Temporal.Instant.fromEpochMilliseconds(0).toZonedDateTimeISO(id).timeZoneId;
-    } catch {
-      known = null;
-    }
-  if (known === null || known !== id) throw new AppError('INVALID_TIME_ZONE', 422);
+  if (!isIanaTimeZone(id)) throw new AppError('INVALID_TIME_ZONE', 422);
   return id;
 }
 export function instant(time: { local: string; timeZone: string | null }): number | null {

@@ -9,7 +9,6 @@ import argparse
 import hashlib
 import json
 import os
-from pathlib import Path, PurePosixPath
 import posixpath
 import re
 import shutil
@@ -19,16 +18,17 @@ import sys
 import tempfile
 import tomllib
 import unicodedata
-from datetime import datetime, timezone
 import uuid
 import zipfile
-from urllib.parse import unquote_to_bytes
+from datetime import datetime, timezone
+from pathlib import Path, PurePosixPath
+from urllib.parse import unquote_to_bytes, urlsplit
 
 TOOLS = [
     "travel_catalog", "travel_workflow", "travel_settle_expenses",
     "travel_prepare_brief", "travel_schema", "travel_plan", "travel_check_trip",
     "travel_global_context", "travel_reconcile_bookings", "travel_extension_draft",
-    "travel_country_context", "travel_audit_output",
+    "travel_country_context", "travel_audit_output", "travel_discover_packages", "travel_extract_package",
 ]
 ALIASES = {
     "travel-flex-dates": "01_datas_flexiveis.md",
@@ -430,6 +430,83 @@ def public_npm_lock(source):
             raise ValueError("LOCKED_PUBLIC_REGISTRY_REQUIRED")
 
 
+def package_python_prerequisite(source):
+    """Preflight verified package metadata without creating targets or running project code."""
+    required = {"ingest/pyproject.toml", "ingest/uv.lock",
+                "ingest/travel_ingest/packages/__init__.py"}
+    if not required.issubset(source):
+        raise ValueError("LOCKED_PACKAGE_EXTRACTOR_SOURCE_REQUIRED")
+    try:
+        project = tomllib.loads(source["ingest/pyproject.toml"].decode("utf-8"))
+        locked = tomllib.loads(source["ingest/uv.lock"].decode("utf-8"))
+        if "build-system" in project or not locked.get("package"):
+            raise ValueError("LOCKED_PUBLIC_PYTHON_REGISTRY_REQUIRED")
+        for package in locked["package"]:
+            origin = package.get("source")
+            if origin == {"virtual": "."}:
+                continue
+            if origin != {"registry": "https://pypi.org/simple"}:
+                raise ValueError("LOCKED_PUBLIC_PYTHON_REGISTRY_REQUIRED")
+            artifacts = [*package.get("wheels", [])]
+            if package.get("sdist"):
+                artifacts.append(package["sdist"])
+            if not artifacts:
+                raise ValueError("LOCKED_PUBLIC_PYTHON_REGISTRY_REQUIRED")
+            for artifact in artifacts:
+                url = urlsplit(artifact.get("url", ""))
+                if (url.scheme != "https" or url.hostname != "files.pythonhosted.org"
+                        or url.username is not None or url.password is not None
+                        or url.port is not None or url.query or url.fragment
+                        or not re.fullmatch(r"sha256:[a-f0-9]{64}", artifact.get("hash", ""))):
+                    raise ValueError("LOCKED_PUBLIC_PYTHON_REGISTRY_REQUIRED")
+    except (ValueError, TypeError, KeyError, AttributeError, UnicodeError):
+        raise ValueError("LOCKED_PUBLIC_PYTHON_REGISTRY_REQUIRED") from None
+    found = shutil.which("uv")
+    if not found:
+        raise ValueError("UV_REQUIRED_FOR_PACKAGE_EXTRACTOR_INSTALL_UV_AND_RETRY")
+    executable = local_path(found)
+    if not executable.is_file():
+        raise ValueError("UV_REQUIRED_FOR_PACKAGE_EXTRACTOR_INSTALL_UV_AND_RETRY")
+    return executable
+
+
+def prepare_package_python(runtime, uv, backup, cache):
+    """Create the venv at its final path; never relocate it after preparation."""
+    environment = {key: value for key, value in os.environ.items() if key.upper() in {
+        "PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "USERPROFILE", "HOME", "COMSPEC", "PATHEXT",
+    }}
+    environment.update({"UV_CACHE_DIR": str(cache), "UV_KEYRING_PROVIDER": "disabled",
+                        "UV_PYTHON_DOWNLOADS": "never", "UV_NO_PROGRESS": "1"})
+    ingest = local_path(runtime / "ingest")
+    command = [str(uv), "sync", "--project", str(ingest), "--locked", "--python", "3.12",
+               "--no-python-downloads", "--no-build", "--no-default-groups", "--no-config",
+               "--link-mode", "copy"]
+    python = local_path(ingest / ".venv/Scripts/python.exe")
+    smoke = "\n".join([
+        "import sys",
+        "assert sys.version_info[:2] == (3, 12)",
+        "sys.path.insert(0, " + json.dumps(str(ingest)) + ")",
+        "from travel_ingest.packages import parse_package",
+        ("value = parse_package('<html><h1>Synthetic package</h1></html>', "
+         "url='https://example.invalid/package', observed_at='2026-01-01T00:00:00Z', "
+         "retrieval='fixture', site='generic')"),
+        "assert value['schemaVersion'] == 'package-observation/1'",
+        "assert value['price']['amountMinor'] is None",
+        "print('PACKAGE_EXTRACTOR_READY')",
+    ])
+    try:
+        with (backup / "python-prepare.log").open("wb") as log:
+            subprocess.run(command, cwd=runtime, env=environment, stdout=log,
+                           stderr=subprocess.STDOUT, check=True, timeout=600)
+            if not python.is_file():
+                raise ValueError("PACKAGE_EXTRACTOR_INTERPRETER_MISSING")
+            subprocess.run([str(python), "-I", "-B", "-c", smoke], cwd=ingest,
+                           env=environment, stdout=log, stderr=subprocess.STDOUT,
+                           check=True, timeout=30)
+    except (OSError, ValueError, subprocess.SubprocessError):
+        raise ValueError("PACKAGE_EXTRACTOR_PREPARATION_FAILED_SEE_PRIVATE_BACKUP") from None
+
+
 class WindowsConfigEdit:
     """Exclusive native handle: comparison, write and rollback share one file identity."""
     def __init__(self, path, expected, existed):
@@ -551,6 +628,12 @@ def install(source_archive, skill_archive, checksums, codex_home, skills_home, n
     enabled_tools = allowed_tools(source)
     if not enabled_tools:
         raise ValueError("NO_SUPPORTED_OFFLINE_TOOLS")
+    python_requested = "travel_extract_package" in enabled_tools
+    uv = package_python_prerequisite(source) if dependencies and python_requested else None
+    unavailable_tools = []
+    if python_requested and not dependencies:
+        enabled_tools.remove("travel_extract_package")
+        unavailable_tools.append("travel_extract_package")
     proposed = configuration(original, node, runtime / "scripts/agent-mcp.mjs", enabled_tools)
     targets = {"travel-agent": skill}
     tick = chr(96)
@@ -607,6 +690,8 @@ def install(source_archive, skill_archive, checksums, codex_home, skills_home, n
                 raise ValueError("VERSION_ALREADY_INSTALLED_PRESERVED")
             staged_runtime.rename(runtime)
             runtime_installed = True
+            if uv is not None:
+                prepare_package_python(runtime, uv, backup, stage / "uv-cache")
             for name in targets:
                 target = local_path(skills_home / name)
                 staged_skill = stage / name
@@ -622,6 +707,8 @@ def install(source_archive, skill_archive, checksums, codex_home, skills_home, n
                           "channel": channel, "runtimeKey": runtime_key,
                           "sourceCommit": commit, "skills": 10, "allowedTools": len(enabled_tools),
                           "sensitiveToolsEnabled": False, "dependenciesInstalled": dependencies,
+                          "pythonExtractorPrepared": uv is not None,
+                          "unavailableTools": unavailable_tools,
                           "configPreviouslyExisted": config_existed,
                           "configBackupSha256": digest(original), "configSha256": digest(proposed),
                           "configurationWrite": "Windows exclusive native handle; no unprotected replace window",

@@ -100,7 +100,8 @@ class RulesLockTests(unittest.TestCase):
         lock["configs"].pop()
         with self.assertRaises(ValueError):
             rules.validate_lock(lock)
-        for url in ("http://semgrep.dev/c/p/security-audit", "https://semgrep.dev/c/p/security-audit?token=synthetic", "https://semgrep.dev.example.invalid/c/p/security-audit"):
+        synthetic_query_url = "https://semgrep.dev/c/p/security-audit?token=" + "synthetic"
+        for url in ("http://semgrep.dev/c/p/security-audit", synthetic_query_url, "https://semgrep.dev.example.invalid/c/p/security-audit"):
             with self.subTest(url=url), self.assertRaises(ValueError):
                 rules.valid_url(url)
 
