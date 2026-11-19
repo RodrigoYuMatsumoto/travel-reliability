@@ -1,0 +1,85 @@
+{
+  "evaluatedAt": "2026-11-03T12:00:00Z",
+  "origin": "NODE-A",
+  "destination": "NODE-C",
+  "nodes": [
+    {
+      "id": "NODE-A",
+      "minimumConnectionMinutes": null,
+      "timeZone": "America/Sao_Paulo",
+      "country": "BR"
+    },
+    {
+      "id": "NODE-B",
+      "minimumConnectionMinutes": 45,
+      "timeZone": "America/Sao_Paulo",
+      "country": "BR"
+    },
+    {
+      "id": "NODE-C",
+      "minimumConnectionMinutes": null,
+      "timeZone": "America/Sao_Paulo",
+      "country": "BR"
+    }
+  ],
+  "legs": [
+    {
+      "id": "LEG-A",
+      "origin": "NODE-A",
+      "destination": "NODE-B",
+      "mode": "flight",
+      "departure": {
+        "local": "2026-11-04T09:00:00",
+        "timeZone": "America/Sao_Paulo"
+      },
+      "arrival": {
+        "local": "2026-11-04T10:00:00",
+        "timeZone": "America/Sao_Paulo"
+      },
+      "currency": "BRL",
+      "costMinor": 20000,
+      "bookingGroup": "BOOKING-A",
+      "baggageThrough": false,
+      "positioning": true,
+      "hiddenCity": false,
+      "sourceRefs": [
+        "SRC-SYNTHETIC"
+      ]
+    },
+    {
+      "id": "LEG-B",
+      "origin": "NODE-B",
+      "destination": "NODE-C",
+      "mode": "bus",
+      "departure": {
+        "local": "2026-11-04T14:00:00",
+        "timeZone": "America/Sao_Paulo"
+      },
+      "arrival": {
+        "local": "2026-11-04T17:00:00",
+        "timeZone": "America/Sao_Paulo"
+      },
+      "currency": "BRL",
+      "costMinor": 5000,
+      "bookingGroup": "BOOKING-B",
+      "baggageThrough": null,
+      "positioning": false,
+      "hiddenCity": false,
+      "sourceRefs": [
+        "SRC-SYNTHETIC"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "SRC-SYNTHETIC",
+      "observedAt": "2026-11-03T10:00:00Z",
+      "evidenceRef": null
+    }
+  ],
+  "separateTicketBufferMinutes": 90,
+  "baggageBufferMinutes": 30,
+  "maxHops": 5,
+  "maxExpansions": 300,
+  "maxResults": 5
+}

@@ -1,0 +1,343 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "format": {
+      "const": "travel-reliability-loyalty-graph/1"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+    },
+    "synthetic": {
+      "type": "boolean"
+    },
+    "programs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "maxItems": 300,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+          },
+          "source_program": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+          },
+          "target_program": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+          },
+          "edge_type": {
+            "enum": [
+              "DIRECT_TRANSFER",
+              "AVIOS_POOL_LINK",
+              "VOUCHER_EXCHANGE",
+              "CASH_PLUS_POINTS"
+            ]
+          },
+          "verification_state": {
+            "enum": [
+              "operator_asserted",
+              "source_captured",
+              "reviewed",
+              "conflicting"
+            ]
+          },
+          "base_ratio": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "sourceUnits": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "targetUnits": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "sourceUnits",
+                  "targetUnits"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "club_tier_ratio": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "sourceUnits": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "targetUnits": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "sourceUnits",
+                  "targetUnits"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "min_transfer_points": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "max_transfer_points": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "transfer_multiple": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "max_target_units": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "eligibility_constraint": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+            },
+            "uniqueItems": true,
+            "maxItems": 40
+          },
+          "transfer_bonus_bps": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 30000
+          },
+          "settlement_business_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "settlement_calendar": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "supports_cart_topup": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "last_verified_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "evidenceRefs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+            },
+            "uniqueItems": true,
+            "maxItems": 40
+          }
+        },
+        "required": [
+          "id",
+          "source_program",
+          "target_program",
+          "edge_type",
+          "verification_state",
+          "base_ratio",
+          "club_tier_ratio",
+          "min_transfer_points",
+          "max_transfer_points",
+          "transfer_multiple",
+          "max_target_units",
+          "eligibility_constraint",
+          "transfer_bonus_bps",
+          "settlement_business_days",
+          "settlement_calendar",
+          "supports_cart_topup",
+          "last_verified_date",
+          "evidenceRefs"
+        ]
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "maxItems": 500,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+          },
+          "sourceUrl": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048,
+            "pattern": "^https://"
+          },
+          "sourceSha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "retrievedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reviewAfter": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "state": {
+            "enum": [
+              "operator_asserted",
+              "source_captured",
+              "reviewed",
+              "conflicting"
+            ]
+          },
+          "sourceSpan": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "quote": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 180
+              },
+              "locator": {
+                "type": "string",
+                "maxLength": 600
+              }
+            },
+            "required": [
+              "quote",
+              "locator"
+            ]
+          },
+          "assertion": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "subject": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+              },
+              "predicate": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$"
+              },
+              "value": {}
+            },
+            "required": [
+              "subject",
+              "predicate",
+              "value"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "sourceUrl",
+          "sourceSha256",
+          "retrievedAt",
+          "reviewAfter",
+          "state",
+          "sourceSpan",
+          "assertion"
+        ]
+      }
+    }
+  },
+  "required": [
+    "format",
+    "version",
+    "synthetic",
+    "programs",
+    "edges",
+    "evidence"
+  ]
+}

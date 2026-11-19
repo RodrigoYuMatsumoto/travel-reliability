@@ -107,9 +107,9 @@ export const inputSchemas = {
       maxItems: 30,
       items: object({
         url: { type: 'string', format: 'uri', pattern: '^https://' },
-        license: text(160),
+        license: { ...text(160), minLength: 1, pattern: '\\S' },
         checkedAt: { type: 'string', format: 'date-time' },
-        claim: text(500),
+        claim: { ...text(500), minLength: 1, pattern: '\\S' },
       }),
     },
   }),

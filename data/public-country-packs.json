@@ -1,0 +1,58 @@
+[
+  {
+    "format": "travel-reliability-country-pack/1",
+    "version": "2026.11.19",
+    "scope": {
+      "country": "BR",
+      "subdivision": null,
+      "municipality": null
+    },
+    "synthetic": false,
+    "evidence": [
+      {
+        "id": "BR-SAMU-20261119",
+        "sourceUrl": "https://www.gov.br/saude/pt-br/composicao/saes/samu-192/samu-192",
+        "sourceSha256": "4d97416b54cd15c3b0d027d443a31e088f5e17cb4715f28d4111e11977666107",
+        "retrievedAt": "2026-11-19T04:24:19.744Z",
+        "reviewAfter": "2027-02-19T00:00:00Z",
+        "state": "source_captured",
+        "sourceSpan": {
+          "quote": "gratuito, acessado pelo número 192",
+          "locator": "Página SAMU 192, parágrafo introdutório que descreve o acesso e a operação."
+        },
+        "assertion": {
+          "subject": "BR-SAMU-192",
+          "predicate": "emergency.samu",
+          "value": {
+            "statement": "O Ministério da Saúde informa 192 como número de acesso ao SAMU.",
+            "context": "Número divulgado para o serviço. A publicação não comprova cobertura operacional de um município.",
+            "value": {
+              "service": "SAMU",
+              "number": "192"
+            }
+          }
+        }
+      }
+    ],
+    "mobility_apps": [],
+    "food_and_delivery_apps": [],
+    "payment_and_connectivity": [],
+    "safety_and_sanitary": [
+      {
+        "id": "BR-SAMU-192",
+        "key": "emergency.samu",
+        "statement": "O Ministério da Saúde informa 192 como número de acesso ao SAMU.",
+        "context": "Número divulgado para o serviço. A publicação não comprova cobertura operacional de um município.",
+        "value": {
+          "service": "SAMU",
+          "number": "192"
+        },
+        "kind": "fact",
+        "evidenceRefs": ["BR-SAMU-20261119"],
+        "validFrom": "2026-11-19T04:24:19.744Z",
+        "validTo": "2027-02-19T00:00:00Z",
+        "personas": ["solo", "family", "tourism", "business_corporate"]
+      }
+    ]
+  }
+]

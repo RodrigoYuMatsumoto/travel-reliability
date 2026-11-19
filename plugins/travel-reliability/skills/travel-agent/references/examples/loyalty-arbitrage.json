@@ -1,0 +1,33 @@
+{
+  "evaluatedAt": "2026-11-03T12:00:00Z",
+  "sourceProgram": "LIVELO",
+  "targetProgram": "TAP",
+  "sourcePoints": 14000,
+  "acquisitionCostPer1000Minor": 2000,
+  "topUp": null,
+  "eligibility": [
+    {
+      "code": "centurion_points",
+      "value": "no"
+    },
+    {
+      "code": "same_holder",
+      "value": "yes"
+    },
+    {
+      "code": "active_accounts",
+      "value": "yes"
+    }
+  ],
+  "requiredAwardPoints": 2000,
+  "awardTaxesMinor": 10000,
+  "cashFareMinor": 50000,
+  "currency": "BRL",
+  "comparableBaggage": null,
+  "comparableCancellation": null,
+  "awardAvailable": null,
+  "pointsValidThroughTravel": null,
+  "maxHops": 4,
+  "maxExpansions": 300,
+  "maxResults": 5
+}

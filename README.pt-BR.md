@@ -1,5 +1,7 @@
 # Travel Reliability
 
+Para usar o plugin no Claude Code, consulte o [guia de instalação e homologação](docs/CLAUDE_DEPLOYMENT.md). A pasta do plugin contém as instruções. A disponibilidade do serviço remoto depende da implantação.
+
 **Ecossistema de agência de viagens internacional para sua própria LLM: deslocamentos multimodais, custos explícitos, fontes rastreáveis e provas privadas.**
 
 [English](README.md) · [Agente sem instalação](#use-na-sua-ia-sem-instalação) · [Catálogo de comandos](prompts/README.md) · [Auditoria dos agentes](docs/AGENT_AUDIT.md) · [Aplicativo opcional](#aplicativo-local-opcional) · [Segurança](SECURITY.md) · [Cobertura dos testes de segurança](docs/SECURITY_TESTS.md) · [Evidências de entrega](docs/IMPLEMENTATION_STATUS.md)

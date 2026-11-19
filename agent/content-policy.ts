@@ -25,6 +25,7 @@ export function enforceContentPolicy(value: unknown): void {
   const normalized = JSON.stringify(value)
     .normalize('NFKD')
     .replace(/\p{M}/gu, '')
+    .replace(/\bfor (?:the )?sake of\b/gi, 'for the purpose of')
     .replace(/\\u([a-f0-9]{4})/gi, (_, code: string) => String.fromCharCode(parseInt(code, 16)));
   requireCondition(!blocked.test(normalized), 'RESTRICTED_CONTENT', 422);
 }

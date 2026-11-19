@@ -201,7 +201,11 @@ export function createTravelServer(supplied: TravelServerOptions = {}): McpServe
       description:
         'Read exact trip/source/record scopes from an operator-configured connector registry. Disabled without operator configuration; no tool argument can install an adapter, grant scope or provide credentials.',
       inputSchema: z.strictObject({ input: z.record(z.string(), z.unknown()) }),
-      annotations: { ...annotations, openWorldHint: !!options.connectors },
+      annotations: {
+        ...annotations,
+        idempotentHint: !options.connectors,
+        openWorldHint: !!options.connectors,
+      },
     },
     ({ input }) =>
       asyncResult(async () => {

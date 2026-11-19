@@ -173,7 +173,7 @@ try {
     body: JSON.stringify({ ...trip.data, title: markup }),
   });
   const changedTrip = (await changed.json()) as { version: number };
-  await probe('stale edit rejection', '/v1/trips/' + trip.id, 409, {
+  await probe('stale edit rejection', '/v1/trips/' + trip.id, 412, {
     method: 'PUT',
     headers: { ...a.headers, 'if-match': String(trip.version) },
     body: JSON.stringify(trip.data),

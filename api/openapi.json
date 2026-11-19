@@ -881,6 +881,9 @@
           "202": {
             "description": "Accepted for bounded asynchronous extraction"
           },
+          "400": {
+            "description": "Invalid If-Match header"
+          },
           "401": {
             "description": "Authentication required"
           },
@@ -890,8 +893,14 @@
           "409": {
             "description": "Version conflict or conflicting field; resolve before retrying"
           },
+          "412": {
+            "description": "Supplied version no longer matches"
+          },
           "422": {
             "description": "Invalid input or incomplete prerequisites"
+          },
+          "428": {
+            "description": "If-Match is required"
           },
           "429": {
             "description": "Rate limited"
@@ -941,7 +950,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "Current integer revision, optionally quoted."
+            "description": "A strong quoted integer revision. A bare integer is accepted for compatibility. Weak tags, lists and * are invalid."
           }
         ],
         "requestBody": {
@@ -2995,6 +3004,9 @@
           "202": {
             "description": "Accepted for bounded asynchronous extraction"
           },
+          "400": {
+            "description": "Invalid If-Match header"
+          },
           "401": {
             "description": "Authentication required"
           },
@@ -3004,8 +3016,14 @@
           "409": {
             "description": "Version conflict or conflicting field; resolve before retrying"
           },
+          "412": {
+            "description": "Supplied version no longer matches"
+          },
           "422": {
             "description": "Invalid input or incomplete prerequisites"
+          },
+          "428": {
+            "description": "If-Match is required"
           },
           "429": {
             "description": "Rate limited"
@@ -3055,7 +3073,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "Current integer revision, optionally quoted."
+            "description": "A strong quoted integer revision. A bare integer is accepted for compatibility. Weak tags, lists and * are invalid."
           }
         ],
         "requestBody": {
@@ -4692,7 +4710,9 @@
                 },
                 "license": {
                   "type": "string",
-                  "maxLength": 160
+                  "maxLength": 160,
+                  "minLength": 1,
+                  "pattern": "\\S"
                 },
                 "checkedAt": {
                   "type": "string",
@@ -4700,7 +4720,9 @@
                 },
                 "claim": {
                   "type": "string",
-                  "maxLength": 500
+                  "maxLength": 500,
+                  "minLength": 1,
+                  "pattern": "\\S"
                 }
               }
             }

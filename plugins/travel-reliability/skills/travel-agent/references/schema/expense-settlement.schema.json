@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Known incurred expenses and accepted allocation weights",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "tripKey",
+    "currency",
+    "households",
+    "expenses",
+    "priorSettlements",
+    "acceptedRule"
+  ],
+  "properties": {
+    "tripKey": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,40}$"
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "acceptedRule": {
+      "const": true
+    },
+    "households": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^N[0-9]{2,4}$"
+      }
+    },
+    "expenses": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 500,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "amountMinor",
+          "paidBy",
+          "beneficiaries"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^E[0-9]{2,6}$"
+          },
+          "amountMinor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "paidBy": {
+            "type": "string",
+            "pattern": "^N[0-9]{2,4}$"
+          },
+          "beneficiaries": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "householdId",
+                "weight"
+              ],
+              "properties": {
+                "householdId": {
+                  "type": "string",
+                  "pattern": "^N[0-9]{2,4}$"
+                },
+                "weight": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000000
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "priorSettlements": {
+      "type": "array",
+      "maxItems": 500,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "from",
+          "to",
+          "amountMinor"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^T[0-9]{2,6}$"
+          },
+          "from": {
+            "type": "string",
+            "pattern": "^N[0-9]{2,4}$"
+          },
+          "to": {
+            "type": "string",
+            "pattern": "^N[0-9]{2,4}$"
+          },
+          "amountMinor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        }
+      }
+    }
+  }
+}

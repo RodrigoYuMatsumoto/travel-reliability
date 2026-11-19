@@ -27,6 +27,8 @@ schema/package-discovery.schema.json
 schema/src/trip-contract.ts
 examples/*.json
 prompts/*.md
+# Generated and checked byte for byte by scripts/package-claude-plugin.mjs.
+plugins/travel-reliability/
 sbom.cdx.json
 playwright-report
 test-results

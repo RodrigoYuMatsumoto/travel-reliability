@@ -55,6 +55,34 @@ export interface Dependencies {
   blobs?: BlobStore;
   cache?: Cache;
 }
+function readExpectedVersion(header: string | string[] | undefined): number {
+  requireCondition(header !== undefined, 'IF_MATCH_REQUIRED', 428);
+  const matched = typeof header === 'string' && /^(?:"([1-9]\d*)"|([1-9]\d*))$/.exec(header);
+  requireCondition(matched, 'IF_MATCH_INVALID', 400);
+  const version = Number(matched[1] ?? matched[2]);
+  requireCondition(Number.isSafeInteger(version), 'IF_MATCH_INVALID', 400);
+  return version;
+}
+
+async function versionedWrite<T>(operation: () => Promise<T>): Promise<T> {
+  try {
+    return await operation();
+  } catch (error) {
+    if (error instanceof AppError && error.code === 'VERSION_CONFLICT')
+      throw new AppError('VERSION_CONFLICT', 412);
+    throw error;
+  }
+}
+
+function checkRouteSourceTimes(route: Pick<RouteVersion, 'provenance'>): void {
+  const now = Date.now();
+  requireCondition(
+    route.provenance.every((source) => Date.parse(source.checkedAt) <= now),
+    'ROUTE_SOURCE_DATE_INVALID',
+    422,
+  );
+}
+
 export async function buildApp(config = loadConfig(), dependencies: Dependencies = {}) {
   const app = Fastify({
     logger: false,
@@ -283,12 +311,13 @@ export async function buildApp(config = loadConfig(), dependencies: Dependencies
   app.put<{ Params: { id: string } }>('/v1/trips/:id', async (request, reply) => {
     const trip = validateTrip(request.body);
     requireCondition(trip.id === request.params.id, 'ID_MISMATCH', 422);
-    const version = Number(String(request.headers['if-match'] ?? '').replaceAll('"', ''));
-    requireCondition(Number.isInteger(version) && version >= 1, 'IF_MATCH_REQUIRED', 428);
+    const version = readExpectedVersion(request.headers['if-match']);
     const old = await tripFor(workspace(request), trip.id);
     await validateReferences(workspace(request), trip);
-    requireCondition(old.version === version, 'VERSION_CONFLICT', 409);
-    const result = await records.put(workspace(request), 'trip', trip.id, trip, version);
+    requireCondition(old.version === version, 'VERSION_CONFLICT', 412);
+    const result = await versionedWrite(() =>
+      records.put(workspace(request), 'trip', trip.id, trip, version),
+    );
     await records.put(
       workspace(request),
       'revision',
@@ -804,6 +833,7 @@ export async function buildApp(config = loadConfig(), dependencies: Dependencies
   app.get('/v1/routes', async (request) => records.list<RouteVersion>(workspace(request), 'route'));
   app.post('/v1/routes', async (request, reply) => {
     const body = input<Omit<RouteVersion, 'id' | 'version' | 'createdAt'>>('route', request.body);
+    checkRouteSourceTimes(body);
     const route: RouteVersion = {
       ...body,
       id: randomUUID(),
@@ -815,16 +845,20 @@ export async function buildApp(config = loadConfig(), dependencies: Dependencies
   });
   app.put<{ Params: { id: string } }>('/v1/routes/:id', async (request) => {
     const body = input<Omit<RouteVersion, 'id' | 'version' | 'createdAt'>>('route', request.body);
+    checkRouteSourceTimes(body);
     const old = await records.get<RouteVersion>(workspace(request), 'route', request.params.id);
     requireCondition(old, 'ROUTE_NOT_FOUND', 404);
-    const expected = Number(String(request.headers['if-match'] ?? '').replaceAll('"', ''));
-    requireCondition(expected === old.version, 'VERSION_CONFLICT', 409);
+    const expected = readExpectedVersion(request.headers['if-match']);
+    requireCondition(expected === old.version, 'VERSION_CONFLICT', 412);
     const route = {
       ...body,
       id: old.id,
       version: old.version + 1,
       createdAt: new Date().toISOString(),
     };
+    const stored = await versionedWrite(() =>
+      records.put(workspace(request), 'route', old.id, route, expected),
+    );
     await records.put(
       workspace(request),
       'route_revision',
@@ -832,7 +866,7 @@ export async function buildApp(config = loadConfig(), dependencies: Dependencies
       old.data,
       null,
     );
-    return records.put(workspace(request), 'route', old.id, route, old.version);
+    return stored;
   });
   app.get('/v1/workspace/members', async (request) => {
     await auth.authorize(request, 'owner');

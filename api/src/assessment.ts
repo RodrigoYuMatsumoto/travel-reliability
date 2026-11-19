@@ -130,7 +130,8 @@ export function assess(
       trip.overnightExemptions.some((e) => e.date === day) ||
       trip.services.some(
         (s) =>
-          s.reservation.state !== 'cancelled' &&
+          (s.reservation.state === 'completed' ||
+            (s.reservation.state === 'booked' && s.reservation.confirmation === 'confirmed')) &&
           ((['hotel', 'rental_home', 'hostel', 'camping', 'homestay', 'cruise'].includes(s.kind) &&
             s.start.local.slice(0, 10) <= day &&
             s.end.local.slice(0, 10) > day) ||
