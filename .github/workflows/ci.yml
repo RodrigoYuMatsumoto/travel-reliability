@@ -77,6 +77,8 @@ jobs:
       - name: Generated public contracts stay in sync
         run: npm run schema:types && npm run contracts:generate && git diff --exit-code -- schema api/openapi.json examples
       - run: npm run privacy:history
+      - run: node scripts/package-claude-plugin.mjs --check
+      - run: npm exec -- tsc -p deploy/tsconfig.mcp.json
       - run: npm audit --audit-level=high
       - name: Record deterministic synthetic execution and payload evidence
         run: mkdir -p .local/validation && npm run --silent benchmark > .local/validation/benchmark.json

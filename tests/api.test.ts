@@ -92,7 +92,7 @@ describe('HTTP security and trip workflow', () => {
           payload: trip.data,
         })
       ).statusCode,
-    ).toBe(409);
+    ).toBe(412);
   });
   it('uses viewer membership as a read-only boundary', async () => {
     const context = await setup(),

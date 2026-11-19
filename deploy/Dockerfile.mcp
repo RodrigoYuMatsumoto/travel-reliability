@@ -1,0 +1,24 @@
+FROM node:24-bookworm-slim@sha256:dc26ae92c9fb15cf6b1d63e20f0944b2efe0f115b20e00be48fb23fceb061c54 AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --ignore-scripts --no-audit --no-fund
+COPY tsconfig.json ./
+COPY agent agent
+COPY agents agents
+COPY api/src api/src
+COPY data data
+COPY schema schema
+COPY scripts/remote-mcp.ts scripts/remote-mcp.ts
+COPY deploy/tsconfig.mcp.json deploy/tsconfig.mcp.json
+RUN npm exec -- tsc -p deploy/tsconfig.mcp.json \
+    && npm prune --omit=dev --ignore-scripts --no-audit --no-fund
+
+FROM node:24-bookworm-slim@sha256:dc26ae92c9fb15cf6b1d63e20f0944b2efe0f115b20e00be48fb23fceb061c54
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=build /app/package.json ./
+COPY --from=build /app/node_modules node_modules
+COPY --from=build /app/dist/mcp ./
+USER node
+EXPOSE 8080
+CMD ["node", "scripts/remote-mcp.js"]

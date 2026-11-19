@@ -217,7 +217,7 @@ function evaluateOffers(input: ComparisonInput, tool: ToolId) {
       cost = costOf(offer);
     const durationMinutes = (Date.parse(offer.arrival) - Date.parse(offer.departure)) / 60000;
     requireCondition(
-      durationMinutes >= 0 && Number.isInteger(durationMinutes),
+      durationMinutes >= 0 && Number.isFinite(durationMinutes),
       'INVALID_OFFER_CHRONOLOGY',
       422,
     );

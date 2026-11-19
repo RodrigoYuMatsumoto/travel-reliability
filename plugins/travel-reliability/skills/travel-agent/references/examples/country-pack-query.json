@@ -1,0 +1,33 @@
+{
+  "evaluatedAt": "2026-11-03T12:00:00Z",
+  "scope": { "country": "BR", "subdivision": "STATE-SYNTHETIC", "municipality": "CITY-SYNTHETIC" },
+  "persona": "business_corporate",
+  "packs": [{
+    "format": "travel-reliability-country-pack/1",
+    "version": "synthetic-v1",
+    "scope": { "country": "BR", "subdivision": null, "municipality": null },
+    "synthetic": true,
+    "evidence": [],
+    "persona": "business_corporate",
+    "communication_matrix": [{
+      "id": "SYNTHETIC-COMMUNICATION", "key": "meeting.communication",
+      "statement": "Ask the organizer which language and decision process apply to this meeting.",
+      "context": "Synthetic executive preparation; no national or municipal generalization.",
+      "value": { "languageConfirmed": false, "decisionProcessConfirmed": false },
+      "kind": "guidance", "evidenceRefs": [],
+      "validFrom": "2026-11-01T00:00:00Z", "validTo": "2026-11-30T00:00:00Z",
+      "personas": ["business_corporate"]
+    }],
+    "negotiation_and_hierarchy": [],
+    "rapport_and_taboos": [],
+    "corporate_gifting_and_dining": [{
+      "id": "SYNTHETIC-GIFTING", "key": "meeting.gifting",
+      "statement": "Confirm the recipient organization gift policy before considering specialty coffee, tea or local craftsmanship.",
+      "context": "Synthetic corporate guidance; recipient approval and applicable compliance rules remain unknown.",
+      "value": { "recipientPolicyConfirmed": false },
+      "kind": "guidance", "evidenceRefs": [],
+      "validFrom": "2026-11-01T00:00:00Z", "validTo": "2026-11-30T00:00:00Z",
+      "personas": ["business_corporate"]
+    }]
+  }]
+}

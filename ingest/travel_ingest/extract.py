@@ -220,7 +220,11 @@ def extract(data: bytes, media_type: str) -> dict[str, Any]:
                             "value": match.group(1),
                             "state": "extracted",
                             "method": method,
-                            "source": {"page": number, "line": line_number, "quote": line[:600]},
+                            "source": {
+                                "page": number,
+                                "line": line_number,
+                                "quote": line[max(0, match.end(1) - 600):match.end(1)],
+                            },
                         }
                     )
             if len(snippets) < 50:

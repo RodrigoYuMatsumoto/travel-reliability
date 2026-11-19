@@ -70,7 +70,12 @@ export function extractText(data: Buffer): Extraction {
           value: match[1],
           state: 'extracted',
           method: 'text',
-          source: { line: index + 1, quote: line.slice(0, 600) },
+          source: {
+            line: index + 1,
+            quote: line
+              .slice(Math.max(0, match.index - 40), match.index + match[0].length)
+              .slice(-600),
+          },
         });
     }
   }
@@ -107,7 +112,8 @@ function validateExtraction(input: unknown): Extraction {
         field.state === 'extracted' &&
         ['text', 'ocr'].includes(field.method) &&
         typeof field.source?.quote === 'string' &&
-        field.source.quote.length <= 600,
+        field.source.quote.length <= 600 &&
+        field.source.quote.includes(field.value),
       'INVALID_PARSER_FIELD',
       502,
     );

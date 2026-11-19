@@ -149,14 +149,21 @@ for (const route of context.apiRoutes) {
         schema: { type: 'string' },
       });
   }
-  if (method === 'put' && /^\/v1\/(trips|routes)\/\{id\}$/.test(path))
+  if (method === 'put' && /^\/v1\/(trips|routes)\/\{id\}$/.test(path)) {
+    Object.assign(operation.responses as object, {
+      '400': { description: 'Invalid If-Match header' },
+      '412': { description: 'Supplied version no longer matches' },
+      '428': { description: 'If-Match is required' },
+    });
     parameters.push({
       name: 'If-Match',
       in: 'header',
       required: true,
       schema: { type: 'string' },
-      description: 'Current integer revision, optionally quoted.',
+      description:
+        'A strong quoted integer revision. A bare integer is accepted for compatibility. Weak tags, lists and * are invalid.',
     });
+  }
   if (path.endsWith('/export') && path.startsWith('/v1/trips/'))
     parameters.push({
       name: 'format',

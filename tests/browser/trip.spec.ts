@@ -4,7 +4,7 @@ test('synthetic trip, evidence review, dossier and language', async ({ page }) =
   await page.goto('/');
   await page.getByRole('button', { name: 'Explorar demonstração' }).click();
   await expect(page.getByText('Margem de conexão insuficiente')).toBeVisible();
-  await expect(page.getByText('Pernoite sem cobertura registrada')).toBeVisible();
+  await expect(page.getByText('Pernoite sem cobertura registrada', { exact: true })).toHaveCount(2);
   await page.getByRole('button', { name: 'Planejamento e rateio' }).click();
   await page.getByRole('combobox', { name: 'Ferramenta', exact: true }).selectOption('group-split');
   await page.getByRole('button', { name: 'Analisar dados' }).click();

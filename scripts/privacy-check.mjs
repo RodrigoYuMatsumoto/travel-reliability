@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readFileSync, lstatSync, realpathSync } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 import { getCoreGitContext, CoreGitError, coreGitFailure } from './core-git.mjs';
@@ -107,7 +108,11 @@ function main() {
       continue;
     }
     if (data.includes(0)) {
-      if (!/^web\/public\/icon-(192|512)\.png$/.test(file))
+      const pluginIcon =
+        file === 'plugins/travel-reliability/.claude-plugin/icon.png' &&
+        createHash('sha256').update(data).digest('hex') ===
+          'ea2717b48aed05695948ef87ea8e9215fccd8fa3ea87cbf2b848ecd1e1c8b2de';
+      if (!pluginIcon && !/^web\/public\/icon-(192|512)\.png$/.test(file))
         failures.push({ file, rule: 'unexpected-binary' });
       continue;
     }

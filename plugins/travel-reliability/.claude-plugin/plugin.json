@@ -1,0 +1,16 @@
+{
+  "name": "travel-reliability",
+  "displayName": "Travel Reliability",
+  "version": "0.1.0",
+  "description": "Planeje viagens com fluxos documentais, compare custos e confira fontes.",
+  "author": {
+    "name": "Travel Reliability Contributors"
+  },
+  "homepage": "https://github.com/RodrigoYuMatsumoto/travel-reliability",
+  "repository": "https://github.com/RodrigoYuMatsumoto/travel-reliability",
+  "license": "MIT",
+  "icon": "./.claude-plugin/icon.png",
+  "documentationUrl": "https://github.com/RodrigoYuMatsumoto/travel-reliability/tree/main/plugins/travel-reliability",
+  "supportUrl": "https://github.com/RodrigoYuMatsumoto/travel-reliability/issues",
+  "privacyPolicyUrl": "https://github.com/RodrigoYuMatsumoto/travel-reliability/blob/main/docs/CLAUDE_PRIVACY.md"
+}
