@@ -1,6 +1,6 @@
-# Delivery evidence - 0.5.0 candidate
+# Delivery evidence - v0.5.0 baseline
 
-## Current local checkpoint - 2026-11-01
+## Baseline checkpoint - 2026-11-01
 
 Version 0.5.0 corrects defects found while auditing the published v0.4.0 on a
 second Windows workstation. Contract-visible behavior changes are listed in the

@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -177,6 +177,11 @@ describe('evidence-based revisions of a synthetic trip', () => {
       await tripRevision(root, next, second.version!.digest);
       expect((await tripRevision(root)).version?.parent).toBe(digest);
       expect(await readFile(join(first, 'revision.json'), 'utf8')).toContain(digest);
+      const active = join(root, 'revision_00000002', 'revision.json');
+      const stored = await readFile(active, 'utf8');
+      expect(stored).toContain('Novo responsável');
+      await writeFile(active, stored.replace('Novo responsável', 'Alterado fora do controle'));
+      await expect(tripRevision(root)).rejects.toThrow('UPDATE_REVISION_INTEGRITY');
     } finally {
       await rm(root, { recursive: true, force: true });
     }

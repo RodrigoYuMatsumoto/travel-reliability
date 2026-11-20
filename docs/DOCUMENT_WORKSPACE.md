@@ -134,13 +134,14 @@ selecione apenas um fragmento por fato alterado.
 ### Estimativas de rota e previsão
 
 ```text
-npm run trip:observation -- fetch REQUEST.json
+npm run trip:observation -- fetch REQUEST.json --allow-network
 npm run trip:observation -- import REQUEST.json RESPONSE.json OBSERVED_AT
 ```
 
-A importação é local. A consulta envia as coordenadas selecionadas a um único
-fornecedor fixo. Use a consulta quando os termos do fornecedor e a finalidade
-autorizarem. Use `kind`, `sourceId` e `factPrefix` em todas as solicitações.
+A importação é local. A consulta exige `--allow-network` e envia as coordenadas
+selecionadas a um único fornecedor fixo. Use a consulta quando os termos do
+fornecedor e a finalidade autorizarem. Use `kind`, `sourceId` e `factPrefix`
+em todas as solicitações.
 Rotas recebem `from` e `to`. Previsões recebem `at`, `day` e `timeZone`.
 As coordenadas seguem a ordem longitude, latitude.
 

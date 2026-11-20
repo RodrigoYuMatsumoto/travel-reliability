@@ -4,7 +4,7 @@
 
 [English](README.md) · [Agente sem instalação](#use-na-sua-ia-sem-instalação) · [Catálogo de comandos](prompts/README.md) · [Auditoria dos agentes](docs/AGENT_AUDIT.md) · [Aplicativo opcional](#aplicativo-local-opcional) · [Segurança](SECURITY.md) · [Cobertura dos testes de segurança](docs/SECURITY_TESTS.md) · [Evidências de entrega](docs/IMPLEMENTATION_STATUS.md)
 
-O ponto de entrada é um **pacote portátil para a LLM que você escolher**. O catálogo 0.4 organiza onze papéis e 66 fluxos para viagens internacionais, nacionais, estaduais, intermunicipais e locais, de lazer ou profissionais. Abrange transporte, hospedagem, geografia, história, cultura, costumes, preparação comercial, seguros, logística de saúde, documentos e rateio. Os papéis são instruções selecionadas, não serviços em segundo plano. Ferramentas determinísticas validam contexto e contratos e cruzam informações; o workspace local organiza arquivos reais mediante plano revisável e autorização específica no CLI.
+O ponto de entrada é um **pacote portátil para a LLM que você escolher**. O catálogo organiza onze papéis e 66 fluxos para viagens internacionais, nacionais, estaduais, intermunicipais e locais, de lazer ou profissionais. Abrange transporte, hospedagem, geografia, história, cultura, costumes, preparação comercial, seguros, logística de saúde, documentos e rateio. Os papéis são instruções selecionadas, não serviços em segundo plano. Ferramentas determinísticas validam contexto e contratos e cruzam informações; o workspace local organiza arquivos reais mediante plano revisável e autorização específica no CLI.
 
 O agente distingue fatos cotados, condições verificadas e lacunas. Um prompt não fornece acesso à internet ou ao inventário de fornecedores. As ferramentas documentais não inventam disponibilidade nem enviam transações. Compras, cancelamentos e mensagens exigem autorização específica do viajante e capacidade real de execução no host.
 
@@ -61,7 +61,7 @@ Os cálculos não dependem de LLM. Extração assistida por IA é opcional, exig
 
 Para PDF, imagens, DOCX, HTML e EML, use o worker isolado com OCR nativo. Para dados duráveis, siga [operações](docs/OPERATIONS.md): HTTPS, OIDC, PostgreSQL, Redis, armazenamento privado e gestão de chaves. A demonstração em memória não deve ser seu único arquivo de provas.
 
-O [catálogo detalhado](docs/AGENT_CATALOG.md) diferencia os nove calculadores das 43 entradas sem calculador legado e do acerto de despesas. O [mapa de cobertura](agents/coverage.json) e a [auditoria](docs/AGENT_AUDIT.md) registram origem sanitizada, correções e limites. Os IDs dos nove calculadores e o recurso MCP legado permanecem disponíveis.
+O catálogo detalhado lista os nove calculadores originais, o acerto de despesas e os outros fluxos. O mapa de cobertura e a auditoria registram origem sanitizada, correções e limites. Os IDs dos nove calculadores e o recurso MCP legado permanecem disponíveis. [Catálogo](docs/AGENT_CATALOG.md), [mapa de cobertura](agents/coverage.json) e [auditoria](docs/AGENT_AUDIT.md).
 
 As ferramentas operam documentalmente. Não há conector de inventário aéreo, consulta automática a CNPJ/Cadastur ou monitor de voo ativo por padrão. Dados do fornecedor devem ser importados ou recebidos por integração configurada; ausência de integração nunca vira disponibilidade simulada.
 

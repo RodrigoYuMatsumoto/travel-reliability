@@ -15,5 +15,7 @@ Datas sem hora são aceitas nos serviços de hospedagem e seguro. Uma data
 sem hora nunca vira um instante de conexão. O registro de seguro
 `insuranceEvidence` vincula pedido, pagamento ou emissão a um documento do
 serviço. A cobertura do trecho final exige um certificado emitido, a ligação
-com o trecho e comprovação do âmbito e da vigência. Contratos antigos sem
-esse campo continuam legíveis e ficam com emissão a verificar.
+com o último trecho de transporte registrado como reservado ou concluído e a
+comprovação do âmbito e da vigência. Se o horário de chegada impedir ordenar
+os trechos, o retorno fica a verificar. Contratos antigos sem esse campo
+continuam legíveis e ficam com emissão a verificar.

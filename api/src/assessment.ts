@@ -6,17 +6,25 @@ import type {
   DisruptionEvent,
   Finding,
 } from '../../schema/src/domain.js';
-import { instant } from './validation.js';
+import { instant, isReturnTransport } from './validation.js';
 import { validCnpj } from './cnpj.js';
 
 function insuranceReturn(trip: TripContract, service: TripContract['services'][number]) {
   const evidence = service.insuranceEvidence;
   if (evidence?.stage !== 'issued') return 'INSURANCE_ISSUANCE_UNVERIFIED';
-  const leg = trip.services.find((item) => item.id === evidence.returnServiceId);
-  if (!leg || !['booked', 'completed'].includes(leg.reservation.state))
-    return 'INSURANCE_RETURN_UNVERIFIED';
+  const transport = trip.services.filter(
+    (item) => isReturnTransport(item) && ['booked', 'completed'].includes(item.reservation.state),
+  );
+  const leg = transport.find((item) => item.id === evidence.returnServiceId);
+  if (!leg) return 'INSURANCE_RETURN_UNVERIFIED';
   const expiry = instant(service.end);
   const arrival = instant(leg.end);
+  for (const other of transport) {
+    if (other.id === leg.id) continue;
+    const otherArrival = instant(other.end);
+    if (arrival === null || otherArrival === null || otherArrival > arrival)
+      return 'INSURANCE_RETURN_UNVERIFIED';
+  }
   // Date-only evidence cannot prove an instant across zones, including the expiry day.
   const sameZone = !!service.end.timeZone && service.end.timeZone === leg.end.timeZone;
   const expiryDay = service.end.local.slice(0, 10);

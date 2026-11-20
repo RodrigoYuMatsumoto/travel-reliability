@@ -101,6 +101,41 @@ describe('synthetic overnight and final leg evidence', () => {
     expect(() => validateTrip(trip)).toThrow('DATE_ONLY_NOT_SUPPORTED_FOR_SERVICE');
   });
 
+  it('keeps a policy linked to an earlier return leg pending when the trip has a later arrival', () => {
+    const trip = policy('issued', checkout + 'T13:00', true);
+    const earlierLeg = trip.services[1]!;
+    const finalLeg = {
+      ...earlierLeg,
+      id: 'onward-final',
+      start: { ...earlierLeg.start, local: checkout + 'T14:30' },
+      end: { ...earlierLeg.end, local: checkout + 'T16:00' },
+    };
+    trip.services.push(finalLeg);
+    expect(codes(trip)).toContain('INSURANCE_RETURN_UNVERIFIED');
+    expect(checklist(trip, 'pre_departure')).toContainEqual(
+      expect.objectContaining({ code: 'INSURANCE_RETURN_EVIDENCE', status: 'pending' }),
+    );
+
+    trip.services[2]!.insuranceEvidence!.returnServiceId = finalLeg.id;
+    expect(codes(trip)).toContain('INSURANCE_RETURN_GAP');
+
+    trip.services[2]!.insuranceEvidence!.returnServiceId = earlierLeg.id;
+    finalLeg.reservation = { ...finalLeg.reservation, state: 'cancelled' };
+    expect(codes(trip).filter((code) => code.startsWith('INSURANCE_'))).toEqual([]);
+  });
+
+  it('keeps the return pending when another active leg has an unknown arrival time zone', () => {
+    const trip = policy('issued', checkout + 'T13:00', true);
+    const earlierLeg = trip.services[1]!;
+    trip.services.push({
+      ...earlierLeg,
+      id: 'onward-unknown-zone',
+      start: { ...earlierLeg.start, local: checkout + 'T14:30' },
+      end: { ...earlierLeg.end, local: checkout + 'T16:00', timeZone: null },
+    });
+    expect(codes(trip)).toContain('INSURANCE_RETURN_UNVERIFIED');
+  });
+
   it('reopens insurance verification when its documentary evidence is erased', () => {
     const trip = policy('issued', checkout + 'T13:00', true);
     expect(codes(trip)).not.toContain('INSURANCE_ISSUANCE_UNVERIFIED');

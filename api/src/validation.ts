@@ -14,6 +14,22 @@ const ajv = new Ajv2020({
 });
 (addFormats as unknown as (instance: Ajv2020) => void)(ajv);
 const check = ajv.compile(tripSchema);
+
+const returnTransportKinds = new Set<TripContract['services'][number]['kind']>([
+  'flight',
+  'bus',
+  'rail',
+  'ferry',
+  'cruise',
+  'transfer',
+  'taxi',
+  'rideshare',
+]);
+
+export function isReturnTransport(service: TripContract['services'][number]) {
+  return returnTransportKinds.has(service.kind);
+}
+
 export function instant(time: { local: string; timeZone: string | null }): number | null {
   try {
     if (time.local.length === 10) {
@@ -78,17 +94,7 @@ export function validateTrip(input: unknown): TripContract {
         insurance.returnServiceId === null ||
           trip.services.some(
             (candidate) =>
-              candidate.id === insurance.returnServiceId &&
-              [
-                'flight',
-                'bus',
-                'rail',
-                'ferry',
-                'cruise',
-                'transfer',
-                'taxi',
-                'rideshare',
-              ].includes(candidate.kind),
+              candidate.id === insurance.returnServiceId && isReturnTransport(candidate),
           ),
         'INSURANCE_RETURN_SERVICE_INVALID',
         422,

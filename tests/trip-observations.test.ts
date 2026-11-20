@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { describe, expect, it, vi } from 'vitest';
 import { fetchObservation, normalizeObservation } from '../agent/trip-observations.js';
 import { reviewTripUpdate } from '../agent/trip-update.js';
@@ -27,6 +28,17 @@ const daily = {
 };
 
 describe('optional sources with synthetic responses', () => {
+  it('rejects a live CLI request without explicit network authorization before opening its input', () => {
+    const result = spawnSync(
+      process.execPath,
+      ['--import', 'tsx', 'scripts/trip-observation.ts', 'fetch', 'missing.json'],
+      { encoding: 'utf8' },
+    );
+    expect(result.status).toBe(1);
+    expect(result.stderr.trim()).toBe('OBSERVATION_NETWORK_NOT_AUTHORIZED');
+    expect(result.stdout).toBe('');
+  });
+
   it('binds route facts to a dated source and stops using expired travel time', () => {
     const result = normalizeObservation(route, routeBody, now);
     const sourceIds = ['S1'];
