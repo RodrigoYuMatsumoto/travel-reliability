@@ -105,6 +105,11 @@ incluem uma chave que um executor externo pode usar para evitar duplicatas.
 Para consultar uma versão anterior, abra seu índice. Para corrigir a versão
 atual, aplique uma nova revisão com as evidências corrigidas.
 
+O programa cria cada revisão em um diretório novo. O digest detecta alterações
+acidentais no registro da última revisão. Os arquivos derivados e o histórico
+completo dependem do controle de acesso e dos backups do operador. Quem tem
+permissão de escrita na pasta pode alterar arquivos e recalcular o digest.
+
 O encerramento exige fontes vigentes dos tipos indicados pela tarefa e
 evidência vinculada aos fatos acompanhados. Mudanças na agenda ou expiração
 de evidência podem reabrir a tarefa e suas dependentes. Cabe ao operador

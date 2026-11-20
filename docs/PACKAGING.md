@@ -26,9 +26,9 @@ in the security model still require manual review.
 `--history` requires a standalone core checkout and refuses an embedding with
 `CORE_GIT_HISTORY_REQUIRES_STANDALONE` before examining host files, commit
 metadata or blobs. In the standalone checkout it continues scanning all refs,
-commit metadata and unique blobs, with only the narrowly validated temporary
-GitHub PR-merge metadata exception already supported. The checker does not turn
-an embedding into permission to inspect or distribute the host history.
+commit metadata and unique blobs. It recognizes the temporary GitHub PR-merge
+metadata and the designated public Dependabot service addresses in their exact
+commit fields. An embedding still requires its own distribution and review.
 
 The application, portable instructions and MCP runtime do not require their own
 Git checkout. Distribution and history auditing do. To publish a release, use a

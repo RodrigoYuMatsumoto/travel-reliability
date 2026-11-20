@@ -6,6 +6,9 @@ import { join, resolve, dirname, basename } from 'node:path';
 
 const sourceScripts = resolve('scripts');
 const syntheticEmail = 'traveler' + '@' + 'private.invalid';
+const contributorBot = 'dependabot[bot]';
+const githubCommitterEmail = 'noreply' + '@' + 'github.com';
+const githubSupportEmail = 'support' + '@' + 'github.com';
 
 function fixture(privateParent = false) {
   const base = realpathSync(tmpdir());
@@ -21,10 +24,14 @@ function fixture(privateParent = false) {
     GIT_AUTHOR_EMAIL: 'contributors@example.invalid',
     GIT_COMMITTER_EMAIL: 'contributors@example.invalid',
   };
-  const git = (args: string[], email?: string) =>
+  const git = (args: string[], email?: string, identity: Record<string, string> = {}) =>
     execFileSync('git', args, {
       cwd: dir,
-      env: { ...env, ...(email ? { GIT_AUTHOR_EMAIL: email, GIT_COMMITTER_EMAIL: email } : {}) },
+      env: {
+        ...env,
+        ...(email ? { GIT_AUTHOR_EMAIL: email, GIT_COMMITTER_EMAIL: email } : {}),
+        ...identity,
+      },
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
     }).trim();
@@ -83,6 +90,19 @@ function fixture(privateParent = false) {
   return {
     dir,
     merge,
+    updateDependencyBranch(message: string, committerName = 'GitHub') {
+      const commit = git(
+        ['-c', 'commit.gpgsign=false', 'commit-tree', tree, '-p', parent, '-m', message],
+        undefined,
+        {
+          GIT_AUTHOR_NAME: contributorBot,
+          GIT_AUTHOR_EMAIL: '49699333+' + contributorBot + '@' + 'users.noreply.github.com',
+          GIT_COMMITTER_NAME: committerName,
+          GIT_COMMITTER_EMAIL: githubCommitterEmail,
+        },
+      );
+      git(['update-ref', 'refs/heads/dependabot/test', commit]);
+    },
     scan(overrides: Record<string, string> = {}) {
       const result = spawnSync(process.execPath, [checker, '--history'], {
         cwd: dir,
@@ -102,6 +122,33 @@ function fixture(privateParent = false) {
     },
   };
 }
+
+it('recognizes public Dependabot service fields without permitting addresses elsewhere', () => {
+  const repo = fixture();
+  const body =
+    'Update synthetic dependency\n\nSigned-off-by: ' +
+    contributorBot +
+    ' <' +
+    githubSupportEmail +
+    '>';
+  try {
+    repo.updateDependencyBranch(body);
+    expect(repo.scan().status).toBe(0);
+
+    repo.updateDependencyBranch(body + '\nContact: ' + syntheticEmail);
+    expect(repo.scan().status).toBe(1);
+    repo.updateDependencyBranch(body + '\nOther field: ' + githubSupportEmail);
+    expect(repo.scan().status).toBe(1);
+    repo.updateDependencyBranch(body, 'Synthetic Test');
+    expect(repo.scan().status).toBe(1);
+
+    repo.updateDependencyBranch(body);
+    writeFileSync(join(repo.dir, 'fixture.txt'), githubSupportEmail);
+    expect(repo.scan().status).toBe(1);
+  } finally {
+    repo.cleanup();
+  }
+}, 30000);
 
 it('excludes only validated temporary PR metadata and still rejects private file contents', () => {
   const repo = fixture();

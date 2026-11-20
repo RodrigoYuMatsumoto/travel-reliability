@@ -2,6 +2,21 @@ import { readFileSync, lstatSync, realpathSync } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 import { getCoreGitContext, CoreGitError, coreGitFailure } from './core-git.mjs';
 
+function commitEmailScope(metadata) {
+  const [author, authorEmail, committer, committerEmail, ...message] = metadata.split('\n');
+  const bot = 'dependabot[bot]';
+  if (
+    author !== bot ||
+    authorEmail !== '49699333+' + bot + '@' + 'users.noreply.github.com' ||
+    committer !== 'GitHub' ||
+    committerEmail !== 'noreply' + '@' + 'github.com'
+  )
+    return metadata;
+
+  const serviceSignoff = 'Signed-off-by: ' + bot + ' <support' + '@' + 'github.com>';
+  return [author, committer, ...message.filter((line) => line !== serviceSignoff)].join('\n');
+}
+
 function main() {
   // Anchor to this installed core, even when the caller's cwd is another project.
   // An embedding may scan its current prefix, never the host repository history.
@@ -68,9 +83,10 @@ function main() {
     ],
   ];
   const failures = [];
-  function scan(text, label) {
+  function scan(text, label, emailScope = text) {
     for (const [name, pattern] of rules)
-      if (pattern.test(text)) failures.push({ file: label, rule: name });
+      if (pattern.test(name === 'private-email' ? emailScope : text))
+        failures.push({ file: label, rule: name });
     if (
       extraTerms.some((term) => text.toLocaleLowerCase().includes(term.toLocaleLowerCase())) ||
       accountName?.test(text)
@@ -134,11 +150,10 @@ function main() {
         preview = parents.length === 2 && subject === `Merge ${parents[1]} into ${parents[0]}`;
       }
       if (preview) excludedPreviewMetadata = commit.slice(0, 12);
-      else
-        scan(
-          git(['show', '-s', '--format=%an%n%ae%n%cn%n%ce%n%B', commit]),
-          `commit:${commit.slice(0, 12)}`,
-        );
+      else {
+        const metadata = git(['show', '-s', '--format=%an%n%ae%n%cn%n%ce%n%B', commit]);
+        scan(metadata, `commit:${commit.slice(0, 12)}`, commitEmailScope(metadata));
+      }
       const entries = git(['ls-tree', '-r', '-z', commit]).split('\0').filter(Boolean);
       for (const entry of entries) {
         const [header, path] = entry.split('\t'),

@@ -3,9 +3,10 @@
 ## 0.6.0
 
 - Accept date-only lodging and insurance evidence. Distinguish quotes, requested policies, payments and issued certificates. Check the documented scope and dates against the final booked or completed transport in the itinerary.
-- Apply evidence-backed trip updates as immutable local revisions. Recompute affected dependencies and export the current checklist, offline view and notification outbox.
+- Apply evidence-backed trip updates as append-only local revisions. Recompute affected dependencies and export the current checklist, offline view and notification outbox.
 - Read selected workbook rows, ZIP attachments and PDF pages. Attach dated route and forecast estimates after explicit network authorization or import them locally. Use separate read-only Gmail bindings per authorized account.
 - Resolve the runtime dependency audit finding by updating Soup Sieve to 4.0.
+- Recognize public Dependabot service metadata in the exact commit fields while retaining content and all-ref history scanning.
 
 ## 0.5.0 - 2026-11-01
 
