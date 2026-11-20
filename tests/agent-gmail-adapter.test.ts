@@ -39,6 +39,31 @@ const request = () => ({
   signal: new AbortController().signal,
 });
 describe('Gmail read-only transport bound by an operator', () => {
+  it('uses separate credentials for the same message ID in approved accounts', async () => {
+    const config = options();
+    const tokens = vi.fn(async (account: string) => 'SYNTHETIC_TOKEN_' + account);
+    config.normalizeRawEmail.mockImplementation(async () => [row]);
+    config.normalizeRawEmail
+      .mockResolvedValueOnce([row])
+      .mockResolvedValueOnce([{ ...row, recordKey: 'R02', sourceRef: 'SRC11' }]);
+    const adapter = createGmailReadAdapter({
+      ...config,
+      accessToken: tokens,
+      bindings: [
+        { ...config.bindings[0]!, account: 'A' },
+        { ...config.bindings[0]!, account: 'B', recordKey: 'R02', sourceRef: 'SRC11' },
+      ],
+    });
+    await expect(adapter.read({ ...request(), recordKeys: ['R01', 'R02'] })).resolves.toHaveLength(
+      2,
+    );
+    expect(tokens.mock.calls).toEqual([['A'], ['B']]);
+    expect(
+      config.fetch.mock.calls.map(
+        (call) => (call[1]?.headers as Record<string, string>).Authorization,
+      ),
+    ).toEqual(['Bearer SYNTHETIC_TOKEN_A', 'Bearer SYNTHETIC_TOKEN_B']);
+  });
   it('does not cross trips that reuse the same pseudonymous record key', async () => {
     const config = options();
     config.bindings.push({

@@ -85,6 +85,75 @@ de quem aprovou nem manifestação humana independente.
 
 ## Conciliação e integração
 
+### Revisões por diferença
+
+Use os comandos locais abaixo com uma pasta privada absoluta já existente,
+fora de um repositório Git. O JSON informa a chave da viagem, o instante
+da revisão, as fontes, os fatos, as tarefas e os cálculos. Consulte o
+exemplo executável em `examples/trip-update.json`.
+
+```text
+npm run trip:update -- preview ROOT INPUT
+npm run trip:update -- apply ROOT INPUT DIGEST
+npm run trip:update -- current ROOT
+```
+
+Use em `apply` o digest devolvido pela prévia e a mesma entrada. Cada revisão
+aprovada tem índice, painel, checklist, registro com fontes e JSON de alertas
+críticos. `current` localiza o índice da última revisão completa. Os alertas
+incluem uma chave que um executor externo pode usar para evitar duplicatas.
+Para consultar uma versão anterior, abra seu índice. Para corrigir a versão
+atual, aplique uma nova revisão com as evidências corrigidas.
+
+O encerramento exige fontes vigentes dos tipos indicados pela tarefa e
+evidência vinculada aos fatos acompanhados. Mudanças na agenda ou expiração
+de evidência podem reabrir a tarefa e suas dependentes. Cabe ao operador
+escolher a fonte de cada fato e conferir sua autenticidade.
+
+### Leitura seletiva de planilha, anexo e PDF longo
+
+```text
+uv run --directory ingest python -m travel_ingest.selected_sources agenda ABSOLUTE_INPUT.xlsx --sheet Current --first 3 --last 25 --date-column C --time-column D --label-column E --carry-date
+uv run --directory ingest python -m travel_ingest.selected_sources attachment ABSOLUTE_INPUT.zip --entry selected.eml
+uv run --directory ingest python -m travel_ingest.selected_sources pdf ABSOLUTE_INPUT.pdf --first 51 --last 80
+```
+
+Selecione a aba, as linhas e as colunas que pertencem ao grupo. O resultado
+registra hash, linhas e células. A data anterior só é carregada quando
+solicitado. Fórmulas ficam sem valor declarado. A leitura do ZIP abre apenas
+o anexo selecionado. A do PDF mantém a numeração original e processa até
+50 páginas por chamada. Páginas sem texto ficam marcadas para OCR.
+
+Para integrar a agenda ao controle, acrescente `--source-id`, `--fact-prefix`,
+`--observed-at` e `--utc-offset` ao comando da planilha. Divida a leitura
+se houver mudança de fuso. Salve a saída JSON em local privado e use
+`--fragment ARQUIVO.json` ao final de `preview` e `apply`. A planilha fornece
+observações de horário. Use um identificador novo para cada captura e
+selecione apenas um fragmento por fato alterado.
+
+### Estimativas de rota e previsão
+
+```text
+npm run trip:observation -- fetch REQUEST.json
+npm run trip:observation -- import REQUEST.json RESPONSE.json OBSERVED_AT
+```
+
+A importação é local. A consulta envia as coordenadas selecionadas a um único
+fornecedor fixo. Use a consulta quando os termos do fornecedor e a finalidade
+autorizarem. Use `kind`, `sourceId` e `factPrefix` em todas as solicitações.
+Rotas recebem `from` e `to`. Previsões recebem `at`, `day` e `timeZone`.
+As coordenadas seguem a ordem longitude, latitude.
+
+Cada resultado inclui fonte, hash, instante observado, prazo de reconsulta
+e fatos para `--fragment`. O prazo de reconsulta é de 24 horas para rota
+e seis horas para previsão. O cálculo pode usar `routeMinutesFact` mais os
+minutos operacionais informados pelo operador. A rota OSRM é uma estimativa
+sem trânsito ao vivo. A previsão Open-Meteo é resultado de modelo. Consulte
+diretamente os avisos meteorológicos oficiais pertinentes.
+
+[Formato OSRM](https://project-osrm.org/docs/v5.24.0/api/) e
+[formato Open-Meteo](https://open-meteo.com/en/docs).
+
 `reconcileDocuments({ tripKey, records })` compara snapshots já normalizados,
 associados por `reservationKey` explícito. Cada snapshot declara `sourceRef`,
 canal, tipo de serviço, fornecedor pseudônimo, estado, instantes, local e dinheiro

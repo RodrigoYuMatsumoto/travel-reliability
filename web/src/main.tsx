@@ -65,6 +65,14 @@ const labels: Record<string, [string, string]> = {
   CONNECTION_UNVERIFIABLE: ['Conexão sem horários verificáveis', 'Connection cannot be checked'],
   CONNECTION_BUFFER: ['Margem de conexão insuficiente', 'Insufficient connection buffer'],
   OVERNIGHT_UNCOVERED: ['Pernoite sem cobertura registrada', 'Overnight coverage missing'],
+  OVERNIGHT_EVIDENCE_PENDING: ['Comprovante do pernoite pendente', 'Overnight evidence pending'],
+  INSURANCE_ISSUANCE_UNVERIFIED: ['Emissão do seguro pendente', 'Policy issuance unverified'],
+  INSURANCE_RETURN_UNVERIFIED: ['Cobertura do retorno a conferir', 'Return coverage unverified'],
+  INSURANCE_RETURN_GAP: ['Lacuna no seguro do retorno', 'Return coverage gap'],
+  INSURANCE_RETURN_EVIDENCE: [
+    'Comprovação do seguro até o destino final',
+    'Final leg insurance evidence',
+  ],
   PROVIDER_CONTACT: ['Contato do fornecedor', 'Supplier contact'],
   CANCELLATION_POLICY: ['Condições de cancelamento', 'Cancellation terms'],
   TOTAL_PRICE: ['Custo total', 'Total price'],
@@ -669,7 +677,9 @@ function App() {
                               </div>
                               <div>
                                 <span className="mini-label">
-                                  {label(s.kind)} · {s.start.local.slice(11)}
+                                  {label(s.kind)} ·{' '}
+                                  {s.start.local.slice(11) ||
+                                    t('Hora a confirmar', 'Time unconfirmed')}
                                 </span>
                                 <h3>{s.title}</h3>
                                 <p>
@@ -1313,6 +1323,18 @@ function ServiceEditor({
   onSave: (service: Service) => Promise<void>;
 }) {
   const [draft, setDraft] = useState(service);
+  const [dateOnly, setDateOnly] = useState({
+    start: service.start.local.length === 10,
+    end: service.end.local.length === 10,
+  });
+  const allowDateOnly = [
+    'hotel',
+    'rental_home',
+    'hostel',
+    'camping',
+    'homestay',
+    'insurance',
+  ].includes(draft.kind);
   const change = (fn: (next: Service) => void) =>
     setDraft((old) => {
       const next = structuredClone(old);
@@ -1391,30 +1413,53 @@ function ServiceEditor({
                 }
               />
             </Field>
-            <Field label={t('Início local', 'Local start')}>
-              <input
-                type="datetime-local"
-                required
-                value={draft.start.local}
-                onChange={(e) =>
-                  change((n) => {
-                    n.start.local = e.target.value;
-                  })
-                }
-              />
-            </Field>
-            <Field label={t('Fim local', 'Local end')}>
-              <input
-                type="datetime-local"
-                required
-                value={draft.end.local}
-                onChange={(e) =>
-                  change((n) => {
-                    n.end.local = e.target.value;
-                  })
-                }
-              />
-            </Field>
+            {(['start', 'end'] as const).map((key) => {
+              const start = key === 'start';
+              const only = allowDateOnly && dateOnly[key];
+              return (
+                <div key={key}>
+                  <Field
+                    label={start ? t('Início local', 'Local start') : t('Fim local', 'Local end')}
+                  >
+                    <input
+                      type={only ? 'date' : 'datetime-local'}
+                      required
+                      value={
+                        only
+                          ? draft[key].local.slice(0, 10)
+                          : draft[key].local.length === 10
+                            ? ''
+                            : draft[key].local
+                      }
+                      onChange={(e) =>
+                        change((n) => {
+                          n[key].local = e.target.value;
+                        })
+                      }
+                    />
+                  </Field>
+                  {allowDateOnly && (
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={only}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setDateOnly((previous) => ({ ...previous, [key]: checked }));
+                          if (checked)
+                            change((n) => {
+                              n[key].local = n[key].local.slice(0, 10);
+                            });
+                        }}
+                      />
+                      {start
+                        ? t('Hora do início desconhecida', 'Start time unknown')
+                        : t('Hora do fim desconhecida', 'End time unknown')}
+                    </label>
+                  )}
+                </div>
+              );
+            })}
             <Field label={t('Fuso do início · IANA', 'Start time zone · IANA')}>
               <input
                 placeholder="America/Sao_Paulo"

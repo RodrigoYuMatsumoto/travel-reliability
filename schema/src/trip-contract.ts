@@ -359,6 +359,12 @@ export interface Service {
   };
   start: Time;
   end: Time;
+  insuranceEvidence?: {
+    stage: "requested" | "paid" | "issued";
+    documentId: string;
+    returnServiceId: string | null;
+    coversFinalLeg: boolean | null;
+  };
   location?: string | null;
   price: Money | null;
   cancellation: {

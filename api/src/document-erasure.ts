@@ -16,6 +16,10 @@ export function redactDocument(
       service.reservation.confirmation = 'not_checked';
       changed = true;
     }
+    if (service.insuranceEvidence?.documentId === documentId) {
+      delete service.insuranceEvidence;
+      changed = true;
+    }
     if (service.cancellation.documentId === documentId) {
       service.cancellation.documentId = null;
       changed = true;

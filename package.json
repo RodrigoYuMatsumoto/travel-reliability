@@ -43,6 +43,8 @@
     "format:check": "prettier --check .",
     "lint:python": "uv run --project ingest ruff check ingest/travel_ingest ingest/tests",
     "agent:operator": "node scripts/agent-operator.mjs",
+    "trip:update": "tsx scripts/trip-update.ts",
+    "trip:observation": "tsx scripts/trip-observation.ts",
     "security:fuzz:ecosystem": "node --import tsx security/fuzz/ecosystem.ts --seed 20261031 --cases 2000 --seconds 120 && uv run --project ingest python security/fuzz/email_import.py --seed 20261031 --cases 384 --seconds 120"
   },
   "dependencies": {

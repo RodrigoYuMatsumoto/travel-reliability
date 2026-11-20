@@ -1,0 +1,55 @@
+{
+  "tripKey": "synthetic-study-trip",
+  "at": "2032-02-10T15:00:00Z",
+  "sources": [
+    {
+      "id": "SRC01",
+      "kind": "agenda",
+      "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "observedAt": "2032-02-10T13:00:00Z",
+      "expiresAt": null
+    },
+    {
+      "id": "SRC02",
+      "kind": "order",
+      "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "observedAt": "2032-02-10T14:00:00Z",
+      "expiresAt": null
+    }
+  ],
+  "facts": [
+    {
+      "id": "visit-end",
+      "value": "2032-02-11T10:00:00+01:00",
+      "sourceIds": ["SRC01"]
+    },
+    {
+      "id": "next-start",
+      "value": "2032-02-11T10:40:00+01:00",
+      "sourceIds": ["SRC01"]
+    }
+  ],
+  "tasks": [
+    {
+      "id": "final-leg-policy",
+      "title": "Conferir o seguro até o destino final",
+      "owner": "Agência fictícia",
+      "nextAction": "Obter certificado emitido e vincular à viagem",
+      "dueAt": "2032-02-11T08:00:00Z",
+      "critical": true,
+      "state": "open",
+      "requiredEvidence": ["policy"],
+      "evidenceIds": ["SRC02"],
+      "watchFacts": [],
+      "dependsOn": []
+    }
+  ],
+  "calculations": [
+    {
+      "id": "between-visits",
+      "fromFact": "visit-end",
+      "toFact": "next-start",
+      "minimumMinutes": 55
+    }
+  ]
+}

@@ -43,13 +43,25 @@ export function calendar(trip: TripContract, options: { includePrivate?: boolean
   for (const s of trip.services.filter((s) => s.reservation.state !== 'cancelled')) {
     const start = instant(s.start),
       end = instant(s.end);
-    requireCondition(start !== null && end !== null, 'CALENDAR_NEEDS_TIMEZONE', 422);
+    const dateOnly = s.start.local.length === 10 || s.end.local.length === 10;
+    const interval: string[] = [];
+    if (dateOnly) {
+      const beginDay = s.start.local.slice(0, 10);
+      const endDay = s.end.local.slice(0, 10);
+      interval.push('DTSTART;VALUE=DATE:' + beginDay.replaceAll('-', ''));
+      if (endDay > beginDay) {
+        // An unresolved policy expiry day is not added as a covered all-day event.
+        interval.push('DTEND;VALUE=DATE:' + endDay.replaceAll('-', ''));
+      }
+    } else {
+      requireCondition(start !== null && end !== null, 'CALENDAR_NEEDS_TIMEZONE', 422);
+      interval.push('DTSTART:' + stamp(start), 'DTEND:' + stamp(end));
+    }
     lines.push(
       'BEGIN:VEVENT',
       `UID:${sha256(trip.id + '/' + s.id)}@travel-reliability.invalid`,
       'DTSTAMP:' + stamp(Date.now()),
-      'DTSTART:' + stamp(start),
-      'DTEND:' + stamp(end),
+      ...interval,
       'SUMMARY:' + escapeIcal(options.includePrivate ? s.title : `Travel / ${s.kind}`),
       'LOCATION:' + escapeIcal(options.includePrivate ? (s.location ?? '') : ''),
       'DESCRIPTION:' +

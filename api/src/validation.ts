@@ -16,6 +16,11 @@ const ajv = new Ajv2020({
 const check = ajv.compile(tripSchema);
 export function instant(time: { local: string; timeZone: string | null }): number | null {
   try {
+    if (time.local.length === 10) {
+      Temporal.PlainDate.from(time.local, { overflow: 'reject' });
+      if (time.timeZone) new Intl.DateTimeFormat('en', { timeZone: time.timeZone });
+      return null;
+    }
     const plain = Temporal.PlainDateTime.from(time.local, { overflow: 'reject' });
     if (!time.timeZone) return null;
     return plain.toZonedDateTime(time.timeZone, { disambiguation: 'reject' }).epochMilliseconds;
@@ -47,6 +52,53 @@ export function validateTrip(input: unknown): TripContract {
     422,
   );
   for (const service of trip.services) {
+    const dateOnly = service.start.local.length === 10 || service.end.local.length === 10;
+    if (dateOnly) {
+      requireCondition(
+        ['hotel', 'rental_home', 'hostel', 'camping', 'homestay', 'insurance'].includes(
+          service.kind,
+        ),
+        'DATE_ONLY_NOT_SUPPORTED_FOR_SERVICE',
+        422,
+      );
+      requireCondition(
+        service.end.local.slice(0, 10) >= service.start.local.slice(0, 10),
+        'SERVICE_END_BEFORE_START',
+        422,
+      );
+    }
+    const insurance = service.insuranceEvidence;
+    if (insurance) {
+      requireCondition(
+        service.kind === 'insurance' && service.documentIds.includes(insurance.documentId),
+        'INSURANCE_NEEDS_LINKED_EVIDENCE',
+        422,
+      );
+      requireCondition(
+        insurance.returnServiceId === null ||
+          trip.services.some(
+            (candidate) =>
+              candidate.id === insurance.returnServiceId &&
+              [
+                'flight',
+                'bus',
+                'rail',
+                'ferry',
+                'cruise',
+                'transfer',
+                'taxi',
+                'rideshare',
+              ].includes(candidate.kind),
+          ),
+        'INSURANCE_RETURN_SERVICE_INVALID',
+        422,
+      );
+      requireCondition(
+        insurance.stage === 'issued' || insurance.coversFinalLeg === null,
+        'INSURANCE_SCOPE_NEEDS_ISSUED_POLICY',
+        422,
+      );
+    }
     const start = instant(service.start),
       end = instant(service.end);
     if (start !== null && end !== null)

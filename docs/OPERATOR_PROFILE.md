@@ -144,6 +144,14 @@ entre fontes e transporte autenticado não provam que uma reserva foi cumprida.
 
 ## Limites e falhas observáveis
 
+Para vincular mensagens de contas diferentes, use o campo opcional
+`account` em cada vínculo de `gmail.bindings`. As chaves são identificadores
+em maiúsculas, como `PERSONAL` e `WORK`. O processo lê
+`TRAVEL_GMAIL_ACCESS_TOKEN_PERSONAL` ou `TRAVEL_GMAIL_ACCESS_TOKEN_WORK` conforme
+o vínculo. Vínculos antigos seguem usando `TRAVEL_GMAIL_ACCESS_TOKEN`. IDs de
+mensagem podem coincidir entre contas, com `sourceRef` exclusivo. O escopo
+continua vinculado à viagem e ao registro. O operador seleciona as mensagens.
+
 O perfil deve ser um arquivo regular local, UTF-8 e JSON estrito, de até 64 KiB,
 sem links simbólicos/junctions ou hardlinks. Campos adicionais, duplicação de
 chaves JSON, prototypes, getters e módulos/URLs/interpretadores arbitrários são

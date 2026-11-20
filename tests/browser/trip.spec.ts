@@ -1,5 +1,24 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+
+test('saves lodging dates without inventing a check-in time', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Explorar demonstração' }).click();
+  await page.getByRole('button', { name: 'Reservas e condições' }).click();
+  const stay = page
+    .locator('article')
+    .filter({ has: page.getByRole('heading', { name: 'Hospedagem de demonstração' }) });
+  await stay.getByRole('button', { name: 'Revisar condições' }).click();
+  const editor = page.getByRole('dialog', { name: 'Condições do serviço' });
+  await editor.getByLabel('Hora do início desconhecida').check();
+  await expect(editor.getByLabel('Início local', { exact: true })).toHaveValue('2026-10-29');
+  await editor.getByRole('button', { name: 'Validar e salvar' }).click();
+  await expect(editor).toBeHidden();
+  await stay.getByRole('button', { name: 'Revisar condições' }).click();
+  await expect(editor.getByLabel('Início local', { exact: true })).toHaveValue('2026-10-29');
+  await expect(editor.getByLabel('Hora do início desconhecida')).toBeChecked();
+});
+
 test('synthetic trip, evidence review, dossier and language', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Explorar demonstração' }).click();

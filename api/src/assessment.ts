@@ -9,6 +9,35 @@ import type {
 import { instant } from './validation.js';
 import { validCnpj } from './cnpj.js';
 
+function insuranceReturn(trip: TripContract, service: TripContract['services'][number]) {
+  const evidence = service.insuranceEvidence;
+  if (evidence?.stage !== 'issued') return 'INSURANCE_ISSUANCE_UNVERIFIED';
+  const leg = trip.services.find((item) => item.id === evidence.returnServiceId);
+  if (!leg || !['booked', 'completed'].includes(leg.reservation.state))
+    return 'INSURANCE_RETURN_UNVERIFIED';
+  const expiry = instant(service.end);
+  const arrival = instant(leg.end);
+  // Date-only evidence cannot prove an instant across zones, including the expiry day.
+  const sameZone = !!service.end.timeZone && service.end.timeZone === leg.end.timeZone;
+  const expiryDay = service.end.local.slice(0, 10);
+  const arrivalDay = leg.end.local.slice(0, 10);
+  if (
+    evidence.coversFinalLeg === false ||
+    (expiry !== null && arrival !== null && expiry < arrival) ||
+    (sameZone && (expiry === null || arrival === null) && expiryDay < arrivalDay)
+  )
+    return 'INSURANCE_RETURN_GAP';
+  if (
+    evidence.coversFinalLeg !== true ||
+    !(
+      (expiry !== null && arrival !== null && expiry >= arrival) ||
+      (sameZone && expiryDay > arrivalDay)
+    )
+  )
+    return 'INSURANCE_RETURN_UNVERIFIED';
+  return null;
+}
+
 export function assess(
   trip: TripContract,
   events: DisruptionEvent[] = [],
@@ -81,6 +110,10 @@ export function assess(
     if (booked && s.reservation.confirmation === 'not_checked')
       add('CONFIRMATION_PENDING', 'warning', s.id);
     if (!s.start.timeZone || !s.end.timeZone) add('TIMEZONE_UNKNOWN', 'warning', s.id);
+    if (s.kind === 'insurance') {
+      const issue = insuranceReturn(trip, s);
+      if (issue) add(issue, issue === 'INSURANCE_RETURN_GAP' ? 'critical' : 'warning', s.id);
+    }
     if (s.cancellation.deadline) {
       const hours = (Date.parse(s.cancellation.deadline) - now.getTime()) / 3600000;
       if (hours >= 0 && hours <= 168)
@@ -126,19 +159,39 @@ export function assess(
     endDate = Temporal.PlainDate.from(trip.endDate);
   while (Temporal.PlainDate.compare(date, endDate) < 0) {
     const day = date.toString();
+    const candidates = trip.services.filter(
+      (s) =>
+        s.reservation.state !== 'cancelled' &&
+        s.reservation.confirmation !== 'failed' &&
+        [
+          'hotel',
+          'rental_home',
+          'hostel',
+          'camping',
+          'homestay',
+          'cruise',
+          'flight',
+          'bus',
+          'rail',
+          'ferry',
+        ].includes(s.kind) &&
+        s.start.local.slice(0, 10) <= day &&
+        s.end.local.slice(0, 10) > day,
+    );
     const covered =
       trip.overnightExemptions.some((e) => e.date === day) ||
-      trip.services.some(
-        (s) =>
-          s.reservation.state !== 'cancelled' &&
-          ((['hotel', 'rental_home', 'hostel', 'camping', 'homestay', 'cruise'].includes(s.kind) &&
-            s.start.local.slice(0, 10) <= day &&
-            s.end.local.slice(0, 10) > day) ||
-            (['flight', 'bus', 'rail', 'ferry'].includes(s.kind) &&
-              s.start.local.slice(0, 10) <= day &&
-              s.end.local.slice(0, 10) > day)),
+      candidates.some(
+        (s) => ['booked', 'completed'].includes(s.reservation.state) && s.documentIds.length > 0,
       );
-    if (!covered) add('OVERNIGHT_UNCOVERED', 'critical', undefined, { date: day });
+    if (!covered) {
+      if (candidates.some((s) => s.reservation.state !== 'quote'))
+        add('OVERNIGHT_EVIDENCE_PENDING', 'warning', undefined, { date: day });
+      else
+        add('OVERNIGHT_UNCOVERED', 'critical', undefined, {
+          date: day,
+          quoteOnly: candidates.length ? 1 : 0,
+        });
+    }
     date = date.add({ days: 1 });
   }
   const coverage = possible ? Math.round((known / possible) * 100) : 0;
@@ -186,7 +239,9 @@ export function checklist(
       item('PROVIDER_CONFIRMATION', s.reservation.confirmation === 'confirmed');
       item('EVIDENCE_ATTACHED', !!s.documentIds.length);
       item('BAGGAGE_TERMS', !!s.baggage, ['flight', 'bus'].includes(s.kind));
-      item('LOCAL_TIME_CONFIRMED', !!s.start.timeZone && !!s.end.timeZone);
+      item('LOCAL_TIME_CONFIRMED', instant(s.start) !== null && instant(s.end) !== null);
+      if (s.kind === 'insurance')
+        item('INSURANCE_RETURN_EVIDENCE', insuranceReturn(trip, s) === null);
       for (const requirement of s.requirements)
         item('REQUIREMENT:' + requirement.code, requirement.status === 'confirmed');
     }

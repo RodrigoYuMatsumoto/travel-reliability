@@ -8,8 +8,9 @@ export function createGmailReadAdapter(options: {
     recordKey: string;
     messageId: string;
     sourceRef: string;
+    account?: string;
   }>;
-  accessToken: () => Promise<string>;
+  accessToken: (account: string) => Promise<string>;
   normalizeRawEmail: (
     bytes: Uint8Array,
     context: { recordKey: string; sourceRef: string; signal?: AbortSignal },
@@ -20,12 +21,14 @@ export function createGmailReadAdapter(options: {
   const bindings = options.bindings.map((row) => ({ ...row }));
   if (
     new Set(bindings.map((row) => row.sourceRef)).size !== bindings.length ||
-    new Set(bindings.map((row) => row.messageId)).size !== bindings.length ||
+    new Set(bindings.map((row) => (row.account ?? 'DEFAULT') + ':' + row.messageId)).size !==
+      bindings.length ||
     bindings.some(
       (row) =>
         !/^[A-Za-z0-9_-]{1,40}$/.test(row.tripKey) ||
         !/^[A-Z][A-Z0-9_-]{1,39}$/.test(row.recordKey) ||
         !/^[A-Za-z0-9_-]{1,128}$/.test(row.messageId) ||
+        (row.account !== undefined && !/^[A-Z][A-Z0-9_]{0,23}$/.test(row.account)) ||
         !/^SRC[0-9]{2,6}$/.test(row.sourceRef),
     )
   )
@@ -44,9 +47,13 @@ export function createGmailReadAdapter(options: {
         selected.length > 20
       )
         throw new AppError('GMAIL_MESSAGE_SCOPE_DENIED', 403);
-      const token = await options.accessToken();
-      if (!/^[A-Za-z0-9._~+\/-]{10,4096}={0,4}$/.test(token))
-        throw new AppError('GMAIL_AUTH_UNAVAILABLE', 403);
+      const tokens = new Map<string, string>();
+      for (const account of new Set(selected.map((row) => row.account ?? 'DEFAULT'))) {
+        const token = await options.accessToken(account);
+        if (!/^[A-Za-z0-9._~+\/-]{10,4096}={0,4}$/.test(token))
+          throw new AppError('GMAIL_AUTH_UNAVAILABLE', 403);
+        tokens.set(account, token);
+      }
       const observations: BookingObservation[] = [];
       for (const binding of selected) {
         signal.throwIfAborted();
@@ -58,7 +65,10 @@ export function createGmailReadAdapter(options: {
             cache: 'no-store',
             credentials: 'omit',
             signal,
-            headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+            headers: {
+              Authorization: 'Bearer ' + tokens.get(binding.account ?? 'DEFAULT'),
+              Accept: 'application/json',
+            },
           },
         );
         if (!response.ok || !response.body) throw new AppError('GMAIL_READ_REJECTED', 502);

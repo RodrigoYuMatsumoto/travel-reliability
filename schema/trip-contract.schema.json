@@ -157,7 +157,7 @@
       "properties": {
         "local": {
           "type": "string",
-          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$"
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2})?$"
         },
         "timeZone": {
           "type": [
@@ -476,6 +476,17 @@
         },
         "end": {
           "$ref": "#/$defs/time"
+        },
+        "insuranceEvidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["stage", "documentId", "returnServiceId", "coversFinalLeg"],
+          "properties": {
+            "stage": { "enum": ["requested", "paid", "issued"] },
+            "documentId": { "type": "string", "format": "uuid" },
+            "returnServiceId": { "type": ["string", "null"], "maxLength": 40 },
+            "coversFinalLeg": { "type": ["boolean", "null"] }
+          }
         },
         "location": {
           "type": [

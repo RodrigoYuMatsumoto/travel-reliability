@@ -62,6 +62,7 @@ export const operatorProfileSchema = {
               messageId: { type: 'string', pattern: '^[A-Za-z0-9_-]{1,128}$' },
               sourceRef: { type: 'string', pattern: '^SRC[0-9]{2,6}$' },
               providerKey: { type: 'string', pattern: '^[a-z][a-z0-9-]{1,39}$' },
+              account: { type: 'string', pattern: '^[A-Z][A-Z0-9_]{0,23}$' },
             },
           },
         },
@@ -84,6 +85,7 @@ export interface OperatorProfile {
       messageId: string;
       sourceRef: string;
       providerKey: string;
+      account?: string;
     }>;
   };
 }
@@ -163,7 +165,8 @@ export function validateOperatorProfile(input: unknown): OperatorProfile {
     }
     if (
       new Set(gmail.bindings.map((row) => row.sourceRef)).size !== gmail.bindings.length ||
-      new Set(gmail.bindings.map((row) => row.messageId)).size !== gmail.bindings.length
+      new Set(gmail.bindings.map((row) => (row.account ?? 'DEFAULT') + ':' + row.messageId))
+        .size !== gmail.bindings.length
     )
       reject('OPERATOR_PROFILE_DUPLICATE_BINDING');
     const bound = new Map<string, Set<string>>();
@@ -294,9 +297,19 @@ export async function createOperatorServerOptions(
   const profile = validateOperatorProfile(input);
   let connectors: TravelConnectorRegistry | undefined;
   if (profile.gmail) {
-    const token = env.TRAVEL_GMAIL_ACCESS_TOKEN;
-    if (!token || !/^[A-Za-z0-9._~+\/-]{10,4096}={0,4}$/.test(token))
-      reject('OPERATOR_GMAIL_TOKEN_UNAVAILABLE');
+    const tokens = new Map<string, string>();
+    for (const account of new Set(
+      profile.gmail.bindings.map((binding) => binding.account ?? 'DEFAULT'),
+    )) {
+      const name =
+        account === 'DEFAULT'
+          ? 'TRAVEL_GMAIL_ACCESS_TOKEN'
+          : 'TRAVEL_GMAIL_ACCESS_TOKEN_' + account;
+      const token = env[name];
+      if (!token || !/^[A-Za-z0-9._~+\/-]{10,4096}={0,4}$/.test(token))
+        reject('OPERATOR_GMAIL_TOKEN_UNAVAILABLE');
+      tokens.set(account, token);
+    }
     const key = referenceKey(env);
     const normalizers = new Map<string, ReturnType<typeof createLocalEmailNormalizer>>();
     const sourceBindings = new Map(
@@ -319,7 +332,7 @@ export async function createOperatorServerOptions(
     }
     const adapter = createGmailReadAdapter({
       bindings: profile.gmail.bindings,
-      accessToken: async () => token,
+      accessToken: async (account) => tokens.get(account) ?? '',
       normalizeRawEmail: async (bytes, context) => {
         const binding = sourceBindings.get(context.sourceRef);
         if (!binding || binding.recordKey !== context.recordKey)
