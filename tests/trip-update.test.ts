@@ -150,6 +150,34 @@ describe('evidence-based revisions of a synthetic trip', () => {
     expect(update.changes.reopened).toHaveLength(2);
   });
 
+  it.each(['risk_accepted', 'superseded'] as const)(
+    'reopens a %s task when its decision expires instead of rejecting the update',
+    (state) => {
+      const original = initial();
+      original.sources.push({
+        id: 'D1',
+        kind: 'decision',
+        digest: 'd'.repeat(64),
+        observedAt: at,
+        expiresAt: '2031-03-02T00:00:00Z',
+      });
+      Object.assign(original.tasks[2]!, { state, evidenceIds: ['D1', 'S2'] });
+      const old = reviewTripUpdate(original);
+      expect(old.snapshot.tasks[2]!.state).toBe(state);
+
+      const later = reviewTripUpdate({ ...old.snapshot, at: '2031-03-02T00:00:00Z' }, old.snapshot);
+      expect(later.changes.reopened).toEqual([
+        { id: 'policy', reason: 'decision_missing_or_expired' },
+      ]);
+      expect(later.snapshot.tasks.find((item) => item.id === 'policy')!.state).toBe('open');
+      expect(later.counts).toMatchObject({ open: 1, criticalOpen: 1, superseded: 0 });
+
+      const retry = structuredClone(later.snapshot);
+      retry.tasks.find((item) => item.id === 'policy')!.state = state;
+      expect(() => reviewTripUpdate(retry, later.snapshot)).toThrow('TASK_DECISION_NEEDS_EVIDENCE');
+    },
+  );
+
   it('keeps revisions immutable and rejects concurrent promotion from the same preview', async () => {
     const root = await mkdtemp(join(tmpdir(), 'trip-update-'));
     try {

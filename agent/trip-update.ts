@@ -177,7 +177,13 @@ export function reviewTripUpdate(raw: unknown, previous?: TripUpdateInput) {
     );
     const kinds = new Set(activeEvidence.map((sourceId) => sources.get(sourceId)!.kind));
     if (item.state === 'superseded' || item.state === 'risk_accepted') {
-      if (!kinds.has('decision')) throw new Error('TASK_DECISION_NEEDS_EVIDENCE');
+      if (!kinds.has('decision')) {
+        // A new decision state needs current proof. An existing one whose decision
+        // expired or was withdrawn reopens instead of blocking every later revision.
+        if (old?.state !== item.state) throw new Error('TASK_DECISION_NEEDS_EVIDENCE');
+        item.state = 'open';
+        reopened.push({ id: key, reason: 'decision_missing_or_expired' });
+      }
     } else if (item.state === 'done') {
       let reason: string | undefined;
       if (!item.requiredEvidence.length || !item.requiredEvidence.every((type) => kinds.has(type)))

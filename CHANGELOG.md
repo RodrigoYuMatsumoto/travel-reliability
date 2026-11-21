@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Evaluate final-leg insurance coverage for the trip: one active issued policy that covers the final arrival clears the return findings of complementary policies, while issuance is still reported per policy.
+- Report a proven gap on the declared return leg even when another leg cannot be ordered, instead of downgrading it to an unverified warning.
+- Reopen an accepted-risk or superseded task whose decision expired or was withdrawn, instead of rejecting every later revision. A new decision state still requires current proof.
+
 ## 0.6.0
 
 - Accept date-only lodging and insurance evidence. Distinguish quotes, requested policies, payments and issued certificates. Check the documented scope and dates against the final booked or completed transport in the itinerary.

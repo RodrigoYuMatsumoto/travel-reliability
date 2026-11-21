@@ -136,6 +136,50 @@ describe('synthetic overnight and final leg evidence', () => {
     expect(codes(trip)).toContain('INSURANCE_RETURN_UNVERIFIED');
   });
 
+  it('reports a proven gap on the declared final leg even when another leg cannot be ordered', () => {
+    const trip = policy('issued', checkout + 'T12:00', null);
+    const earlierLeg = trip.services[1]!;
+    trip.services.push({
+      ...earlierLeg,
+      id: 'onward-unknown-zone',
+      start: { ...earlierLeg.start, local: checkout + 'T14:30' },
+      end: { ...earlierLeg.end, local: checkout + 'T16:00', timeZone: null },
+    });
+    expect(assess(validateTrip(trip)).findings).toContainEqual(
+      expect.objectContaining({ code: 'INSURANCE_RETURN_GAP', severity: 'critical' }),
+    );
+  });
+
+  it('evaluates final-leg coverage for the trip when a second policy covers the return', () => {
+    const trip = policy('issued', date, false);
+    const first = trip.services[2]!;
+    const second: TripContract['services'][number] = {
+      ...first,
+      id: 'policy-complement',
+      end: { ...first.end, local: checkout + 'T13:00' },
+      insuranceEvidence: { ...first.insuranceEvidence!, stage: 'requested', coversFinalLeg: null },
+    };
+    trip.services.push(second);
+    expect(codes(trip)).toEqual(
+      expect.arrayContaining(['INSURANCE_RETURN_GAP', 'INSURANCE_ISSUANCE_UNVERIFIED']),
+    );
+
+    second.insuranceEvidence = {
+      ...second.insuranceEvidence!,
+      stage: 'issued',
+      coversFinalLeg: true,
+    };
+    expect(codes(trip).filter((code) => code.startsWith('INSURANCE_'))).toEqual([]);
+    expect(
+      checklist(trip, 'pre_departure')
+        .filter((item) => item.code === 'INSURANCE_RETURN_EVIDENCE')
+        .map((item) => item.status),
+    ).toEqual(['complete', 'complete']);
+
+    second.reservation = { ...second.reservation, state: 'cancelled' };
+    expect(codes(trip)).toContain('INSURANCE_RETURN_GAP');
+  });
+
   it('reopens insurance verification when its documentary evidence is erased', () => {
     const trip = policy('issued', checkout + 'T13:00', true);
     expect(codes(trip)).not.toContain('INSURANCE_ISSUANCE_UNVERIFIED');

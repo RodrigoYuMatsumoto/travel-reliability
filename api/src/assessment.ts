@@ -19,22 +19,23 @@ function insuranceReturn(trip: TripContract, service: TripContract['services'][n
   if (!leg) return 'INSURANCE_RETURN_UNVERIFIED';
   const expiry = instant(service.end);
   const arrival = instant(leg.end);
-  for (const other of transport) {
-    if (other.id === leg.id) continue;
-    const otherArrival = instant(other.end);
-    if (arrival === null || otherArrival === null || otherArrival > arrival)
-      return 'INSURANCE_RETURN_UNVERIFIED';
-  }
   // Date-only evidence cannot prove an instant across zones, including the expiry day.
   const sameZone = !!service.end.timeZone && service.end.timeZone === leg.end.timeZone;
   const expiryDay = service.end.local.slice(0, 10);
   const arrivalDay = leg.end.local.slice(0, 10);
+  // A gap on the declared return leg is proven whatever the order of the other legs.
   if (
     evidence.coversFinalLeg === false ||
     (expiry !== null && arrival !== null && expiry < arrival) ||
     (sameZone && (expiry === null || arrival === null) && expiryDay < arrivalDay)
   )
     return 'INSURANCE_RETURN_GAP';
+  for (const other of transport) {
+    if (other.id === leg.id) continue;
+    const otherArrival = instant(other.end);
+    if (arrival === null || otherArrival === null || otherArrival > arrival)
+      return 'INSURANCE_RETURN_UNVERIFIED';
+  }
   if (
     evidence.coversFinalLeg !== true ||
     !(
@@ -44,6 +45,18 @@ function insuranceReturn(trip: TripContract, service: TripContract['services'][n
   )
     return 'INSURANCE_RETURN_UNVERIFIED';
   return null;
+}
+
+// Return coverage belongs to the trip: one active issued policy covering the final arrival
+// is enough, even when a complementary policy ends earlier. Issuance stays per policy.
+function returnCovered(trip: TripContract) {
+  return trip.services.some(
+    (service) =>
+      service.kind === 'insurance' &&
+      service.reservation.state !== 'cancelled' &&
+      service.reservation.confirmation !== 'failed' &&
+      insuranceReturn(trip, service) === null,
+  );
 }
 
 export function assess(
@@ -70,6 +83,7 @@ export function assess(
     findings.push({ code, severity, ...(serviceId ? { serviceId } : {}), parameters });
     risk += points;
   };
+  const tripReturnCovered = returnCovered(trip);
   for (const s of trip.services.filter((s) => s.reservation.state !== 'cancelled')) {
     const booked = ['booked', 'completed'].includes(s.reservation.state);
     field(!!s.price);
@@ -120,7 +134,8 @@ export function assess(
     if (!s.start.timeZone || !s.end.timeZone) add('TIMEZONE_UNKNOWN', 'warning', s.id);
     if (s.kind === 'insurance') {
       const issue = insuranceReturn(trip, s);
-      if (issue) add(issue, issue === 'INSURANCE_RETURN_GAP' ? 'critical' : 'warning', s.id);
+      if (issue && !(tripReturnCovered && issue !== 'INSURANCE_ISSUANCE_UNVERIFIED'))
+        add(issue, issue === 'INSURANCE_RETURN_GAP' ? 'critical' : 'warning', s.id);
     }
     if (s.cancellation.deadline) {
       const hours = (Date.parse(s.cancellation.deadline) - now.getTime()) / 3600000;
@@ -219,6 +234,7 @@ export function checklist(
   phase: 'pre_booking' | 'pre_departure',
 ): ChecklistItem[] {
   const result: ChecklistItem[] = [];
+  const tripReturnCovered = returnCovered(trip);
   for (const s of trip.services) {
     if (s.reservation.state === 'cancelled') continue;
     const item = (code: string, done: boolean, applicable = true) =>
@@ -248,8 +264,7 @@ export function checklist(
       item('EVIDENCE_ATTACHED', !!s.documentIds.length);
       item('BAGGAGE_TERMS', !!s.baggage, ['flight', 'bus'].includes(s.kind));
       item('LOCAL_TIME_CONFIRMED', instant(s.start) !== null && instant(s.end) !== null);
-      if (s.kind === 'insurance')
-        item('INSURANCE_RETURN_EVIDENCE', insuranceReturn(trip, s) === null);
+      if (s.kind === 'insurance') item('INSURANCE_RETURN_EVIDENCE', tripReturnCovered);
       for (const requirement of s.requirements)
         item('REQUIREMENT:' + requirement.code, requirement.status === 'confirmed');
     }
